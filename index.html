@@ -242,7 +242,7 @@ function ensureAudio(){
 
     masterGain=audioCtx.createGain();masterGain.gain.value=parseFloat($("vol").value)*0.75;
 
-    const sat=audioCtx.createWaveShaper();sat.oversample="4x";
+    window._satNode=audioCtx.createWaveShaper();window._satNode.oversample="4x";
     sat.curve=makeDistCurve(2.0);
 
     const hp=audioCtx.createBiquadFilter();hp.type="highpass";hp.frequency.value=30;
@@ -364,9 +364,9 @@ function playBass(t,freq,v){
     g.gain.setValueAtTime(0,t);
     g.gain.linearRampToValueAtTime(0.85,t+0.002);
     g.gain.exponentialRampToValueAtTime(0.001,t+0.19);
-    o.connect(f);f.connect(g);g.connect(duckBus);
+    o.connect(f);f.connect(g);var bfx=audioCtx.createBiquadFilter();bfx.type="lowpass";bfx.frequency.value=fx.cutoff;bfx.Q.value=fx.reso;g.connect(bfx);bfx.connect(duckBus);
     o.start(t);o.stop(t+0.2);
-    o.onended=function(){o.disconnect();f.disconnect();g.disconnect();};
+    o.onended=function(){o.disconnect();f.disconnect();g.disconnect();if(typeof bfx!=='undefined')bfx.disconnect();};
 }
 
 function playLead(t,freq,v,accent,echo){
@@ -385,10 +385,10 @@ function playLead(t,freq,v,accent,echo){
     g.gain.exponentialRampToValueAtTime(peak,t+0.008);
     g.gain.exponentialRampToValueAtTime(0.001,t+0.24);
     o.connect(f);o2.connect(f);f.connect(g);
-    if(pan){g.connect(pan);pan.connect(masterGain);}else{g.connect(masterGain);}
+    var lfx=audioCtx.createBiquadFilter();lfx.type="lowpass";lfx.frequency.value=fx.cutoff;lfx.Q.value=fx.reso;g.connect(lfx);if(pan){lfx.connect(pan);pan.connect(masterGain);}else{lfx.connect(masterGain);}
     if(echo&&ppIn){g.connect(ppIn);}
     o.start(t);o2.start(t);o.stop(t+0.26);o2.stop(t+0.26);
-    o.onended=function(){o.disconnect();o2.disconnect();f.disconnect();g.disconnect();if(pan)pan.disconnect();};
+    o.onended=function(){o.disconnect();o2.disconnect();f.disconnect();g.disconnect();if(typeof lfx!=='undefined')lfx.disconnect();if(pan)pan.disconnect();};
 }
 
 /* scheduler */
