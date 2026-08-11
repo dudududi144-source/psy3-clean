@@ -199,7 +199,7 @@ var _activeVoices=0;
 var MAX_VOICES=24;
 function ensureAudio(){
     if(audioCtx){if(audioCtx.state==="suspended")audioCtx.resume();return;}
-    audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    audioCtx=new(window.AudioContext||window.webkitAudioContext)({latencyHint:"playback"});
 
     duckBus=audioCtx.createGain();duckBus.gain.value=0.7;
 
@@ -241,6 +241,10 @@ function ensureAudio(){
     dlR.connect(pnR);pnR.connect(masterGain);
 
     noiseBuf=audioCtx.createBuffer(1,Math.floor(audioCtx.sampleRate*0.4),audioCtx.sampleRate);
+var _clickBuf=audioCtx.createBuffer(1,Math.floor(audioCtx.sampleRate*0.003),audioCtx.sampleRate);
+var _cd=_clickBuf.getChannelData(0);
+for(var _ci2=0;_ci2<_cd.length;_ci2++)_cd[_ci2]=(Math.random()*2-1)*(1-_ci2/_cd.length);
+window._clickBuf=_clickBuf;
     const nd=noiseBuf.getChannelData(0);
     for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
 
@@ -271,11 +275,8 @@ _activeVoices++;
     o.connect(g);g.connect(masterGain);
     o.start(t);o.stop(t+0.3);
     o.onended=function(){o.disconnect();g.disconnect();_activeVoices--;};
-    /* click transient */
-    const cb=c.createBuffer(1,Math.floor(c.sampleRate*0.003),c.sampleRate);
-    const cd=cb.getChannelData(0);
-    for(let i=0;i<cd.length;i++)cd[i]=(Math.random()*2-1)*(1-i/cd.length);
-    const cs=c.createBufferSource();cs.buffer=cb;
+    /* click transient (pre-created buffer) */
+    const cs=c.createBufferSource();cs.buffer=window._clickBuf;
     const chp=c.createBiquadFilter();chp.type="highpass";chp.frequency.value=5000;
     const cg=c.createGain();
     cg.gain.setValueAtTime(0.06,t);
@@ -344,7 +345,7 @@ _activeVoices++;
 
 /* scheduler */
 function scheduler(){
-    while(nextNoteTime<audioCtx.currentTime+0.06){
+    while(nextNoteTime<audioCtx.currentTime+0.1){
         scheduleStep(currentStep,nextNoteTime);
         const spb=60/activePreset().bpm;
         nextNoteTime+=0.25*spb;
@@ -375,8 +376,8 @@ function startSeq(){
     if(isPlaying)return;
     isPlaying=true;currentStep=0;uiStep=-1;barCount=0;
     initLivePatterns();
-    nextNoteTime=audioCtx.currentTime+0.06;
-    schedulerTimer=makeTimer(12,function(){scheduler();});
+    nextNoteTime=audioCtx.currentTime+0.1;
+    schedulerTimer=makeTimer(25,function(){scheduler();});
     $("playBtn").classList.add("playing");$("playBtn").textContent="■";
     bumpStat("plays");
 }
@@ -408,7 +409,7 @@ for(var _ci=0;_ci<32;_ci++){
     _barColors.push("hsl("+_hue+",100%,60%)");
 }
 function drawScope(){
-_frameCount++;if(_frameCount%2!==0)return;
+_frameCount++;if(_frameCount%3!==0)return;
     requestAnimationFrame(drawScope);
     if(!analyser)return;
     sizeScopeIfChanged();
@@ -420,7 +421,6 @@ _frameCount++;if(_frameCount%2!==0)return;
     for(let i=0;i<bars;i++){
         const val=freqData[Math.floor(i*freqData.length/bars/1.6)]/255;
         const h=Math.max(2,val*H*0.92);
-        const hue=170+i*2.2;
         sctx.globalAlpha=0.35+val*0.65;
 sctx.fillStyle=_barColors[i]||"#0fc";
         sctx.fillRect(i*bw+1,H-h,bw-2,h);
