@@ -162,7 +162,7 @@ variants:{A:{bassWave:"sawtooth",bassCut:900,bassQ:7,leadWave:"sawtooth",leadCut
 ];
 
 /* ── state ── */
-let audioCtx=null,masterGain=null,duckBus=null,analyser=null;
+let audioCtx=null,masterGain=null,duckBus=null,analyser=null,unlocked=false;
 let ppIn=null,noiseBuf=null;
 let isPlaying=false,schedulerTimer=null,currentStep=0,nextNoteTime=0;
 let activePresetId=PRESETS[0].id,activeVariant="A",uiStep=-1;
