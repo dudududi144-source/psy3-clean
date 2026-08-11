@@ -2,295 +2,556 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PSY3 - Commercial Trance Engine</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>PSY3 — Full Engine</title>
 <style>
-body{font-family:system-ui;background:#05080c;color:#eef;padding:20px;text-align:center}
-h1{color:#d4ff3f;text-shadow:0 0 16px #d4ff3f;font-size:24px}
-#play{font-size:20px;padding:14px 44px;border-radius:14px;border:2px solid #d4ff3f;background:#131a10;color:#d4ff3f;cursor:pointer}
-#play:hover{background:#d4ff3f;color:#000}
-#status{color:#888;margin-top:10px;font-size:12px}
-#state{font-size:32px;margin-top:15px;font-weight:bold;transition:color 0.5s}
-#energy-bar{width:300px;height:8px;background:#222;margin:10px auto;border-radius:4px;overflow:hidden}
-#energy-fill{height:100%;background:linear-gradient(90deg,#d4ff3f,#ff6b35,#ff2e63);width:0%;transition:width 0.3s}
-#info{color:#666;font-size:11px;margin-top:8px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,sans-serif;background:#060a0e;color:#dfe5ee;
+display:flex;flex-direction:column;align-items:center;justify-content:center;
+min-height:100vh;padding:20px;text-align:center;overflow:hidden}
+h1{font-size:26px;color:#d4ff3f;text-shadow:0 0 20px rgba(212,255,63,.4);letter-spacing:.25em;margin-bottom:6px}
+.sub{font-size:10px;color:#5a6478;letter-spacing:.2em;margin-bottom:24px}
+#playBtn{width:130px;height:130px;border-radius:50%;border:2px solid #d4ff3f;
+background:radial-gradient(circle at 40% 35%,#1a2410,#0a0f06);color:#d4ff3f;
+font-size:14px;font-weight:700;letter-spacing:.12em;cursor:pointer;
+transition:all .2s;box-shadow:0 0 30px rgba(212,255,63,.15)}
+#playBtn:hover{box-shadow:0 0 50px rgba(212,255,63,.35);transform:scale(1.04)}
+#playBtn.active{background:radial-gradient(circle at 40% 35%,#3a4a10,#1a2406);
+box-shadow:0 0 60px rgba(212,255,63,.5)}
+#state{font-size:30px;font-weight:800;margin-top:18px;letter-spacing:.15em;
+transition:color .6s;text-shadow:0 0 24px currentColor}
+#bars{width:260px;height:6px;background:#111;border-radius:3px;margin-top:12px;overflow:hidden}
+#barsFill{height:100%;width:0%;background:linear-gradient(90deg,#d4ff3f,#ff6b35);
+transition:width .15s linear;border-radius:3px}
+#chaos{width:260px;height:3px;background:#111;border-radius:2px;margin-top:6px;overflow:hidden}
+#chaosFill{height:100%;width:0%;background:#ff2e63;transition:width .4s;border-radius:2px}
+#vu{width:260px;height:4px;background:#0a0a0a;border-radius:2px;margin-top:8px;overflow:hidden}
+#vuFill{height:100%;width:0%;background:#4fd6c0;transition:width 50ms linear}
+#info{margin-top:14px;font-size:10px;color:#3a4458;font-family:monospace;line-height:1.9}
 </style>
 </head>
 <body>
 <h1>PSY3</h1>
-<button id="play">PLAY &#9654;</button>
-<p id="status">commercial psytrance engine</p>
-<div id="state"></div>
-<div id="energy-bar"><div id="energy-fill"></div></div>
+<div class="sub">FULL PSYTRANCE ENGINE · ADAPTIVE · 143 BPM</div>
+<button id="playBtn">PLAY</button>
+<div id="state" style="color:#4ecdc4">READY</div>
+<div id="bars"><div id="barsFill"></div></div>
+<div id="chaos"><div id="chaosFill"></div></div>
+<div id="vu"><div id="vuFill"></div></div>
 <div id="info"></div>
+
 <script>
 "use strict";
-const eng={ctx:null,
-init(){if(this.ctx)return;const c=new(window.AudioContext||window.webkitAudioContext)();this.ctx=c;
-// Master chain: gentle compression, NOT aggressive
-this.sum=c.createGain();this.sum.gain.value=0.75;
-this.duck=c.createGain(); // Sidechain bus
-this.comp=c.createDynamicsCompressor();
-this.comp.threshold.value=-12;this.comp.ratio.value=2.5;
-this.comp.attack.value=0.005;this.comp.release.value=0.12;
-this.lim=c.createDynamicsCompressor();
-this.lim.threshold.value=-1;this.lim.ratio.value=12;
-this.lim.attack.value=0.001;this.lim.release.value=0.08;
-this.master=c.createGain();this.master.gain.value=0.8;
-this.sum.connect(this.duck);this.duck.connect(this.comp);
-this.comp.connect(this.lim);this.lim.connect(this.master);
-this.master.connect(c.destination);
-// Delay: dotted 8th (3/16 at 142bpm = 0.317s)
-this.dSend=c.createGain();this.dSend.gain.value=0.3;
-this.dl=c.createDelay(2);this.dl.delayTime.value=0.317;
-this.dlF=c.createBiquadFilter();this.dlF.type="lowpass";this.dlF.frequency.value=2800;
-this.dlHP=c.createBiquadFilter();this.dlHP.type="highpass";this.dlHP.frequency.value=300;
-this.fb=c.createGain();this.fb.gain.value=0.3;
-this.dSend.connect(this.dl);this.dl.connect(this.dlF);
-this.dlF.connect(this.dlHP);this.dlHP.connect(this.fb);
-this.fb.connect(this.dl);this.dlF.connect(this.sum);
-// Reverb: short, clean (1.2s decay)
-this.rSend=c.createGain();this.rSend.gain.value=0.25;
-this.rev=c.createConvolver();
-const ir=c.createBuffer(2,c.sampleRate*1.2,c.sampleRate);
-for(let ch=0;ch<2;ch++){const d=ir.getChannelData(ch);
-for(let i=0;i<d.length;i++){d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3);}}
-this.rev.buffer=ir;this.revG=c.createGain();this.revG.gain.value=0.2;
-this.rSend.connect(this.rev);this.rev.connect(this.revG);this.revG.connect(this.sum);},
 
-// KICK: tight, short, punchy (psytrance style)
-kick(t,a){a=a||1;const c=this.ctx;
-// Sub: 50Hz sine, very short
-const sub=c.createOscillator(),subG=c.createGain();
-sub.type="sine";
-sub.frequency.setValueAtTime(52,t);
-sub.frequency.exponentialRampToValueAtTime(42,t+0.06);
-subG.gain.setValueAtTime(0.8*a,t);
-subG.gain.exponentialRampToValueAtTime(0.001,t+0.18);
-sub.connect(subG);subG.connect(this.sum);
-sub.start(t);sub.stop(t+0.2);
-// Body: 150->45Hz, punch
-const body=c.createOscillator(),bodyG=c.createGain();
-body.type="sine";
-body.frequency.setValueAtTime(150,t);
-body.frequency.exponentialRampToValueAtTime(45,t+0.007);
-bodyG.gain.setValueAtTime(0.5*a,t);
-bodyG.gain.exponentialRampToValueAtTime(0.001,t+0.12);
-body.connect(bodyG);bodyG.connect(this.sum);
-body.start(t);body.stop(t+0.15);
-// Click: very short, subtle
-const click=c.createOscillator(),clickG=c.createGain();
-click.type="triangle";
-click.frequency.setValueAtTime(800,t);
-click.frequency.exponentialRampToValueAtTime(300,t+0.008);
-clickG.gain.setValueAtTime(0.12*a,t);
-clickG.gain.exponentialRampToValueAtTime(0.001,t+0.015);
-click.connect(clickG);clickG.connect(this.sum);
-click.start(t);click.stop(t+0.02);
-// Sidechain: duck bass when kick hits
-if(this.duck){const d=this.duck.gain;
-d.cancelScheduledValues(t);
-d.setValueAtTime(0.3,t);
-d.setTargetAtTime(1,t+0.04,0.06);}},
+// ============================================================
+// PSY3 FULL ENGINE — everything we learned
+// Kick + Bass + Lead + Pad + FX + Sidechain + Adaptive States
+// ============================================================
 
-// BASS: offbeat, short, rolling (psytrance style)
-bass(t,midi,dur){const c=this.ctx,f=440*Math.pow(2,(midi-69)/12);
-// Main: square wave, tight
-const o=c.createOscillator(),g=c.createGain(),fl=c.createBiquadFilter();
-o.type="square";o.frequency.value=f;
-// Filter: fast envelope, opens then closes quickly
-fl.type="lowpass";
-fl.frequency.setValueAtTime(1800,t);
-fl.frequency.exponentialRampToValueAtTime(250,t+dur*0.6);
-fl.Q.value=2;
-g.gain.setValueAtTime(0.3,t);
-g.gain.setValueAtTime(0.3,t+dur*0.5);
-g.gain.exponentialRampToValueAtTime(0.001,t+dur*0.8);
-o.connect(fl);fl.connect(g);g.connect(this.sum);
-o.start(t);o.stop(t+dur);
-// Sub octave: adds weight
-const sub=c.createOscillator(),subG=c.createGain();
-sub.type="sine";sub.frequency.value=f/2;
-subG.gain.setValueAtTime(0.15,t);
-subG.gain.exponentialRampToValueAtTime(0.001,t+dur*0.7);
-sub.connect(subG);subG.connect(this.sum);
-sub.start(t);sub.stop(t+dur);},
+const BPM = 143;
+const STEP = 60 / BPM / 4;       // 16th note
+const DOT8 = STEP * 3;            // dotted 8th (delay)
+const LOOKAHEAD = 0.08;
+const TIMER_MS = 15;
 
-// LEAD: sawtooth, filter envelope, resonance (psytrance lead)
-lead(t,midi,dur){const c=this.ctx,f=440*Math.pow(2,(midi-69)/12);
-const o=c.createOscillator(),o2=c.createOscillator();
-const g=c.createGain(),fl=c.createBiquadFilter();
-o.type="sawtooth";o.frequency.value=f;
-o2.type="sawtooth";o2.frequency.value=f*1.003; // slight detune
-// Filter: opens wide then closes
-fl.type="lowpass";
-fl.frequency.setValueAtTime(5000,t);
-fl.frequency.exponentialRampToValueAtTime(800,t+dur);
-fl.Q.value=5; // resonance for that psytrance "squelch"
-g.gain.setValueAtTime(0.001,t);
-g.gain.linearRampToValueAtTime(0.09,t+0.01);
-g.gain.setValueAtTime(0.09,t+dur*0.5);
-g.gain.exponentialRampToValueAtTime(0.001,t+dur);
-o.connect(fl);o2.connect(fl);fl.connect(g);
-g.connect(this.sum);g.connect(this.dSend); // send to delay
-o.start(t);o2.start(t);
-o.stop(t+dur+0.02);o2.stop(t+dur+0.02);},
+// === AUDIO CONTEXT ===
+let ctx = null, unlocked = false;
 
-// PAD: warm, wide, slow attack
-pad(t,midi,dur){const c=this.ctx,f=440*Math.pow(2,(midi-69)/12);
-const o=c.createOscillator(),o2=c.createOscillator(),o3=c.createOscillator();
-const g=c.createGain(),fl=c.createBiquadFilter();
-o.type="sawtooth";o.frequency.value=f;
-o2.type="sawtooth";o2.frequency.value=f*1.005;
-o3.type="sawtooth";o3.frequency.value=f*0.995;
-fl.type="lowpass";fl.frequency.value=800;fl.Q.value=0.7;
-g.gain.setValueAtTime(0.001,t);
-g.gain.linearRampToValueAtTime(0.04,t+dur*0.5);
-g.gain.setValueAtTime(0.04,t+dur*0.7);
-g.gain.linearRampToValueAtTime(0.001,t+dur);
-o.connect(fl);o2.connect(fl);o3.connect(fl);fl.connect(g);
-g.connect(this.sum);g.connect(this.rSend); // send to reverb
-o.start(t);o2.start(t);o3.start(t);
-o.stop(t+dur+0.1);o2.stop(t+dur+0.1);o3.stop(t+dur+0.1);},
+function ensureCtx() {
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)({
+        latencyHint: 'interactive', sampleRate: 44100
+    });
+    return ctx;
+}
 
-// HAT: crisp, short
-hat(t,open,v){v=v||0.12;const c=this.ctx,dur=open?0.15:0.035;
-const buf=c.createBuffer(1,c.sampleRate*dur,c.sampleRate);
-const d=buf.getChannelData(0);
-for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,open?2:4);
-const s=c.createBufferSource();s.buffer=buf;
-const hp=c.createBiquadFilter();hp.type="highpass";hp.frequency.value=9000;
-const g=c.createGain();g.gain.value=v;
-s.connect(hp);hp.connect(g);g.connect(this.sum);s.start(t);},
+async function unlock() {
+    const c = ensureCtx();
+    if (c.state === 'suspended') { try { await c.resume(); } catch(e){} }
+    if (!unlocked) {
+        try {
+            const b = c.createBuffer(1, 1, 22050);
+            const s = c.createBufferSource();
+            s.buffer = b; s.connect(c.destination); s.start(0);
+            unlocked = true;
+        } catch(e){}
+    }
+    return c.state === 'running';
+}
 
-// CLAP: layered, tight
-clap(t){const c=this.ctx;
-for(let i=0;i<3;i++){const dur=0.05;
-const buf=c.createBuffer(1,c.sampleRate*dur,c.sampleRate);
-const d=buf.getChannelData(0);
-for(let j=0;j<d.length;j++)d[j]=(Math.random()*2-1)*Math.pow(1-j/d.length,3);
-const s=c.createBufferSource();s.buffer=buf;
-const bp=c.createBiquadFilter();bp.type="bandpass";bp.frequency.value=1200+i*300;bp.Q.value=2;
-const g=c.createGain();
-g.gain.setValueAtTime(0.001,t+i*0.01);
-g.gain.exponentialRampToValueAtTime(0.18,t+i*0.01+dur);
-s.connect(bp);bp.connect(g);g.connect(this.sum);
-s.start(t+i*0.01);s.stop(t+i*0.01+dur+0.05);}},
+document.addEventListener('visibilitychange', () => {
+    if (!ctx) return;
+    if (document.hidden) { if (ctx.state==='running') ctx.suspend(); stopEng(); }
+    else { if (ctx.state==='suspended') ctx.resume(); }
+});
 
-// RISER: builds tension
-riser(t,dur){dur=dur||1.5;const c=this.ctx;
-const buf=c.createBuffer(1,c.sampleRate*dur,c.sampleRate);
-const d=buf.getChannelData(0);
-for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(i/d.length);
-const s=c.createBufferSource();s.buffer=buf;
-const bp=c.createBiquadFilter();bp.type="bandpass";bp.Q.value=4;
-bp.frequency.setValueAtTime(200,t);
-bp.frequency.exponentialRampToValueAtTime(7000,t+dur);
-const g=c.createGain();
-g.gain.setValueAtTime(0.001,t);
-g.gain.exponentialRampToValueAtTime(0.25,t+dur);
-s.connect(bp);bp.connect(g);g.connect(this.sum);
-s.start(t);s.stop(t+dur+0.05);},
+// === MASTER CHAIN ===
+let master, delaySend, reverbSend, duckBus, analyser;
 
-// IMPACT: drop moment
-impact(t){const c=this.ctx;
-const o=c.createOscillator(),g=c.createGain();
-o.type="sine";
-o.frequency.setValueAtTime(80,t);
-o.frequency.exponentialRampToValueAtTime(30,t+0.4);
-g.gain.setValueAtTime(0.7,t);
-g.gain.exponentialRampToValueAtTime(0.001,t+0.5);
-o.connect(g);g.connect(this.sum);
-o.start(t);o.stop(t+0.55);}};
+function buildMaster(c) {
+    const input = c.createGain(); input.gain.value = 0.72;
 
-// === ADAPTIVE INTELLIGENCE ===
-const SCALES={PHRY:[0,1,3,5,7,8,10]};
-const STATES={
-CALM:{energy:0.2,density:0.3,complexity:0.2,color:'#4ecdc4'},
-GROOVE:{energy:0.5,density:0.6,complexity:0.5,color:'#d4ff3f'},
-TENSION:{energy:0.7,density:0.7,complexity:0.7,color:'#ff6b35'},
-PEAK:{energy:1.0,density:1.0,complexity:1.0,color:'#ff2e63'},
-RELEASE:{energy:0.3,density:0.4,complexity:0.3,color:'#a8e6cf'}};
-const TRANSITIONS={
-CALM:{CALM:0.2,GROOVE:0.5,TENSION:0.2,PEAK:0.0,RELEASE:0.1},
-GROOVE:{CALM:0.1,GROOVE:0.3,TENSION:0.4,PEAK:0.1,RELEASE:0.1},
-TENSION:{CALM:0.0,GROOVE:0.2,TENSION:0.2,PEAK:0.5,RELEASE:0.1},
-PEAK:{CALM:0.0,GROOVE:0.1,TENSION:0.1,PEAK:0.3,RELEASE:0.5},
-RELEASE:{CALM:0.5,GROOVE:0.3,TENSION:0.1,PEAK:0.0,RELEASE:0.1}};
+    // Sidechain duck bus (bass + pads route through here)
+    duckBus = c.createGain(); duckBus.gain.value = 1;
 
-const mind={state:'CALM',energy:0.2,targetEnergy:0.2,memory:[],motif:[],bar:0,lastTransition:0,minBarsInState:4,
-init(seed){this.state='CALM';this.energy=0.2;this.targetEnergy=0.2;this.memory=[];
-this.motif=this.genMotif(seed);this.bar=0;this.lastTransition=0;},
-genMotif(seed){const m=[];let v=0;
-for(let i=0;i<32;i++){v=(v+seed+i*3)%7;m.push(v);}return m;},
-evolveMotif(){for(let i=0;i<32;i++){
-if(Math.random()<0.1){const delta=Math.floor(Math.random()*3)-1;
-this.motif[i]=(this.motif[i]+delta+7)%7;}}},
-chooseNextState(){
-if(this.bar-this.lastTransition<this.minBarsInState)return this.state;
-const probs=TRANSITIONS[this.state];const r=Math.random();let cum=0;
-for(const[next,p]of Object.entries(probs)){cum+=p;
-if(r<cum){const recent=this.memory.slice(-4);
-const count=recent.filter(s=>s===next).length;
-if(count>=2&&Math.random()<0.5)continue;return next;}}
-return this.state;},
-transition(){const next=this.chooseNextState();
-if(next!==this.state){this.memory.push(this.state);
-if(this.memory.length>16)this.memory.shift();
-this.state=next;this.targetEnergy=STATES[next].energy;
-this.lastTransition=this.bar;
-if(next==='TENSION')eng.riser(eng.ctx.currentTime,1.5);
-if(next==='PEAK')eng.impact(eng.ctx.currentTime);}},
-update(){this.energy+=(this.targetEnergy-this.energy)*0.05;
-if(this.bar%8===0)this.evolveMotif();
-if(this.bar%2===0)this.transition();}};
+    // Saturation (tanh 1.2)
+    const sat = c.createWaveShaper(); sat.oversample = '4x';
+    const sc = new Float32Array(44100);
+    for (let i = 0; i < 44100; i++) { const x=(i*2)/44100-1; sc[i]=Math.tanh(x*1.2); }
+    sat.curve = sc;
 
-// === SEQUENCER (low latency) ===
-const seq={playing:false,timer:null,next:0,si:0,bpm:142,
-start(){eng.init();if(eng.ctx.state==='suspended')eng.ctx.resume();
-if(this.playing)return;this.playing=true;this.si=0;
-mind.init(7);
-this.next=eng.ctx.currentTime+0.05; // minimal lookahead
-this.timer=setInterval(()=>this.tick(),15);}, // 15ms timer for lower latency
-stop(){this.playing=false;clearInterval(this.timer);},
-s16(){return 60/this.bpm/4;},
-tick(){while(this.next<eng.ctx.currentTime+0.08){ // 80ms lookahead
-this.step(this.si,this.next);this.si=(this.si+1)%32;
-if(this.si===0){mind.bar++;mind.update();}
-this.next+=this.s16();}},
-step(s,t){const st=STATES[mind.state];const sc=SCALES.PHRY;
-const root=45;const e=mind.energy;
-document.getElementById('state').textContent=mind.state;
-document.getElementById('state').style.color=st.color;
-document.getElementById('energy-fill').style.width=(e*100)+'%';
-document.getElementById('info').textContent='energy: '+e.toFixed(2)+' | bar: '+mind.bar+' | bpm: '+this.bpm;
-// KICK: every 4 steps (four-on-the-floor)
-if(s%4===0)eng.kick(t,0.4+e*0.6);
-// BASS: offbeat (every odd step), rolling
-if(s%2===1&&Math.random()<st.density){
-const note=root+sc[mind.motif[s]%sc.length]-12;
-eng.bass(t,note,this.s16()*0.7);}
-// LEAD: sparse, follows motif
-if(s%4===2&&Math.random()<st.complexity*e*0.7){
-const note=root+12+sc[mind.motif[s]%sc.length];
-eng.lead(t,note,this.s16()*1.2);}
-// PAD: only in calm/release
-if(s===0&&(mind.state==='CALM'||mind.state==='RELEASE')){
-eng.pad(t,root+sc[mind.motif[0]%sc.length],this.s16()*16);}
-// HATS: steady, energy-dependent
-if(s%2===0&&Math.random()<0.4+e*0.6)
-eng.hat(t,s%8===6,0.06+e*0.08);
-// CLAP: on beat 2 and 4
-if(s%8===4&&st.density>0.5)eng.clap(t);}};
+    // HP 30Hz
+    const hp = c.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=30;
 
-function toggle(){
-if(seq.playing){seq.stop();
-document.getElementById('play').textContent='PLAY \u25B6';
-document.getElementById('status').textContent='Stopped';}
-else{seq.start();
-document.getElementById('play').textContent='\u25A0 STOP';
-document.getElementById('status').textContent='commercial psytrance engine';}}
-document.getElementById('play').addEventListener('click',toggle);
+    // EQ: cut 300Hz mud, boost 8kHz air
+    const eq1 = c.createBiquadFilter(); eq1.type='peaking'; eq1.frequency.value=300; eq1.gain.value=-2; eq1.Q.value=1;
+    const eq2 = c.createBiquadFilter(); eq2.type='highshelf'; eq2.frequency.value=8000; eq2.gain.value=2;
+
+    // Comp (-12, 2.5)
+    const comp = c.createDynamicsCompressor();
+    comp.threshold.value=-12; comp.ratio.value=2.5;
+    comp.attack.value=0.01; comp.release.value=0.15;
+
+    // Limiter (-1, 20)
+    const lim = c.createDynamicsCompressor();
+    lim.threshold.value=-1; lim.ratio.value=20;
+    lim.attack.value=0.001; lim.release.value=0.05;
+
+    const out = c.createGain(); out.gain.value = 0.85;
+
+    input.connect(sat); sat.connect(hp); hp.connect(eq1); eq1.connect(eq2);
+    eq2.connect(comp); comp.connect(lim); lim.connect(out); out.connect(c.destination);
+
+    analyser = c.createAnalyser(); analyser.fftSize = 256;
+    lim.connect(analyser);
+
+    return input;
+}
+
+function buildDelay(c, dest) {
+    const input = c.createGain(); input.gain.value = 0.3;
+    const dl = c.createDelay(2); dl.delayTime.value = DOT8;
+    const lp = c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=2500;
+    const hp = c.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=250;
+    const fb = c.createGain(); fb.gain.value = 0.3;
+    input.connect(dl); dl.connect(lp); lp.connect(hp); hp.connect(fb); fb.connect(dl);
+    lp.connect(dest);
+    return input;
+}
+
+function buildReverb(c, dest) {
+    const input = c.createGain(); input.gain.value = 0.22;
+    const conv = c.createConvolver();
+    const sr = c.sampleRate, len = Math.floor(sr * 1.5);
+    const ir = c.createBuffer(2, len, sr);
+    for (let ch = 0; ch < 2; ch++) {
+        const d = ir.getChannelData(ch);
+        for (let i = 0; i < len; i++) d[i] = (Math.random()*2-1)*Math.pow(1-i/len,3);
+    }
+    conv.buffer = ir;
+    const rg = c.createGain(); rg.gain.value = 0.2;
+    input.connect(conv); conv.connect(rg); rg.connect(dest);
+    return input;
+}
+
+// === INSTRUMENTS ===
+
+function kick(t, vel) {
+    const c = ctx;
+    // SUB 41.2Hz
+    const s=c.createOscillator(), sg=c.createGain();
+    s.type='sine';
+    s.frequency.setValueAtTime(53,t);
+    s.frequency.exponentialRampToValueAtTime(41.2,t+0.04);
+    sg.gain.setValueAtTime(0,t);
+    sg.gain.linearRampToValueAtTime(0.8*vel,t+0.002);
+    sg.gain.exponentialRampToValueAtTime(0.001,t+0.16);
+    s.connect(sg); sg.connect(master);
+    s.start(t); s.stop(t+0.18);
+    s.onended=()=>{s.disconnect();sg.disconnect();};
+
+    // BODY 150→48Hz
+    const b=c.createOscillator(), bg=c.createGain();
+    b.type='sine';
+    b.frequency.setValueAtTime(150,t);
+    b.frequency.exponentialRampToValueAtTime(48,t+0.007);
+    bg.gain.setValueAtTime(0,t);
+    bg.gain.linearRampToValueAtTime(0.5*vel,t+0.001);
+    bg.gain.exponentialRampToValueAtTime(0.001,t+0.09);
+    b.connect(bg); bg.connect(master);
+    b.start(t); b.stop(t+0.11);
+    b.onended=()=>{b.disconnect();bg.disconnect();};
+
+    // CLICK 4kHz
+    const cb=c.createBuffer(1,Math.floor(c.sampleRate*0.004),c.sampleRate);
+    const cd=cb.getChannelData(0);
+    for(let i=0;i<cd.length;i++)cd[i]=(Math.random()*2-1)*(1-i/cd.length);
+    const cs=c.createBufferSource(); cs.buffer=cb;
+    const chp=c.createBiquadFilter(); chp.type='highpass'; chp.frequency.value=4000;
+    const cg=c.createGain();
+    cg.gain.setValueAtTime(0.06*vel,t);
+    cg.gain.exponentialRampToValueAtTime(0.001,t+0.005);
+    cs.connect(chp); chp.connect(cg); cg.connect(master);
+    cs.start(t);
+    cs.onended=()=>{cs.disconnect();chp.disconnect();cg.disconnect();};
+
+    // SIDECHAIN: duck bass
+    sidechain(t);
+}
+
+function sidechain(t) {
+    const d = duckBus.gain;
+    d.cancelScheduledValues(t);
+    d.setValueAtTime(1, t);
+    d.setTargetAtTime(0.3, t, 0.008);
+    d.setTargetAtTime(1, t + 0.045, 0.055);
+}
+
+function bass(t, midi, vel) {
+    const c = ctx;
+    const freq = 440 * Math.pow(2, (midi-69)/12);
+    const dur = STEP * 0.65;
+
+    const o=c.createOscillator(); o.type='sawtooth'; o.frequency.value=freq;
+    const fl=c.createBiquadFilter(); fl.type='lowpass'; fl.Q.value=7;
+    fl.frequency.setValueAtTime(1400,t);
+    fl.frequency.exponentialRampToValueAtTime(200,t+dur*0.55);
+    const amp=c.createGain();
+    amp.gain.setValueAtTime(0,t);
+    amp.gain.linearRampToValueAtTime(vel,t+0.003);
+    amp.gain.setValueAtTime(vel,t+dur*0.55);
+    amp.gain.exponentialRampToValueAtTime(0.001,t+dur);
+
+    const sub=c.createOscillator(); sub.type='sine'; sub.frequency.value=freq/2;
+    const sg=c.createGain();
+    sg.gain.setValueAtTime(0,t);
+    sg.gain.linearRampToValueAtTime(vel*0.35,t+0.002);
+    sg.gain.exponentialRampToValueAtTime(0.001,t+dur*0.6);
+
+    o.connect(fl); fl.connect(amp); amp.connect(duckBus);
+    sub.connect(sg); sg.connect(duckBus);
+    o.start(t); o.stop(t+dur+0.02);
+    sub.start(t); sub.stop(t+dur+0.02);
+    o.onended=()=>{o.disconnect();fl.disconnect();amp.disconnect();sub.disconnect();sg.disconnect();};
+}
+
+function lead(t, midi, dur, vel) {
+    const c = ctx;
+    const freq = 440 * Math.pow(2, (midi-69)/12);
+
+    const o1=c.createOscillator(); o1.type='sawtooth'; o1.frequency.value=freq;
+    const o2=c.createOscillator(); o2.type='sawtooth'; o2.frequency.value=freq*1.004;
+
+    const fl=c.createBiquadFilter(); fl.type='lowpass'; fl.Q.value=8;
+    fl.frequency.setValueAtTime(5500,t);
+    fl.frequency.exponentialRampToValueAtTime(400,t+dur*0.85);
+
+    const amp=c.createGain();
+    amp.gain.setValueAtTime(0,t);
+    amp.gain.linearRampToValueAtTime(vel,t+0.004);
+    amp.gain.setValueAtTime(vel,t+dur*0.4);
+    amp.gain.exponentialRampToValueAtTime(0.001,t+dur);
+
+    o1.connect(fl); o2.connect(fl); fl.connect(amp);
+    amp.connect(master);
+    amp.connect(delaySend);
+
+    o1.start(t); o2.start(t);
+    o1.stop(t+dur+0.02); o2.stop(t+dur+0.02);
+    o1.onended=()=>{o1.disconnect();o2.disconnect();fl.disconnect();amp.disconnect();};
+}
+
+function pad(t, midi, dur) {
+    const c = ctx;
+    const freq = 440 * Math.pow(2, (midi-69)/12);
+
+    const oscs = [-0.006, 0, 0.006].map(dt => {
+        const o = c.createOscillator();
+        o.type = 'sawtooth';
+        o.frequency.value = freq * (1 + dt);
+        return o;
+    });
+
+    const lfo = c.createOscillator(); lfo.type='sine'; lfo.frequency.value=0.2;
+    const lfoG = c.createGain(); lfoG.gain.value=200;
+
+    const fl = c.createBiquadFilter(); fl.type='lowpass'; fl.frequency.value=700; fl.Q.value=1;
+    lfo.connect(lfoG); lfoG.connect(fl.frequency);
+
+    const amp = c.createGain();
+    amp.gain.setValueAtTime(0.001,t);
+    amp.gain.linearRampToValueAtTime(0.035,t+dur*0.4);
+    amp.gain.setValueAtTime(0.035,t+dur*0.7);
+    amp.gain.linearRampToValueAtTime(0.001,t+dur);
+
+    oscs.forEach(o=>{o.connect(fl);o.start(t);o.stop(t+dur+0.1);});
+    lfo.start(t); lfo.stop(t+dur+0.1);
+    fl.connect(amp);
+    amp.connect(master);
+    amp.connect(reverbSend);
+    oscs[0].onended=()=>{oscs.forEach(o=>o.disconnect());lfo.disconnect();lfoG.disconnect();fl.disconnect();amp.disconnect();};
+}
+
+function riser(t, dur) {
+    dur = dur || 1.5;
+    const c = ctx;
+    const nb = c.createBuffer(1, Math.floor(c.sampleRate*dur), c.sampleRate);
+    const nd = nb.getChannelData(0);
+    for (let i=0;i<nd.length;i++) nd[i]=Math.random()*2-1;
+    const ns = c.createBufferSource(); ns.buffer=nb;
+    const bp = c.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=3;
+    bp.frequency.setValueAtTime(200,t);
+    bp.frequency.exponentialRampToValueAtTime(8000,t+dur);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.001,t);
+    g.gain.exponentialRampToValueAtTime(0.22,t+dur);
+    ns.connect(bp); bp.connect(g); g.connect(master);
+    ns.start(t); ns.stop(t+dur+0.1);
+    ns.onended=()=>{ns.disconnect();bp.disconnect();g.disconnect();};
+}
+
+function impact(t) {
+    const c = ctx;
+    const o=c.createOscillator(); o.type='sine';
+    o.frequency.setValueAtTime(80,t);
+    o.frequency.exponentialRampToValueAtTime(28,t+0.45);
+    const g=c.createGain();
+    g.gain.setValueAtTime(0.7,t);
+    g.gain.exponentialRampToValueAtTime(0.001,t+0.55);
+    o.connect(g); g.connect(master);
+    o.start(t); o.stop(t+0.6);
+    o.onended=()=>{o.disconnect();g.disconnect();};
+}
+
+function hat(t, open, vel) {
+    const c = ctx;
+    const dur = open ? 0.15 : 0.035;
+    const buf = c.createBuffer(1, Math.floor(c.sampleRate*dur), c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,open?2:4);
+    const s=c.createBufferSource(); s.buffer=buf;
+    const hp=c.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=9000;
+    const g=c.createGain();
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(vel,t+0.001);
+    s.connect(hp); hp.connect(g); g.connect(master);
+    s.start(t);
+    s.onended=()=>{s.disconnect();hp.disconnect();g.disconnect();};
+}
+
+function clap(t) {
+    const c = ctx;
+    for (let i=0;i<3;i++) {
+        const dur=0.05;
+        const buf=c.createBuffer(1,Math.floor(c.sampleRate*dur),c.sampleRate);
+        const d=buf.getChannelData(0);
+        for(let j=0;j<d.length;j++)d[j]=(Math.random()*2-1)*Math.pow(1-j/d.length,3);
+        const s=c.createBufferSource(); s.buffer=buf;
+        const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1200+i*300; bp.Q.value=2;
+        const g=c.createGain();
+        g.gain.setValueAtTime(0.001,t+i*0.01);
+        g.gain.exponentialRampToValueAtTime(0.15,t+i*0.01+dur);
+        s.connect(bp); bp.connect(g); g.connect(master);
+        s.start(t+i*0.01); s.stop(t+i*0.01+dur+0.05);
+    }
+}
+
+// === ADAPTIVE MIND ===
+const SCALE = [0,1,3,5,7,8,10]; // Phrygian
+const STATES = {
+    CALM:    { energy:0.2, density:0.3, complexity:0.2, color:'#4ecdc4' },
+    GROOVE:  { energy:0.5, density:0.6, complexity:0.5, color:'#d4ff3f' },
+    TENSION: { energy:0.7, density:0.7, complexity:0.7, color:'#ff6b35' },
+    PEAK:    { energy:1.0, density:1.0, complexity:1.0, color:'#ff2e63' },
+    RELEASE: { energy:0.3, density:0.4, complexity:0.3, color:'#a8e6cf' }
+};
+const TRANS = {
+    CALM:    {CALM:.2, GROOVE:.5, TENSION:.2, PEAK:0,  RELEASE:.1},
+    GROOVE:  {CALM:.1, GROOVE:.3, TENSION:.4, PEAK:.1, RELEASE:.1},
+    TENSION: {CALM:0,  GROOVE:.2, TENSION:.2, PEAK:.5, RELEASE:.1},
+    PEAK:    {CALM:0,  GROOVE:.1, TENSION:.1, PEAK:.3, RELEASE:.5},
+    RELEASE: {CALM:.5, GROOVE:.3, TENSION:.1, PEAK:0,  RELEASE:.1}
+};
+
+const mind = {
+    state:'CALM', energy:0.2, target:0.2,
+    memory:[], motif:[], bar:0, lastTrans:0, minBars:4,
+
+    init(seed) {
+        this.state='CALM'; this.energy=0.2; this.target=0.2;
+        this.memory=[]; this.bar=0; this.lastTrans=0;
+        this.motif=[];
+        let v=0;
+        for(let i=0;i<32;i++){v=(v+seed+i*3)%7;this.motif.push(v);}
+    },
+
+    evolve() {
+        const rate = 0.08 + this.energy * 0.1;
+        for(let i=0;i<32;i++){
+            if(Math.random()<rate){
+                const d=Math.floor(Math.random()*3)-1;
+                this.motif[i]=(this.motif[i]+d+7)%7;
+            }
+        }
+    },
+
+    chooseNext() {
+        if(this.bar-this.lastTrans<this.minBars) return this.state;
+        const probs=TRANS[this.state];
+        const r=Math.random(); let cum=0;
+        for(const[next,p]of Object.entries(probs)){
+            cum+=p;
+            if(r<cum){
+                const recent=this.memory.slice(-4);
+                if(recent.filter(s=>s===next).length>=2&&Math.random()<0.5)continue;
+                return next;
+            }
+        }
+        return this.state;
+    },
+
+    transition() {
+        const next=this.chooseNext();
+        if(next!==this.state){
+            this.memory.push(this.state);
+            if(this.memory.length>16)this.memory.shift();
+            this.state=next;
+            this.target=STATES[next].energy;
+            this.lastTrans=this.bar;
+            if(next==='TENSION')riser(ctx.currentTime,1.5);
+            if(next==='PEAK')impact(ctx.currentTime);
+        }
+    },
+
+    update() {
+        this.energy+=(this.target-this.energy)*0.05;
+        if(this.bar%8===0)this.evolve();
+        if(this.bar%2===0)this.transition();
+    }
+};
+
+// === SEQUENCER ===
+const eng = { running:false, step:0, next:0, timer:null, vuBuf:null };
+
+function scheduleStep(s, t) {
+    const st = STATES[mind.state];
+    const e = mind.energy;
+    const root = 45; // E
+
+    // KICK: 4-on-the-floor
+    if (s % 4 === 0) kick(t, 0.4 + e * 0.6);
+
+    // BASS: offbeat, rolling
+    if (s % 2 === 1 && Math.random() < st.density) {
+        const note = root + SCALE[mind.motif[s] % 7] - 12;
+        bass(t, note, 0.28);
+    }
+
+    // LEAD: sparse, follows motif
+    if (s % 4 === 2 && Math.random() < st.complexity * e * 0.7) {
+        const note = root + 12 + SCALE[mind.motif[s] % 7];
+        lead(t, note, STEP * 1.2, 0.065);
+    }
+
+    // PAD: only in CALM/RELEASE
+    if (s === 0 && (mind.state === 'CALM' || mind.state === 'RELEASE')) {
+        pad(t, root + SCALE[mind.motif[0] % 7], STEP * 16);
+    }
+
+    // HATS
+    if (s % 2 === 0 && Math.random() < 0.4 + e * 0.6) {
+        hat(t, s === 6 || s === 14, 0.06 + e * 0.08);
+    }
+
+    // CLAP
+    if (s % 8 === 4 && st.density > 0.5) clap(t);
+}
+
+function tick() {
+    if (!eng.running) return;
+    while (eng.next < ctx.currentTime + LOOKAHEAD) {
+        scheduleStep(eng.step, eng.next);
+        eng.step = (eng.step + 1) % 16;
+        if (eng.step === 0) { mind.bar++; mind.update(); }
+        eng.next += STEP;
+    }
+    updateUI();
+}
+
+function startEng() {
+    eng.running = true;
+    eng.step = 0;
+    eng.next = ctx.currentTime + 0.05;
+    mind.init(7);
+    eng.timer = setInterval(tick, TIMER_MS);
+}
+
+function stopEng() {
+    eng.running = false;
+    if (eng.timer) { clearInterval(eng.timer); eng.timer = null; }
+}
+
+// === UI ===
+const stateEl = document.getElementById('state');
+const barsEl = document.getElementById('barsFill');
+const chaosEl = document.getElementById('chaosFill');
+const vuEl = document.getElementById('vuFill');
+const infoEl = document.getElementById('info');
+
+function updateUI() {
+    const st = STATES[mind.state];
+    stateEl.textContent = mind.state;
+    stateEl.style.color = st.color;
+    barsEl.style.width = (mind.energy * 100) + '%';
+    chaosEl.style.width = ((mind.energy * 0.5 + 0.1) * 100) + '%';
+
+    if (analyser && eng.vuBuf) {
+        analyser.getByteTimeDomainData(eng.vuBuf);
+        let peak = 0;
+        for (let i = 0; i < eng.vuBuf.length; i++) {
+            const v = Math.abs(eng.vuBuf[i] - 128) / 128;
+            if (v > peak) peak = v;
+        }
+        vuEl.style.width = (peak * 100) + '%';
+    }
+
+    infoEl.textContent =
+        'bar ' + mind.bar +
+        ' | energy ' + mind.energy.toFixed(2) +
+        ' | state ' + mind.state +
+        ' | latency ' + ((ctx.baseLatency + ctx.outputLatency) * 1000).toFixed(0) + 'ms';
+}
+
+// === INIT ===
+function initAll() {
+    const c = ensureCtx();
+    master = buildMaster(c);
+    delaySend = buildDelay(c, master);
+    reverbSend = buildReverb(c, master);
+    eng.vuBuf = new Uint8Array(analyser.frequencyBinCount);
+}
+
+document.getElementById('playBtn').addEventListener('click', async () => {
+    const ok = await unlock();
+    if (!ok) { stateEl.textContent = 'TAP AGAIN'; return; }
+
+    if (!eng.running) {
+        if (!master) initAll();
+        startEng();
+        document.getElementById('playBtn').textContent = 'STOP';
+        document.getElementById('playBtn').classList.add('active');
+    } else {
+        stopEng();
+        document.getElementById('playBtn').textContent = 'PLAY';
+        document.getElementById('playBtn').classList.remove('active');
+        stateEl.textContent = 'STOPPED';
+        stateEl.style.color = '#5a6478';
+        vuEl.style.width = '0%';
+    }
+});
+
+['touchstart','touchend','mousedown'].forEach(ev => {
+    document.addEventListener(ev, () => { unlock(); }, { passive: true, once: true });
+});
 </script>
 </body>
 </html>
