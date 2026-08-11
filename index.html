@@ -254,7 +254,15 @@ function ensureAudio(){
     lim.threshold.value=-1;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.05;
 
     duckBus.connect(masterGain);
-    masterGain.connect(sat);sat.connect(hp);hp.connect(comp);comp.connect(lim);lim.connect(audioCtx.destination);
+fxFilt=audioCtx.createBiquadFilter();fxFilt.type="lowpass";fxFilt.frequency.value=fx.cutoff;fxFilt.Q.value=fx.reso;
+wahLfo=audioCtx.createOscillator();wahLfo.type="sine";wahLfo.frequency.value=2.5;
+wahLfoG=audioCtx.createGain();wahLfoG.gain.value=0;
+wahLfo.connect(wahLfoG);wahLfoG.connect(fxFilt.frequency);wahLfo.start();
+gateLfo=audioCtx.createOscillator();gateLfo.type="square";gateLfo.frequency.value=activePreset().bpm/60*2;
+gateLfoG=audioCtx.createGain();gateLfoG.gain.value=0;
+gateLfo.connect(gateLfoG);gateLfo.start();
+    gateLfoG.connect(masterGain.gain);
+masterGain.connect(fxFilt);fxFilt.connect(sat);sat.connect(hp);hp.connect(comp);comp.connect(lim);lim.connect(audioCtx.destination);
 
     analyser=audioCtx.createAnalyser();analyser.fftSize=512;analyser.smoothingTimeConstant=0.82;
     lim.connect(analyser);
@@ -538,6 +546,7 @@ fx.cutoff=100*Math.pow(80,nx);
 fx.reso=ny*24;
 xyDotEl.style.left=(nx*100)+"%";
 xyDotEl.style.top=((1-ny)*100)+"%";
+if(fxFilt){fxFilt.frequency.setTargetAtTime(fx.cutoff,audioCtx.currentTime,0.02);fxFilt.Q.setTargetAtTime(fx.reso,audioCtx.currentTime,0.02);}
 xyInfoEl.textContent="cut: "+Math.round(fx.cutoff)+"Hz \u00B7 res: "+fx.reso.toFixed(1);
 }
 xyPadEl.addEventListener("pointerdown",function(e){xyActive=true;xyPadEl.setPointerCapture(e.pointerId);updateXY(e.clientX,e.clientY);});
@@ -549,6 +558,9 @@ btn.addEventListener("click",function(){
 var k=btn.dataset.fx;
 fx[k]=!fx[k];
 btn.classList.toggle("on",fx[k]);
+if(k==="wah"&&wahLfoG){wahLfoG.gain.value=fx.wah?1200:0;}
+if(k==="gate"&&gateLfoG){gateLfoG.gain.value=fx.gate?0.35:0;}
+if(k==="crush"&&fxFilt){fxFilt.Q.value=fx.crush?fx.reso+6:fx.reso;}
 if(k==="tape"&&fx.tape&&audioCtx&&isPlaying){
 tapeStopOnce();
 fx.tape=false;
