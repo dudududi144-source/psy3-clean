@@ -299,19 +299,7 @@ function evolvePatterns(){
 }
 
 /* worker timer */
-const WORKER_SRC="let iv=null;self.onmessage=function(e){if(e.data.c==='s'){if(iv)clearInterval(iv);iv=setInterval(function(){self.postMessage(0)},e.data.ms)}else{if(iv)clearInterval(iv);iv=null}};";
-function makeTimer(ms,fn){
-    try{
-        const b=new Blob([WORKER_SRC],{type:"application/javascript"});
-        const w=new Worker(URL.createObjectURL(b));
-        w.onmessage=fn;
-        w.postMessage({c:"s",ms:ms});
-        return{stop:function(){w.postMessage({c:"x"});w.terminate();}};
-    }catch(e){
-        const iv=setInterval(fn,ms);
-        return{stop:function(){clearInterval(iv);}};
-    }
-}
+
 
 /* distortion curve */
 function makeDistCurve(amount){
