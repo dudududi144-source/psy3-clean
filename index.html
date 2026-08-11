@@ -198,6 +198,7 @@ function ensureAudio(){
     const lim=audioCtx.createDynamicsCompressor();
     lim.threshold.value=-1;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.05;
 
+    duckBus.connect(masterGain);
     masterGain.connect(sat);sat.connect(hp);hp.connect(eq1);eq1.connect(eq2);
     eq2.connect(comp);comp.connect(lim);lim.connect(audioCtx.destination);
 
