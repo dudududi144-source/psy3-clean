@@ -3,23 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PSY3 - Infinite Flow</title>
+<title>PSY3 - Adaptive Intelligence</title>
 <style>
 body{font-family:system-ui;background:#05080c;color:#eef;padding:20px;text-align:center}
 h1{color:#d4ff3f;text-shadow:0 0 16px #d4ff3f}
 #play{font-size:20px;padding:14px 44px;border-radius:14px;border:2px solid #d4ff3f;background:#131a10;color:#d4ff3f;cursor:pointer}
 #play:hover{background:#d4ff3f;color:#000}
 #status{color:#888;margin-top:10px}
-#section{color:#d4ff3f;font-size:24px;margin-top:15px;font-weight:bold}
-#cycle{color:#666;font-size:12px;margin-top:5px}
+#state{color:#d4ff3f;font-size:28px;margin-top:15px;font-weight:bold}
+#energy-bar{width:300px;height:8px;background:#222;margin:10px auto;border-radius:4px;overflow:hidden}
+#energy-fill{height:100%;background:linear-gradient(90deg,#d4ff3f,#ff6b35);width:0%;transition:width 0.3s}
+#info{color:#666;font-size:11px;margin-top:8px}
 </style>
 </head>
 <body>
 <h1>PSY3</h1>
 <button id="play">PLAY &#9654;</button>
-<p id="status">infinite intuitive flow</p>
-<div id="section"></div>
-<div id="cycle"></div>
+<p id="status">adaptive intelligence - no frames, pure flow</p>
+<div id="state"></div>
+<div id="energy-bar"><div id="energy-fill"></div></div>
+<div id="info"></div>
 <script>
 "use strict";
 const eng={ctx:null,
@@ -88,49 +91,120 @@ o.frequency.setValueAtTime(120,t);o.frequency.exponentialRampToValueAtTime(35,t+
 const g=c.createGain();g.gain.setValueAtTime(0.8,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.5);
 o.connect(g);g.connect(this.sum);o.start(t);o.stop(t+0.55);this.hat(t,true,0.2);}};
 
+// === ADAPTIVE INTELLIGENCE ===
 const SCALES={PHRY:[0,1,3,5,7,8,10]};
-const SECTIONS=[
-{n:"INTRO",b:8,e:.35,k:1,ba:1,l:0,p:1,r:0},
-{n:"BUILD",b:8,e:.7,k:1,ba:1,l:.4,p:1,r:1},
-{n:"DROP",b:16,e:1,k:1,ba:1,l:1,p:1,i:1,r:0},
-{n:"BREAK",b:8,e:.3,k:0,ba:0,l:.6,p:1,r:0},
-{n:"CLIMAX",b:16,e:1,k:1,ba:1,l:1,p:1,i:1,r:0}];
-const TOTAL_BARS=SECTIONS.reduce((s,x)=>s+x.b,0);
 
-function sectionAt(bar){let b=bar%TOTAL_BARS;for(const s of SECTIONS){if(b<s.b)return s;b-=s.b;}return SECTIONS[0];}
+// States - not sections, but emotional states
+const STATES={
+CALM:{energy:0.2,density:0.3,complexity:0.2,color:'#4ecdc4'},
+GROOVE:{energy:0.5,density:0.6,complexity:0.5,color:'#d4ff3f'},
+TENSION:{energy:0.7,density:0.7,complexity:0.7,color:'#ff6b35'},
+PEAK:{energy:1.0,density:1.0,complexity:1.0,color:'#ff2e63'},
+RELEASE:{energy:0.3,density:0.4,complexity:0.3,color:'#a8e6cf'}};
 
-const seq={playing:false,timer:null,next:0,si:0,bar:0,bpm:142,seed:7,motif:[],cycle:0,
+// Probability matrix - likelihood of transitioning from state A to state B
+const TRANSITIONS={
+CALM:{CALM:0.2,GROOVE:0.5,TENSION:0.2,PEAK:0.0,RELEASE:0.1},
+GROOVE:{CALM:0.1,GROOVE:0.3,TENSION:0.4,PEAK:0.1,RELEASE:0.1},
+TENSION:{CALM:0.0,GROOVE:0.2,TENSION:0.2,PEAK:0.5,RELEASE:0.1},
+PEAK:{CALM:0.0,GROOVE:0.1,TENSION:0.1,PEAK:0.3,RELEASE:0.5},
+RELEASE:{CALM:0.5,GROOVE:0.3,TENSION:0.1,PEAK:0.0,RELEASE:0.1}};
+
+const mind={
+state:'CALM',
+energy:0.2,
+targetEnergy:0.2,
+memory:[],
+motif:[],
+bar:0,
+step:0,
+lastTransition:0,
+minBarsInState:4,
+
+init(seed){
+this.state='CALM';
+this.energy=0.2;
+this.targetEnergy=0.2;
+this.memory=[];
+this.motif=this.genMotif(seed);
+this.bar=0;
+this.step=0;
+this.lastTransition=0;},
+
+genMotif(seed){const m=[];let v=0;for(let i=0;i<32;i++){v=(v+seed+i*3)%7;m.push(v);}return m;},
+
+evolveMotif(){for(let i=0;i<32;i++){if(Math.random()<0.12){this.motif[i]=(this.motif[i]+Math.floor(Math.random()*3)-1+7)%7;}}},
+
+chooseNextState(){
+// Don't transition too quickly
+if(this.bar-this.lastTransition<this.minBarsInState)return this.state;
+
+const probs=TRANSITIONS[this.state];
+const r=Math.random();
+let cum=0;
+for(const[next,p]of Object.entries(probs)){
+cum+=p;
+if(r<cum){
+// Memory check - don't repeat same state too often
+const recent=this.memory.slice(-4);
+const count=recent.filter(s=>s===next).length;
+if(count>=2&&Math.random()<0.5)continue;
+return next;}}
+return this.state;},
+
+transition(){
+const next=this.chooseNextState();
+if(next!==this.state){
+this.memory.push(this.state);
+if(this.memory.length>16)this.memory.shift();
+this.state=next;
+this.targetEnergy=STATES[next].energy;
+this.lastTransition=this.bar;
+if(next==='TENSION')eng.riser(eng.ctx.currentTime,2);
+if(next==='PEAK')eng.impact(eng.ctx.currentTime);
+}},
+
+update(){
+// Smooth energy transition
+this.energy+=(this.targetEnergy-this.energy)*0.05;
+// Evolve motif occasionally
+if(this.bar%8===0)this.evolveMotif();
+// Check for state transition every 2 bars
+if(this.bar%2===0)this.transition();}};
+
+const seq={playing:false,timer:null,next:0,si:0,bpm:142,
 start(){eng.init();if(eng.ctx.state==='suspended')eng.ctx.resume();
-if(this.playing)return;this.playing=true;this.si=0;this.bar=0;this.cycle=0;
+if(this.playing)return;this.playing=true;this.si=0;
+mind.init(7);
 this.next=eng.ctx.currentTime+0.1;
-this.motif=this.genMotif(this.seed);
 this.timer=setInterval(()=>this.tick(),25);},
 stop(){this.playing=false;clearInterval(this.timer);},
-genMotif(seed){const m=[];let v=0;for(let i=0;i<32;i++){v=(v+seed+i*3)%7;m.push(v);}return m;},
-evolveMotif(){for(let i=0;i<32;i++){if(Math.random()<0.15){this.motif[i]=(this.motif[i]+Math.floor(Math.random()*3)-1+7)%7;}}},
 s16(){return 60/this.bpm/4;},
 tick(){while(this.next<eng.ctx.currentTime+0.15){this.step(this.si,this.next);this.si=(this.si+1)%32;
-if(this.si===0){this.bar++;
-if(this.bar%TOTAL_BARS===0){this.cycle++;this.evolveMotif();}
-if(this.bar%4===0){this.evolveMotif();}}
+if(this.si===0){mind.bar++;mind.update();}
 this.next+=this.s16();}},
-step(s,t){const sec=sectionAt(this.bar);const sc=SCALES.PHRY;const root=45;
-const barInSection=this.bar%TOTAL_BARS;
-document.getElementById('section').textContent=sec.n;
-document.getElementById('cycle').textContent='cycle '+(this.cycle+1)+' | bar '+(barInSection+1)+'/'+TOTAL_BARS;
-if(sec.k&&s%4===0)eng.kick(t,sec.e);
-if(sec.ba&&s%2===1)eng.bass(t,root+sc[this.motif[s]%sc.length]-12,this.s16()*0.8,s%8===7);
-if(sec.l>0&&s%4===2)eng.lead(t,root+12+sc[this.motif[s]%sc.length],this.s16()*1.5*sec.l);
-if(sec.p&&s===0)eng.pad(t,root+sc[this.motif[0]%sc.length],this.s16()*16);
-if(s%2===0)eng.hat(t,s%8===6,0.12*sec.e);
-if(sec.k&&s%8===4)eng.clap(t);
-if(sec.i&&s===0)eng.impact(t);
-if(sec.r&&barInSection>=6&&s===0)eng.riser(t,this.s16()*8);
-if(s===30&&barInSection%8===7)eng.riser(t,this.s16()*2);}};
+step(s,t){const st=STATES[mind.state];const sc=SCALES.PHRY;const root=45;
+const e=mind.energy;
+document.getElementById('state').textContent=mind.state;
+document.getElementById('state').style.color=st.color;
+document.getElementById('energy-fill').style.width=(e*100)+'%';
+document.getElementById('info').textContent='energy: '+e.toFixed(2)+' | bar: '+mind.bar+' | state: '+mind.state;
+// Kick - always present, intensity follows energy
+if(s%4===0)eng.kick(t,0.3+e*0.7);
+// Bass - density based on state
+if(s%2===1&&Math.random()<st.density)eng.bass(t,root+sc[mind.motif[s]%sc.length]-12,this.s16()*0.8,s%8===7);
+// Lead - complexity based on state
+if(s%4===2&&Math.random()<st.complexity*e)eng.lead(t,root+12+sc[mind.motif[s]%sc.length],this.s16()*1.5*e);
+// Pad - present in calm/release states
+if(s===0&&(mind.state==='CALM'||mind.state==='RELEASE'))eng.pad(t,root+sc[mind.motif[0]%sc.length],this.s16()*16);
+// Hats - follow energy
+if(s%2===0&&Math.random()<0.3+e*0.7)eng.hat(t,s%8===6,0.08+e*0.12);
+// Clap - groove states
+if(s%8===4&&st.density>0.5)eng.clap(t);}};
 
 function toggle(){
 if(seq.playing){seq.stop();document.getElementById('play').textContent='PLAY \u25B6';document.getElementById('status').textContent='Stopped';}
-else{seq.start();document.getElementById('play').textContent='\u25A0 STOP';document.getElementById('status').textContent='Playing... infinite flow';}}
+else{seq.start();document.getElementById('play').textContent='\u25A0 STOP';document.getElementById('status').textContent='adaptive flow - no frames';}}
 document.getElementById('play').addEventListener('click',toggle);
 </script>
 </body>
