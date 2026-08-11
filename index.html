@@ -262,7 +262,7 @@ gateLfo=audioCtx.createOscillator();gateLfo.type="square";gateLfo.frequency.valu
 gateLfoG=audioCtx.createGain();gateLfoG.gain.value=0;
 gateLfo.connect(gateLfoG);gateLfo.start();
     gateLfoG.connect(masterGain.gain);
-masterGain.connect(fxFilt);fxFilt.connect(window._satNode);sat.connect(hp);hp.connect(comp);comp.connect(lim);lim.connect(window._masterFilter);window._masterFilter.connect(window._gateGain);window._gateGain.connect(audioCtx.destination);
+masterGain.connect(fxFilt);fxFilt.connect(window._satNode);window._satNode.connect(hp);hp.connect(comp);comp.connect(lim);lim.connect(window._masterFilter);window._masterFilter.connect(window._gateGain);window._gateGain.connect(audioCtx.destination);
 
     analyser=audioCtx.createAnalyser();analyser.fftSize=512;analyser.smoothingTimeConstant=0.82;
     lim.connect(analyser);
