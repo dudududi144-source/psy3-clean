@@ -560,6 +560,7 @@ xyDotEl.style.left=(nx*100)+"%";
 xyDotEl.style.top=((1-ny)*100)+"%";
 if(fxFilt){fxFilt.frequency.setTargetAtTime(fx.cutoff,audioCtx.currentTime,0.02);fxFilt.Q.setTargetAtTime(fx.reso,audioCtx.currentTime,0.02);}
 xyInfoEl.textContent="cut: "+Math.round(fx.cutoff)+"Hz \u00B7 res: "+fx.reso.toFixed(1);
+if(window._fxFilter){window._fxFilter.frequency.value=fx.cutoff;window._fxFilter.Q.value=fx.reso;}
 }
 xyPadEl.addEventListener("pointerdown",function(e){xyActive=true;xyPadEl.setPointerCapture(e.pointerId);updateXY(e.clientX,e.clientY);});
 xyPadEl.addEventListener("pointermove",function(e){if(xyActive)updateXY(e.clientX,e.clientY);});
@@ -570,10 +571,10 @@ btn.addEventListener("click",function(){
 var k=btn.dataset.fx;
 fx[k]=!fx[k];
 btn.classList.toggle("on",fx[k]);
-if(k==="wah"&&wahLfoG){wahLfoG.gain.value=fx.wah?1200:0;}
-if(k==="gate"&&gateLfoG){gateLfoG.gain.value=fx.gate?0.35:0;}
-if(k==="crush"&&fxFilt){fxFilt.Q.value=fx.crush?fx.reso+6:fx.reso;}
-if(k==="ring"&&fxFilt){fxFilt.frequency.value=fx.ring?800:12000;fxFilt.Q.value=fx.ring?18:1;}
+if(k==="wah"&&window._wahLfoGain){window._wahLfoGain.gain.value=fx.wah?2000:0;}
+if(k==="gate"&&window._gateLfoGain){window._gateLfoGain.gain.value=fx.gate?0.4:0;}
+if(k==="crush"&&window._fxFilter){window._fxFilter.Q.value=fx.crush?Math.min(24,fx.reso+12):fx.reso;}
+if(k==="ring"&&window._fxFilter){window._fxFilter.frequency.value=fx.ring?600:fx.cutoff;window._fxFilter.Q.value=fx.ring?20:fx.reso;}
 if(k==="tape"&&fx.tape&&audioCtx&&isPlaying){
 tapeStopOnce();
 fx.tape=false;
