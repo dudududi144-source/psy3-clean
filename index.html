@@ -103,6 +103,7 @@ footer{text-align:center;padding:30px 20px 46px;color:var(--dim);font-size:12px;
 <h2>Scope</h2>
 <canvas id="scope"></canvas>
 <div class="steps" id="steps"></div>
+<div id="stateBar" style="font-family:var(--font-mono);font-size:11px;color:var(--dim);margin-top:6px"></div>
 <div id="stateBar">state: <b>GROOVE</b> | bar: <b>0</b> | energy: <b>0.6</b></div>
 <div class="kbHint">Play lead: <b>A W S E D F T G Y H U J K</b></div>
 <div class="pads" id="pads"></div>
@@ -133,6 +134,140 @@ desc:"Busy peak-time energy.",
 patterns:{kick:[1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],bass:[null,0,0,0,null,0,0,0,null,0,0,0,null,0,7,10],lead:[0,null,null,3,null,null,7,null,10,null,null,7,12,null,7,null],hat:[0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1]},
 variants:{A:{bassWave:"sawtooth",bassCut:900,bassQ:7,leadWave:"sawtooth",leadCut:2400,leadQ:10,hatLvl:.16,leadLvl:.50},B:{bassWave:"square",bassCut:1300,bassQ:12,leadWave:"square",leadCut:3200,leadQ:16,hatLvl:.22,leadLvl:.60}}}
 ];
+
+/* ── Adaptive State Machine ── */
+const STATES={
+CALM:{energy:0.2,density:0.3,complexity:0.2,color:"#4ecdc4"},
+GROOVE:{energy:0.5,density:0.6,complexity:0.5,color:"#d4ff3f"},
+TENSION:{energy:0.7,density:0.7,complexity:0.7,color:"#ff6b35"},
+PEAK:{energy:1.0,density:1.0,complexity:1.0,color:"#ff2e63"},
+RELEASE:{energy:0.3,density:0.4,complexity:0.3,color:"#a8e6cf"}
+};
+const TRANS={
+CALM:{CALM:.2,GROOVE:.5,TENSION:.2,PEAK:0,RELEASE:.1},
+GROOVE:{CALM:.1,GROOVE:.3,TENSION:.4,PEAK:.1,RELEASE:.1},
+TENSION:{CALM:0,GROOVE:.2,TENSION:.2,PEAK:.5,RELEASE:.1},
+PEAK:{CALM:0,GROOVE:.1,TENSION:.1,PEAK:.3,RELEASE:.5},
+RELEASE:{CALM:.5,GROOVE:.3,TENSION:.1,PEAK:0,RELEASE:.1}
+};
+const mind={state:"GROOVE",energy:0.5,target:0.5,bar:0,lastTrans:0,memory:[],
+evolve:function(){
+if(!livePatterns)return;
+var rate=0.08+this.energy*0.07;
+for(var i=0;i<16;i++){
+if(livePatterns.bass[i]!==null&&Math.random()<rate){
+var d=Math.floor(Math.random()*3)-1;
+livePatterns.bass[i]=Math.max(0,Math.min(12,livePatterns.bass[i]+d));
+}
+if(livePatterns.lead[i]!==null&&Math.random()<rate*0.7){
+var d2=Math.floor(Math.random()*3)-1;
+livePatterns.lead[i]=Math.max(0,Math.min(24,livePatterns.lead[i]+d2));
+}
+}
+},
+chooseNext:function(){
+if(this.bar-this.lastTrans<4)return this.state;
+var probs=TRANS[this.state],r=Math.random(),cum=0;
+for(var next in probs){
+cum+=probs[next];
+if(r<cum){
+var recent=this.memory.slice(-4);
+var count=0;for(var i=0;i<recent.length;i++){if(recent[i]===next)count++;}
+if(count>=2&&Math.random()<0.5)continue;
+return next;
+}
+}
+return this.state;
+},
+transition:function(){
+var next=this.chooseNext();
+if(next!==this.state){
+this.memory.push(this.state);
+if(this.memory.length>16)this.memory.shift();
+this.state=next;
+this.target=STATES[next].energy;
+this.lastTrans=this.bar;
+if(next==="TENSION")trigRiser(audioCtx.currentTime,2);
+if(next==="PEAK")trigImpact(audioCtx.currentTime);
+if(next==="RELEASE")trigDownlifter(audioCtx.currentTime);
+}
+},
+update:function(){
+this.energy+=(this.target-this.energy)*0.05;
+if(this.bar%8===0)this.evolve();
+if(this.bar%2===0)this.transition();
+updateStateBar();
+}
+};
+var livePatterns=null;
+function initLivePatterns(){
+var p=activePreset();
+livePatterns={bass:p.patterns.bass.slice(),lead:p.patterns.lead.slice(),hat:p.patterns.hat.slice()};
+}
+function updateStateBar(){
+var el=$("stateBar");
+if(el){
+var st=STATES[mind.state];
+el.innerHTML="state: <b style='color:"+st.color+"'>"+mind.state+"</b> | bar: <b>"+mind.bar+"</b> | energy: <b>"+mind.energy.toFixed(2)+"</b>";
+}
+}
+/* ── FX: Riser / Impact / Downlifter ── */
+function trigRiser(t,dur){
+dur=dur||2;
+var c=audioCtx;
+var nb=c.createBuffer(1,Math.floor(c.sampleRate*dur),c.sampleRate);
+var nd=nb.getChannelData(0);
+for(var i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
+var ns=c.createBufferSource();ns.buffer=nb;
+var bp=c.createBiquadFilter();bp.type="bandpass";bp.Q.value=4;
+bp.frequency.setValueAtTime(150,t);
+bp.frequency.exponentialRampToValueAtTime(9000,t+dur);
+var g=c.createGain();
+g.gain.setValueAtTime(0.001,t);
+g.gain.exponentialRampToValueAtTime(0.22,t+dur);
+ns.connect(bp);bp.connect(g);g.connect(masterGain);
+ns.start(t);ns.stop(t+dur+0.1);
+ns.onended=function(){ns.disconnect();bp.disconnect();g.disconnect();};
+}
+function trigImpact(t){
+var c=audioCtx;
+var o=c.createOscillator();o.type="sine";
+o.frequency.setValueAtTime(85,t);
+o.frequency.exponentialRampToValueAtTime(25,t+0.5);
+var g=c.createGain();
+g.gain.setValueAtTime(0.8,t);
+g.gain.exponentialRampToValueAtTime(0.001,t+0.55);
+o.connect(g);g.connect(masterGain);
+o.start(t);o.stop(t+0.6);
+o.onended=function(){o.disconnect();g.disconnect();};
+var nb=c.createBuffer(1,Math.floor(c.sampleRate*0.08),c.sampleRate);
+var nd=nb.getChannelData(0);
+for(var i=0;i<nd.length;i++)nd[i]=(Math.random()*2-1)*(1-i/nd.length);
+var ns=c.createBufferSource();ns.buffer=nb;
+var lp=c.createBiquadFilter();lp.type="lowpass";lp.frequency.value=2500;
+var ng=c.createGain();ng.gain.value=0.35;
+ns.connect(lp);lp.connect(ng);ng.connect(masterGain);
+ns.start(t);
+ns.onended=function(){ns.disconnect();lp.disconnect();ng.disconnect();};
+}
+function trigDownlifter(t){
+var c=audioCtx;
+var dur=1.5;
+var nb=c.createBuffer(1,Math.floor(c.sampleRate*dur),c.sampleRate);
+var nd=nb.getChannelData(0);
+for(var i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
+var ns=c.createBufferSource();ns.buffer=nb;
+var bp=c.createBiquadFilter();bp.type="bandpass";bp.Q.value=2;
+bp.frequency.setValueAtTime(6000,t);
+bp.frequency.exponentialRampToValueAtTime(150,t+dur);
+var g=c.createGain();
+g.gain.setValueAtTime(0.15,t);
+g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+ns.connect(bp);bp.connect(g);g.connect(masterGain);
+ns.start(t);ns.stop(t+dur+0.1);
+ns.onended=function(){ns.disconnect();bp.disconnect();g.disconnect();};
+}
+
 
 let audioCtx=null,masterGain=null,duckBus=null,analyser=null,ppIn=null,noiseBuf=null;
 let isPlaying=false,schedulerTimer=null,currentStep=0,nextNoteTime=0,barCount=0;
@@ -383,34 +518,38 @@ if(window._revIn){g.connect(window._revIn);}
 
 /* scheduler */
 function scheduler(){
-    while(nextNoteTime<audioCtx.currentTime+0.2){
-        scheduleStep(currentStep,nextNoteTime);
-        const spb=60/activePreset().bpm;
-        nextNoteTime+=0.25*spb;
-        currentStep=(currentStep+1)%16;
-        if(currentStep===0){
-            barCount++;
-            if(barCount%16===0)evolvePatterns();
-            if(barCount%4===0)updateStateBar();
-        }
-    }
+while(nextNoteTime<audioCtx.currentTime+0.2){
+scheduleStep(currentStep,nextNoteTime);
+var spb=60/activePreset().bpm;
+nextNoteTime+=0.25*spb;
+currentStep=(currentStep+1)%16;
+if(currentStep===0){
+mind.bar++;
+mind.update();
+}
+}
 }
 
 function scheduleStep(step,t){
-    const p=activePreset(),v=activeParams();
-    const lp=livePatterns||p.patterns;
-    if(p.patterns.kick[step])playKick(t);
-    if(lp.hat[step])playHat(t,v.hatLvl,(step===6||step===14));
-    const b=lp.bass[step];
-    if(b!==null&&b!==undefined)playBass(t,mtof(p.root+b),v);
-/* ghost note for groove */
-if(b===null&&step%4===2&&Math.random()<0.2){
-var _nb=lp.bass[(step+2)%16];
-if(_nb!==null&&_nb!==undefined)playBass(t,mtof(p.root+_nb),v);
+var p=activePreset(),v=activeParams();
+var lp=livePatterns||p.patterns;
+var st=STATES[mind.state];
+/* KICK: always play (4-on-the-floor) */
+if(p.patterns.kick[step])playKick(t);
+/* HATS: density-based */
+if(lp.hat[step]&&Math.random()<st.density+0.3)playHat(t,v.hatLvl,(step===6||step===14));
+/* BASS: density-based */
+var b=lp.bass[step];
+if(b!==null&&b!==undefined&&Math.random()<st.density+0.2)playBass(t,mtof(p.root+b),v);
+/* LEAD: complexity-based */
+var l=lp.lead[step];
+if(l!==null&&l!==undefined&&Math.random()<st.complexity)playLead(t,mtof(p.root+24+l),v,step%4===0,true);
+/* GHOST NOTES for groove */
+if(b===null&&step%4===2&&Math.random()<0.15*st.density){
+var nb=lp.bass[(step+2)%16];
+if(nb!==null&&nb!==undefined)playBass(t,mtof(p.root+nb),v);
 }
-    const l=lp.lead[step];
-    if(l!==null&&l!==undefined)playLead(t,mtof(p.root+24+l),v,step%4===0,true);
-    stepQueue.push({step:step,time:t});
+stepQueue.push({step:step,time:t});
 if(stepQueue.length>32)stepQueue.splice(0,stepQueue.length-32);
 }
 
