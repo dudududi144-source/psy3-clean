@@ -345,7 +345,7 @@ _activeVoices++;
 
 /* scheduler */
 function scheduler(){
-    while(nextNoteTime<audioCtx.currentTime+0.1){
+    while(nextNoteTime<audioCtx.currentTime+0.2){
         scheduleStep(currentStep,nextNoteTime);
         const spb=60/activePreset().bpm;
         nextNoteTime+=0.25*spb;
@@ -376,7 +376,7 @@ function startSeq(){
     if(isPlaying)return;
     isPlaying=true;currentStep=0;uiStep=-1;barCount=0;
     initLivePatterns();
-    nextNoteTime=audioCtx.currentTime+0.1;
+    nextNoteTime=audioCtx.currentTime+0.2;
     schedulerTimer=makeTimer(25,function(){scheduler();});
     $("playBtn").classList.add("playing");$("playBtn").textContent="■";
     bumpStat("plays");
@@ -409,8 +409,8 @@ for(var _ci=0;_ci<32;_ci++){
     _barColors.push("hsl("+_hue+",100%,60%)");
 }
 function drawScope(){
-_frameCount++;if(_frameCount%3!==0)return;
     requestAnimationFrame(drawScope);
+_frameCount++;if(_frameCount%3!==0)return;
     if(!analyser)return;
     sizeScopeIfChanged();
     analyser.getByteFrequencyData(freqData);
