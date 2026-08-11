@@ -414,7 +414,7 @@ sub.type="sine";
 sub.frequency.setValueAtTime(48,t);
 sub.frequency.exponentialRampToValueAtTime(40,t+0.05);
 subG.gain.setValueAtTime(0,t);
-subG.gain.linearRampToValueAtTime(0.9,t+0.002);
+subG.gain.linearRampToValueAtTime(0.7+mind.energy*0.25,t+0.002);
 subG.gain.exponentialRampToValueAtTime(0.001,t+0.16);
 sub.connect(subG);subG.connect(masterGain);
 sub.start(t);sub.stop(t+0.18);
@@ -424,7 +424,7 @@ body.type="sine";
 body.frequency.setValueAtTime(150,t);
 body.frequency.exponentialRampToValueAtTime(48,t+0.007);
 bodyG.gain.setValueAtTime(0,t);
-bodyG.gain.linearRampToValueAtTime(0.5,t+0.001);
+bodyG.gain.linearRampToValueAtTime(0.35+mind.energy*0.2,t+0.001);
 bodyG.gain.exponentialRampToValueAtTime(0.001,t+0.065);
 body.connect(bodyG);bodyG.connect(masterGain);
 body.start(t);body.stop(t+0.08);
@@ -463,7 +463,7 @@ var dur=(60/activePreset().bpm)*0.25*0.65; /* 65% of 16th = rolling */
 /* MAIN: saw/square + filter envelope */
 var o=c.createOscillator();o.type=v.bassWave;o.frequency.value=freq;
 var f=c.createBiquadFilter();f.type="lowpass";f.Q.value=v.bassQ+2;
-f.frequency.setValueAtTime(v.bassCut*1.1,t);
+f.frequency.setValueAtTime(v.bassCut*(0.9+mind.energy*0.4),t);
 f.frequency.exponentialRampToValueAtTime(Math.max(120,v.bassCut*0.3),t+dur*0.55);
 var g=c.createGain();
 g.gain.setValueAtTime(0,t);
