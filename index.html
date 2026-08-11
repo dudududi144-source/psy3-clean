@@ -602,8 +602,8 @@ function bumpStat(kind){
     paintStats();
 }
 function paintStats(){
-    $("statPlays").textContent=localStorage.getItem("psy6_stat_plays")||"0";
-    $("statFb").textContent=localStorage.getItem("psy6_stat_fb")||"0";
+if($("statPlays"))$("statPlays").textContent=localStorage.getItem("psy6_stat_plays")||"0";
+if($("statFb"))$("statFb").textContent=localStorage.getItem("psy6_stat_fb")||"0";
 }
 let toastTimer=null;
 function toast(msg){
