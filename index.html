@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PSY6 — Enhanced</title>
+<title>PSY6-X7-ADAPTIVE — Enhanced</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/orbitron/700.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/orbitron/900.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk/400.css">
@@ -77,8 +77,9 @@ footer{text-align:center;padding:30px 20px 46px;color:var(--dim);font-size:12px;
 </style>
 </head>
 <body>
+<div style="position:fixed;top:0;left:0;background:#ff2e88;color:#fff;font-family:monospace;font-size:12px;padding:4px 12px;z-index:999">BUILD X7 · ADAPTIVE · <span id="buildTime"></span></div>
 <header>
-<div class="logo">PSY6</div>
+<div class="logo">PSY6 <span style="font-size:14px;color:#ff2e88">X7</span></div>
 <div class="tagline">Enhanced · Sidechain · Evolving · Worker Timer</div>
 </header>
 <main>
@@ -721,5 +722,6 @@ document.addEventListener("visibilitychange",function(){
 /* init */
 buildPresets();buildSteps();buildPads();refreshMeta();paintStats();
 </script>
+<script>$("buildTime")&&($("buildTime").textContent=new Date().toLocaleTimeString());</script>
 </body>
 </html>
