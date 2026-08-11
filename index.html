@@ -243,7 +243,7 @@ function ensureAudio(){
     masterGain=audioCtx.createGain();masterGain.gain.value=parseFloat($("vol").value)*0.75;
 
     window._satNode=audioCtx.createWaveShaper();window._satNode.oversample="4x";
-    sat.curve=makeDistCurve(2.0);
+    window._satNode.curve=makeDistCurve(2.0);
 
     const hp=audioCtx.createBiquadFilter();hp.type="highpass";hp.frequency.value=30;
 
