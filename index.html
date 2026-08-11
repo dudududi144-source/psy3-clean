@@ -400,9 +400,14 @@ function scheduleStep(step,t){
     const p=activePreset(),v=activeParams();
     const lp=livePatterns||p.patterns;
     if(p.patterns.kick[step])playKick(t);
-    if(lp.hat[step])playHat(t,v.hatLvl);
+    if(lp.hat[step])playHat(t,v.hatLvl,(step===6||step===14));
     const b=lp.bass[step];
     if(b!==null&&b!==undefined)playBass(t,mtof(p.root+b),v);
+/* ghost note for groove */
+if(b===null&&step%4===2&&Math.random()<0.2){
+var _nb=lp.bass[(step+2)%16];
+if(_nb!==null&&_nb!==undefined)playBass(t,mtof(p.root+_nb),v);
+}
     const l=lp.lead[step];
     if(l!==null&&l!==undefined)playLead(t,mtof(p.root+24+l),v,step%4===0,true);
     stepQueue.push({step:step,time:t});
