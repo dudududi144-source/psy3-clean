@@ -262,7 +262,7 @@ gateLfo=audioCtx.createOscillator();gateLfo.type="square";gateLfo.frequency.valu
 gateLfoG=audioCtx.createGain();gateLfoG.gain.value=0;
 gateLfo.connect(gateLfoG);gateLfo.start();
     gateLfoG.connect(masterGain.gain);
-masterGain.connect(fxFilt);fxFilt.connect(sat);sat.connect(hp);hp.connect(comp);comp.connect(lim);lim.connect(audioCtx.destination);
+masterGain.connect(fxFilt);fxFilt.connect(sat);sat.connect(hp);hp.connect(comp);comp.connect(lim);lim.connect(window._masterFilter);window._masterFilter.connect(window._gateGain);window._gateGain.connect(audioCtx.destination);
 
     analyser=audioCtx.createAnalyser();analyser.fftSize=512;analyser.smoothingTimeConstant=0.82;
     lim.connect(analyser);
@@ -285,7 +285,19 @@ masterGain.connect(fxFilt);fxFilt.connect(sat);sat.connect(hp);hp.connect(comp);
     dlL.connect(pnL);pnL.connect(masterGain);
     dlR.connect(pnR);pnR.connect(masterGain);
 
-    noiseBuf=audioCtx.createBuffer(1,Math.floor(audioCtx.sampleRate*0.4),audioCtx.sampleRate);
+    /* WAH LFO on master filter */
+window._masterFilter=audioCtx.createBiquadFilter();window._masterFilter.type="lowpass";window._masterFilter.frequency.value=12000;window._masterFilter.Q.value=1;
+window._wahLfo=audioCtx.createOscillator();window._wahLfo.type="sine";window._wahLfo.frequency.value=2;
+window._wahLfoGain=audioCtx.createGain();window._wahLfoGain.gain.value=0;
+window._wahLfo.connect(window._wahLfoGain);window._wahLfoGain.connect(window._masterFilter.frequency);
+window._wahLfo.start();
+/* GATE LFO on master gain */
+window._gateGain=audioCtx.createGain();window._gateGain.gain.value=1;
+window._gateLfo=audioCtx.createOscillator();window._gateLfo.type="square";window._gateLfo.frequency.value=4;
+window._gateLfoGain=audioCtx.createGain();window._gateLfoGain.gain.value=0;
+window._gateLfo.connect(window._gateLfoGain);window._gateLfoGain.connect(window._gateGain.gain);
+window._gateLfo.start();
+noiseBuf=audioCtx.createBuffer(1,Math.floor(audioCtx.sampleRate*0.4),audioCtx.sampleRate);
     const nd=noiseBuf.getChannelData(0);
     for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
 
@@ -297,7 +309,7 @@ function pump(t){
     const d=duckBus.gain;
     d.cancelScheduledValues(t);
     d.setValueAtTime(0.7,t);
-    d.setTargetAtTime(0.2,t,0.008);
+    d.setTargetAtTime(0.7-fx.pump*0.5,t,0.008);
     d.setTargetAtTime(0.7,t+0.05,0.06);
 }
 
@@ -568,7 +580,7 @@ btn.classList.remove("on");
 }
 });
 });
-$("sDrive").addEventListener("input",function(){fx.drive=parseFloat(this.value);$("vDrive").textContent=this.value;});
+$("sDrive").addEventListener("input",function(){fx.drive=parseFloat(this.value);$("vDrive").textContent=this.value;if(window._satNode)window._satNode.curve=makeDistCurve(fx.drive);});
 $("sEcho").addEventListener("input",function(){fx.echo=parseInt(this.value)/100;$("vEcho").textContent=this.value;if(ppIn)ppIn.gain.value=fx.echo;});
 $("sPump").addEventListener("input",function(){fx.pump=parseInt(this.value)/100;$("vPump").textContent=this.value;});
 function tapeStopOnce(){
