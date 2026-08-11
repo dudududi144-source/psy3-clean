@@ -74,23 +74,6 @@ textarea{width:100%;background:rgba(8,4,18,.7);border:1px solid var(--panel-brd)
 #toast{position:fixed;bottom:26px;left:50%;transform:translate(-50%,80px);background:rgba(10,40,30,.95);border:1px solid var(--ok);color:var(--ok);padding:12px 26px;border-radius:999px;font-family:var(--font-mono);font-size:13px;transition:transform .35s cubic-bezier(.2,1.4,.4,1);z-index:99}
 #toast.show{transform:translate(-50%,0)}
 footer{text-align:center;padding:30px 20px 46px;color:var(--dim);font-size:12px;font-family:var(--font-mono)}
-
-.xyWrap{margin-bottom:14px}
-#xyPad{width:100%;height:180px;border-radius:12px;position:relative;cursor:crosshair;background:linear-gradient(135deg,rgba(0,255,200,.06),rgba(185,103,255,.1),rgba(255,46,136,.06));border:1px solid var(--panel-brd);touch-action:none;overflow:hidden}
-#xyDot{width:22px;height:22px;border-radius:50%;position:absolute;background:radial-gradient(circle,var(--cyan),rgba(0,255,200,.3));box-shadow:0 0 16px var(--cyan);transform:translate(-50%,-50%);pointer-events:none;left:50%;top:50%}
-.xyLabel{position:absolute;font-family:var(--font-mono);font-size:9px;color:var(--dim);letter-spacing:.1em;pointer-events:none}
-.xyX{bottom:6px;right:10px}.xyY{top:6px;left:10px}
-.xyVals{font-family:var(--font-mono);font-size:11px;color:var(--cyan);margin-top:6px;text-align:center}
-.fxGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
-.fxBtn{padding:12px 6px;border-radius:10px;border:1px solid var(--panel-brd);background:rgba(12,6,28,.6);cursor:pointer;text-align:center;transition:all .15s;min-height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
-.fxBtn .fxName{font-family:var(--font-display);font-weight:700;font-size:12px;letter-spacing:.15em;color:var(--dim)}
-.fxBtn .fxSub{font-family:var(--font-mono);font-size:9px;color:rgba(157,143,192,.5)}
-.fxBtn.on{border-color:var(--magenta);background:rgba(255,46,136,.12);box-shadow:0 0 14px rgba(255,46,136,.25)}
-.fxBtn.on .fxName{color:var(--magenta)}
-.fxSl{margin-bottom:10px}
-.fxSl label{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--dim);margin-bottom:4px}
-.fxSl label b{color:var(--cyan)}
-.fxSl input{width:100%}
 </style>
 </head>
 <body>
@@ -125,27 +108,16 @@ footer{text-align:center;padding:30px 20px 46px;color:var(--dim);font-size:12px;
 <div class="pads" id="pads"></div>
 </section>
 <section class="panel">
-<h2>FX Station</h2>
-<div class="xyWrap">
-<div id="xyPad"><div id="xyDot"></div>
-<div class="xyLabel xyX">CUTOFF &rarr;</div>
-<div class="xyLabel xyY">RES &uarr;</div>
-</div>
-<div class="xyVals"><span id="xyInfo">cut: 1200Hz &middot; res: 4.0</span></div>
-</div>
-<div class="fxGrid">
-<button class="fxBtn" data-fx="crush"><span class="fxName">CRUSH</span><span class="fxSub">bitcrush</span></button>
-<button class="fxBtn" data-fx="ring"><span class="fxName">RING</span><span class="fxSub">ring mod</span></button>
-<button class="fxBtn" data-fx="stut"><span class="fxName">STUT</span><span class="fxSub">stutter</span></button>
-<button class="fxBtn" data-fx="tape"><span class="fxName">TAPE</span><span class="fxSub">tape stop</span></button>
-<button class="fxBtn" data-fx="wah"><span class="fxName">WAH</span><span class="fxSub">auto-wah</span></button>
-<button class="fxBtn" data-fx="gate"><span class="fxName">GATE</span><span class="fxSub">trance gate</span></button>
-</div>
-<div class="fxSliders">
-<div class="fxSl"><label>DRIVE <b id="vDrive">3</b></label><input id="sDrive" type="range" min="0" max="10" step="0.1" value="3"></div>
-<div class="fxSl"><label>ECHO <b id="vEcho">30</b>%</label><input id="sEcho" type="range" min="0" max="80" step="1" value="30"></div>
-<div class="fxSl"><label>PUMP <b id="vPump">50</b>%</label><input id="sPump" type="range" min="0" max="100" step="1" value="50"></div>
-</div>
+<h2>Feedback &middot; 30s</h2>
+<form id="fbForm" autocomplete="off">
+<div class="fRow"><label>Genre fit</label><div class="rateBtns" id="rateGenre"></div></div>
+<div class="fRow"><label>Sound quality</label><div class="rateBtns" id="rateQuality"></div></div>
+<div class="fRow"><label>Issues (multi)</label><div class="chips" id="issueChips"></div></div>
+<div class="fRow"><label>Best variant</label><div class="voteRow"><button type="button" data-vote="A">&#9650; A</button><button type="button" data-vote="B">&#9650; B</button></div></div>
+<div class="fRow"><label for="fbComment">Comment</label><textarea id="fbComment" rows="3" placeholder="harsh highs? muddy? not rolling?"></textarea></div>
+<button id="submitFb" type="submit">SEND FEEDBACK &#9656;</button>
+<div class="fbStats"><span>sessions: <b id="statPlays">0</b></span><span>submissions: <b id="statFb">0</b></span></div>
+</form>
 </section>
 </div>
 </main>
@@ -242,8 +214,8 @@ function ensureAudio(){
 
     masterGain=audioCtx.createGain();masterGain.gain.value=parseFloat($("vol").value)*0.75;
 
-    window._satNode=audioCtx.createWaveShaper();window._satNode.oversample="4x";
-    window._satNode.curve=makeDistCurve(2.0);
+    const sat=audioCtx.createWaveShaper();sat.oversample="4x";
+    sat.curve=makeDistCurve(2.0);
 
     const hp=audioCtx.createBiquadFilter();hp.type="highpass";hp.frequency.value=30;
 
@@ -254,15 +226,7 @@ function ensureAudio(){
     lim.threshold.value=-1;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.05;
 
     duckBus.connect(masterGain);
-fxFilt=audioCtx.createBiquadFilter();fxFilt.type="lowpass";fxFilt.frequency.value=fx.cutoff;fxFilt.Q.value=fx.reso;
-wahLfo=audioCtx.createOscillator();wahLfo.type="sine";wahLfo.frequency.value=2.5;
-wahLfoG=audioCtx.createGain();wahLfoG.gain.value=0;
-wahLfo.connect(wahLfoG);wahLfoG.connect(fxFilt.frequency);wahLfo.start();
-gateLfo=audioCtx.createOscillator();gateLfo.type="square";gateLfo.frequency.value=activePreset().bpm/60*2;
-gateLfoG=audioCtx.createGain();gateLfoG.gain.value=0;
-gateLfo.connect(gateLfoG);gateLfo.start();
-    gateLfoG.connect(masterGain.gain);
-masterGain.connect(fxFilt);fxFilt.connect(window._satNode);window._satNode.connect(hp);hp.connect(comp);comp.connect(lim);lim.connect(window._masterFilter);window._masterFilter.connect(window._gateGain);window._gateGain.connect(audioCtx.destination);
+    masterGain.connect(sat);sat.connect(hp);hp.connect(comp);comp.connect(lim);lim.connect(audioCtx.destination);
 
     analyser=audioCtx.createAnalyser();analyser.fftSize=512;analyser.smoothingTimeConstant=0.82;
     lim.connect(analyser);
@@ -285,19 +249,7 @@ masterGain.connect(fxFilt);fxFilt.connect(window._satNode);window._satNode.conne
     dlL.connect(pnL);pnL.connect(masterGain);
     dlR.connect(pnR);pnR.connect(masterGain);
 
-    /* WAH LFO on master filter */
-window._masterFilter=audioCtx.createBiquadFilter();window._masterFilter.type="lowpass";window._masterFilter.frequency.value=12000;window._masterFilter.Q.value=1;
-window._wahLfo=audioCtx.createOscillator();window._wahLfo.type="sine";window._wahLfo.frequency.value=2;
-window._wahLfoGain=audioCtx.createGain();window._wahLfoGain.gain.value=0;
-window._wahLfo.connect(window._wahLfoGain);window._wahLfoGain.connect(window._masterFilter.frequency);
-window._wahLfo.start();
-/* GATE LFO on master gain */
-window._gateGain=audioCtx.createGain();window._gateGain.gain.value=1;
-window._gateLfo=audioCtx.createOscillator();window._gateLfo.type="square";window._gateLfo.frequency.value=4;
-window._gateLfoGain=audioCtx.createGain();window._gateLfoGain.gain.value=0;
-window._gateLfo.connect(window._gateLfoGain);window._gateLfoGain.connect(window._gateGain.gain);
-window._gateLfo.start();
-noiseBuf=audioCtx.createBuffer(1,Math.floor(audioCtx.sampleRate*0.4),audioCtx.sampleRate);
+    noiseBuf=audioCtx.createBuffer(1,Math.floor(audioCtx.sampleRate*0.4),audioCtx.sampleRate);
     const nd=noiseBuf.getChannelData(0);
     for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
 
@@ -305,13 +257,11 @@ noiseBuf=audioCtx.createBuffer(1,Math.floor(audioCtx.sampleRate*0.4),audioCtx.sa
 }
 
 /* sidechain pump */
-function syncDelay(){ /* delay time managed in ensureAudio */ }
-
 function pump(t){
     const d=duckBus.gain;
     d.cancelScheduledValues(t);
     d.setValueAtTime(0.7,t);
-    d.setTargetAtTime(0.7-fx.pump*0.5,t,0.008);
+    d.setTargetAtTime(0.2,t,0.008);
     d.setTargetAtTime(0.7,t+0.05,0.06);
 }
 
@@ -366,9 +316,9 @@ function playBass(t,freq,v){
     g.gain.setValueAtTime(0,t);
     g.gain.linearRampToValueAtTime(0.85,t+0.002);
     g.gain.exponentialRampToValueAtTime(0.001,t+0.19);
-    o.connect(f);f.connect(g);var bfx=audioCtx.createBiquadFilter();bfx.type="lowpass";bfx.frequency.value=fx.cutoff;bfx.Q.value=fx.reso;g.connect(bfx);bfx.connect(duckBus);
+    o.connect(f);f.connect(g);g.connect(duckBus);
     o.start(t);o.stop(t+0.2);
-    o.onended=function(){o.disconnect();f.disconnect();g.disconnect();if(typeof bfx!=='undefined')bfx.disconnect();};
+    o.onended=function(){o.disconnect();f.disconnect();g.disconnect();};
 }
 
 function playLead(t,freq,v,accent,echo){
@@ -387,10 +337,10 @@ function playLead(t,freq,v,accent,echo){
     g.gain.exponentialRampToValueAtTime(peak,t+0.008);
     g.gain.exponentialRampToValueAtTime(0.001,t+0.24);
     o.connect(f);o2.connect(f);f.connect(g);
-    var lfx=audioCtx.createBiquadFilter();lfx.type="lowpass";lfx.frequency.value=fx.cutoff;lfx.Q.value=fx.reso;g.connect(lfx);if(pan){lfx.connect(pan);pan.connect(masterGain);}else{lfx.connect(masterGain);}
+    if(pan){g.connect(pan);pan.connect(masterGain);}else{g.connect(masterGain);}
     if(echo&&ppIn){g.connect(ppIn);}
     o.start(t);o2.start(t);o.stop(t+0.26);o2.stop(t+0.26);
-    o.onended=function(){o.disconnect();o2.disconnect();f.disconnect();g.disconnect();if(typeof lfx!=='undefined')lfx.disconnect();if(pan)pan.disconnect();};
+    o.onended=function(){o.disconnect();o2.disconnect();f.disconnect();g.disconnect();if(pan)pan.disconnect();};
 }
 
 /* scheduler */
@@ -549,52 +499,36 @@ function refreshMeta(){
 }
 
 /* feedback */
-var fx={cutoff:1200,reso:4,crush:false,ring:false,stut:false,wah:false,gate:false,tape:false,drive:3,echo:0.3,pump:0.5};
-var xyPadEl=$("xyPad"),xyDotEl=$("xyDot"),xyInfoEl=$("xyInfo");
-var xyActive=false;
-function updateXY(x,y){
-var r=xyPadEl.getBoundingClientRect();
-var nx=Math.max(0,Math.min(1,(x-r.left)/r.width));
-var ny=Math.max(0,Math.min(1,1-(y-r.top)/r.height));
-fx.cutoff=100*Math.pow(80,nx);
-fx.reso=ny*24;
-xyDotEl.style.left=(nx*100)+"%";
-xyDotEl.style.top=((1-ny)*100)+"%";
-if(fxFilt){fxFilt.frequency.setTargetAtTime(fx.cutoff,audioCtx.currentTime,0.02);fxFilt.Q.setTargetAtTime(fx.reso,audioCtx.currentTime,0.02);}
-xyInfoEl.textContent="cut: "+Math.round(fx.cutoff)+"Hz \u00B7 res: "+fx.reso.toFixed(1);
-if(window._fxFilter){window._fxFilter.frequency.value=fx.cutoff;window._fxFilter.Q.value=fx.reso;}
+const fb={genre:0,quality:0,issues:new Set(),vote:null};
+function buildRates(el,key){
+    for(let i=1;i<=5;i++){
+        const b=document.createElement("button");b.type="button";b.textContent=i;
+        b.addEventListener("click",function(){fb[key]=i;Array.from(el.children).forEach(function(c){c.classList.toggle("on",c===b);});});
+        el.appendChild(b);
+    }
 }
-xyPadEl.addEventListener("pointerdown",function(e){xyActive=true;xyPadEl.setPointerCapture(e.pointerId);updateXY(e.clientX,e.clientY);});
-xyPadEl.addEventListener("pointermove",function(e){if(xyActive)updateXY(e.clientX,e.clientY);});
-xyPadEl.addEventListener("pointerup",function(){xyActive=false;});
-xyPadEl.addEventListener("pointercancel",function(){xyActive=false;});
-document.querySelectorAll(".fxBtn").forEach(function(btn){
-btn.addEventListener("click",function(){
-var k=btn.dataset.fx;
-fx[k]=!fx[k];
-btn.classList.toggle("on",fx[k]);
-if(k==="wah"&&window._wahLfoGain){window._wahLfoGain.gain.value=fx.wah?2000:0;}
-if(k==="gate"&&window._gateLfoGain){window._gateLfoGain.gain.value=fx.gate?0.4:0;}
-if(k==="crush"&&window._fxFilter){window._fxFilter.Q.value=fx.crush?Math.min(24,fx.reso+12):fx.reso;}
-if(k==="ring"&&window._fxFilter){window._fxFilter.frequency.value=fx.ring?600:fx.cutoff;window._fxFilter.Q.value=fx.ring?20:fx.reso;}
-if(k==="tape"&&fx.tape&&audioCtx&&isPlaying){
-tapeStopOnce();
-fx.tape=false;
-btn.classList.remove("on");
-}
+buildRates($("rateGenre"),"genre");buildRates($("rateQuality"),"quality");
+["harsh","muddy","clicks","thin","generic","boring"].forEach(function(t){
+    const c=document.createElement("button");c.type="button";c.className="chip";c.textContent=t;
+    c.addEventListener("click",function(){fb.issues.has(t)?fb.issues.delete(t):fb.issues.add(t);c.classList.toggle("on");});
+    $("issueChips").appendChild(c);
 });
+document.querySelectorAll("[data-vote]").forEach(function(b){
+    b.addEventListener("click",function(){fb.vote=b.dataset.vote;toast("Variant "+fb.vote+" preferred");});
 });
-$("sDrive").addEventListener("input",function(){fx.drive=parseFloat(this.value);$("vDrive").textContent=this.value;if(window._satNode)window._satNode.curve=makeDistCurve(fx.drive);});
-$("sEcho").addEventListener("input",function(){fx.echo=parseInt(this.value)/100;$("vEcho").textContent=this.value;if(ppIn)ppIn.gain.value=fx.echo;});
-$("sPump").addEventListener("input",function(){fx.pump=parseInt(this.value)/100;$("vPump").textContent=this.value;});
-function tapeStopOnce(){
-if(!masterGain||!audioCtx)return;
-var t=audioCtx.currentTime;
-masterGain.gain.cancelScheduledValues(t);
-masterGain.gain.setTargetAtTime(0.001,t,0.15);
-masterGain.gain.setTargetAtTime(parseFloat($("vol").value)*0.75,t+0.6,0.1);
-}
+$("fbForm").addEventListener("submit",function(e){
+    e.preventDefault();
+    const payload={preset_id:activePresetId,variant:activeVariant,genre_fit:fb.genre,sound_quality:fb.quality,issues:Array.from(fb.issues),best_variant:fb.vote,comment:$("fbComment").value.trim(),ts:new Date().toISOString()};
+    const store=JSON.parse(localStorage.getItem("psy6_feedback")||"[]");
+    store.push(payload);localStorage.setItem("psy6_feedback",JSON.stringify(store));
+    bumpStat("fb");
+    toast("✔ Feedback recorded!");
+    e.target.reset();
+    fb.genre=0;fb.quality=0;fb.issues.clear();fb.vote=null;
+    document.querySelectorAll(".rateBtns button,.chip").forEach(function(x){x.classList.remove("on");});
+});
 
+/* stats / toast */
 function bumpStat(kind){
     const k="psy6_stat_"+kind;
     const n=parseInt(localStorage.getItem(k)||"0",10)+1;
@@ -602,8 +536,8 @@ function bumpStat(kind){
     paintStats();
 }
 function paintStats(){
-if($("statPlays"))$("statPlays").textContent=localStorage.getItem("psy6_stat_plays")||"0";
-if($("statFb"))$("statFb").textContent=localStorage.getItem("psy6_stat_fb")||"0";
+    $("statPlays").textContent=localStorage.getItem("psy6_stat_plays")||"0";
+    $("statFb").textContent=localStorage.getItem("psy6_stat_fb")||"0";
 }
 let toastTimer=null;
 function toast(msg){
