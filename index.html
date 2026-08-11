@@ -345,6 +345,7 @@ function makeTimer(ms,onTick){
 
 /* ── scheduler (ENHANCED: worker timer + 30ms lookahead) ── */
 const LOOKAHEAD=0.03;
+function syncDelay(){/* delay set in ensureAudio */}
 function scheduler(){
     while(nextNoteTime<audioCtx.currentTime+LOOKAHEAD){
         scheduleStep(currentStep,nextNoteTime);
@@ -487,6 +488,15 @@ function refreshMeta(){
 
 /* ── toast ── */
 let toastTimer=null;
+function paintStats(){
+const sp=$("statPlays"),sf=$("statFb");
+if(sp)sp.textContent=localStorage.getItem("psy6_stat_plays")||"0";
+if(sf)sf.textContent=localStorage.getItem("psy6_stat_fb")||"0";}
+function bumpStat(kind){
+const k="psy6_stat_"+kind;
+const n=parseInt(localStorage.getItem(k)||"0",10)+1;
+localStorage.setItem(k,String(n));
+paintStats();}
 function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2600);}
 
 /* ── visibility ── */
