@@ -5,156 +5,106 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PSY3 - Clean Base</title>
 <style>
-body { font-family: system-ui; background: #05080c; color: #eef; padding: 20px; }
-h1 { color: #d4ff3f; text-shadow: 0 0 16px #d4ff3f; }
-#play { font-size: 20px; padding: 14px 44px; border-radius: 14px; border: 2px solid #d4ff3f; background: #131a10; color: #d4ff3f; cursor: pointer; }
-#play:hover { background: #d4ff3f; color: #000; }
+body{font-family:system-ui;background:#05080c;color:#eef;padding:20px;text-align:center}
+h1{color:#d4ff3f;text-shadow:0 0 16px #d4ff3f}
+#play{font-size:20px;padding:14px 44px;border-radius:14px;border:2px solid #d4ff3f;background:#131a10;color:#d4ff3f;cursor:pointer}
+#play:hover{background:#d4ff3f;color:#000}
+#status{color:#888;margin-top:10px}
+#section{color:#d4ff3f;font-size:24px;margin-top:15px;font-weight:bold}
 </style>
 </head>
 <body>
 <h1>PSY3</h1>
-<button id="play">PLAY ▶</button>
+<button id="play">PLAY &#9654;</button>
 <p id="status">self-proving psytrance studio twin</p>
-
+<div id="section"></div>
 <script>
-// === engine.js ===
-// psy3 web twin engine — Web Audio mirror of tools/engine.py (SIMULATED HARDWARE BEHAVIOR)
-export const eng={ctx:null,
- init(){ if(this.ctx)return; const c=new (window.AudioContext||window.webkitAudioContext)(); this.ctx=c;
-  this.sum=c.createGain(); this.duck=c.createGain(); this.comp=c.createDynamicsCompressor();
-  this.comp.threshold.value=-14; this.comp.ratio.value=2.5;
-  this.lim=c.createDynamicsCompressor(); this.lim.threshold.value=-1.5; this.lim.ratio.value=20;
-  this.master=c.createGain(); this.master.gain.value=0.9;
-  this.sum.connect(this.duck); this.duck.connect(this.comp); this.comp.connect(this.lim); this.lim.connect(this.master);
-  this.master.connect(c.destination);
-  this.analyser=c.createAnalyser(); this.analyser.fftSize=2048; this.master.connect(this.analyser);
-  this.dSend=c.createGain(); this.dl=c.createDelay(2); this.dl.delayTime.value=0.31; this.df=c.createBiquadFilter(); this.df.type="lowpass"; this.df.frequency.value=3500; this.fb=c.createGain(); this.fb.gain.value=0.35;
-  this.dSend.connect(this.dl); this.dl.connect(this.df); this.df.connect(this.fb); this.fb.connect(this.dl); this.dl.connect(this.sum);
-  this.rSend=c.createGain(); this.conv=c.createConvolver(); this.conv.buffer=this._imp(1.8,3);
-  this.rSend.connect(this.conv); this.conv.connect(this.sum);
-  this.noise=this._nz(); },
- _nz(){const c=this.ctx,b=c.createBuffer(1,c.sampleRate,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b;},
- _imp(s,dec){const c=this.ctx,n=Math.floor(c.sampleRate*s),b=c.createBuffer(2,n,c.sampleRate);for(let ch=0;ch<2;ch++){const d=b.getChannelData(ch);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,dec);}return b;},
- kick(t,a=1){const c=this.ctx,o=c.createOscillator(),g=c.createGain();o.type="sine";o.frequency.setValueAtTime(160,t);o.frequency.exponentialRampToValueAtTime(48,t+0.008);o.frequency.exponentialRampToValueAtTime(45,t+0.09);g.gain.setValueAtTime(a,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.2);o.connect(g);g.connect(this.sum);o.start(t);o.stop(t+0.22);
-  const cl=c.createOscillator(),cg=c.createGain();cl.type="square";cl.frequency.setValueAtTime(900,t);cl.frequency.exponentialRampToValueAtTime(200,t+0.012);cg.gain.setValueAtTime(0.3*a,t);cg.gain.exponentialRampToValueAtTime(0.001,t+0.02);cl.connect(cg);cg.connect(this.sum);cl.start(t);cl.stop(t+0.03);
-  if(this.duck){const d=this.duck.gain;d.cancelScheduledValues(t);d.setValueAtTime(0.5,t);d.setTargetAtTime(1,t+0.02,0.09);}},
- bass(t,midi,dur,acid=false){const c=this.ctx,f=440*Math.pow(2,(midi-69)/12);const o=c.createOscillator();o.type="sawtooth";o.frequency.value=f;const sub=c.createOscillator();sub.type="sine";sub.frequency.value=f/2;const sg=c.createGain();sg.gain.value=0.5;const fl=c.createBiquadFilter();fl.type="lowpass";fl.Q.value=acid?14:3;fl.frequency.setValueAtTime(acid?2500:1500,t);fl.frequency.exponentialRampToValueAtTime(150,t+Math.min(dur,0.12));const g=c.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.42,t+0.003);g.gain.linearRampToValueAtTime(0,t+dur);o.connect(fl);fl.connect(g);sub.connect(sg);sg.connect(g);g.connect(this.sum);o.start(t);sub.start(t);o.stop(t+dur+0.03);sub.stop(t+dur+0.03);},
- lead(t,midi,dur,v=1){const c=this.ctx,f=440*Math.pow(2,(midi-69)/12);const fl=c.createBiquadFilter();fl.type="lowpass";fl.frequency.setValueAtTime(6000,t);fl.frequency.exponentialRampToValueAtTime(1200,t+dur);const g=c.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.16*v,t+0.006);g.gain.linearRampToValueAtTime(0,t+dur);for(let i=0;i<5;i++){const o=c.createOscillator();o.type="sawtooth";o.frequency.value=f;o.detune.value=(i-2)*14;o.connect(fl);o.start(t);o.stop(t+dur+0.05);}fl.connect(g);g.connect(this.sum);g.connect(this.dSend);g.connect(this.rSend);},
- pad(t,root,chord,dur){const c=this.ctx;chord.forEach(iv=>{const f=440*Math.pow(2,(root+12+iv-69)/12);const lp=c.createBiquadFilter();lp.type="lowpass";lp.frequency.value=1100;const g=c.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.05,t+0.4);g.gain.linearRampToValueAtTime(0,t+dur);for(let i=0;i<2;i++){const o=c.createOscillator();o.type="sawtooth";o.frequency.value=f;o.detune.value=i?6:-6;o.connect(lp);o.start(t);o.stop(t+dur+0.1);}lp.connect(g);g.connect(this.sum);g.connect(this.rSend);});},
- hat(t,o=false,v=0.12){const c=this.ctx,s=c.createBufferSource();s.buffer=this.noise;const hp=c.createBiquadFilter();hp.type="highpass";hp.frequency.value=o?7000:8500;const g=c.createGain();g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(0.001,t+(o?0.25:0.045));s.connect(hp);hp.connect(g);g.connect(this.sum);s.start(t);s.stop(t+0.3);},
- clap(t){const c=this.ctx,s=c.createBufferSource();s.buffer=this.noise;const bp=c.createBiquadFilter();bp.type="bandpass";bp.frequency.value=1800;const g=c.createGain();g.gain.setValueAtTime(0.4,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.18);s.connect(bp);bp.connect(g);g.connect(this.sum);s.start(t);s.stop(t+0.2);},
- riser(t,dur){const c=this.ctx,s=c.createBufferSource();s.buffer=this.noise;const bp=c.createBiquadFilter();bp.type="bandpass";bp.Q.value=2;bp.frequency.setValueAtTime(300,t);bp.frequency.exponentialRampToValueAtTime(8000,t+dur);const g=c.createGain();g.gain.setValueAtTime(0.001,t);g.gain.exponentialRampToValueAtTime(0.3,t+dur);s.connect(bp);bp.connect(g);g.connect(this.sum);s.start(t);s.stop(t+dur+0.1);},
- impact(t){const c=this.ctx,o=c.createOscillator();o.type="sine";o.frequency.setValueAtTime(120,t);o.frequency.exponentialRampToValueAtTime(35,t+0.4);const g=c.createGain();g.gain.setValueAtTime(0.8,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.5);o.connect(g);g.connect(this.sum);o.start(t);o.stop(t+0.55);this.hat(t,true,0.2);},
-};
+"use strict";
+const eng={ctx:null,
+init(){if(this.ctx)return;const c=new(window.AudioContext||window.webkitAudioContext)();this.ctx=c;
+this.sum=c.createGain();this.duck=c.createGain();this.comp=c.createDynamicsCompressor();
+this.comp.threshold.value=-14;this.comp.ratio.value=2.5;
+this.lim=c.createDynamicsCompressor();this.lim.threshold.value=-1.5;this.lim.ratio.value=20;
+this.master=c.createGain();this.master.gain.value=0.9;
+this.sum.connect(this.duck);this.duck.connect(this.comp);this.comp.connect(this.lim);this.lim.connect(this.master);this.master.connect(c.destination);
+this.dSend=c.createGain();this.dl=c.createDelay(2);this.dl.delayTime.value=0.31;
+this.df=c.createBiquadFilter();this.df.type="lowpass";this.df.frequency.value=3500;
+this.fb=c.createGain();this.fb.gain.value=0.35;
+this.dSend.connect(this.dl);this.dl.connect(this.df);this.df.connect(this.fb);this.fb.connect(this.dl);this.df.connect(this.sum);},
+kick(t,a){a=a||1;const c=this.ctx,o=c.createOscillator(),g=c.createGain();
+o.type="sine";o.frequency.setValueAtTime(160,t);o.frequency.exponentialRampToValueAtTime(48,t+0.008);o.frequency.exponentialRampToValueAtTime(45,t+0.09);
+g.gain.setValueAtTime(a,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
+o.connect(g);g.connect(this.sum);o.start(t);o.stop(t+0.22);
+const cl=c.createOscillator(),cg=c.createGain();cl.type="square";
+cl.frequency.setValueAtTime(900,t);cl.frequency.exponentialRampToValueAtTime(200,t+0.012);
+cg.gain.setValueAtTime(0.3*a,t);cg.gain.exponentialRampToValueAtTime(0.001,t+0.02);
+cl.connect(cg);cg.connect(this.sum);cl.start(t);cl.stop(t+0.03);
+if(this.duck){const d=this.duck.gain;d.cancelScheduledValues(t);d.setValueAtTime(0.5,t);d.setTargetAtTime(1,t+0.02,0.09);}},
+bass(t,midi,dur,acid){const c=this.ctx,f=440*Math.pow(2,(midi-69)/12);
+const o=c.createOscillator(),g=c.createGain(),fl=c.createBiquadFilter();
+o.type=acid?"sawtooth":"square";o.frequency.value=f;
+fl.type="lowpass";fl.frequency.setValueAtTime(acid?2200:800,t);fl.frequency.exponentialRampToValueAtTime(acid?400:200,t+dur);fl.Q.value=acid?8:2;
+g.gain.setValueAtTime(0.35,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+o.connect(fl);fl.connect(g);g.connect(this.sum);o.start(t);o.stop(t+dur+0.05);},
+lead(t,midi,dur){const c=this.ctx,f=440*Math.pow(2,(midi-69)/12);
+const o=c.createOscillator(),o2=c.createOscillator(),g=c.createGain(),fl=c.createBiquadFilter();
+o.type="sawtooth";o2.type="sawtooth";o.frequency.value=f;o2.frequency.value=f*1.005;
+fl.type="lowpass";fl.frequency.setValueAtTime(3000,t);fl.frequency.exponentialRampToValueAtTime(800,t+dur);
+g.gain.setValueAtTime(0.15,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+o.connect(fl);o2.connect(fl);fl.connect(g);g.connect(this.sum);g.connect(this.dSend);
+o.start(t);o2.start(t);o.stop(t+dur+0.05);o2.stop(t+dur+0.05);},
+pad(t,midi,dur){const c=this.ctx,f=440*Math.pow(2,(midi-69)/12);
+const o=c.createOscillator(),g=c.createGain(),fl=c.createBiquadFilter();
+o.type="sine";o.frequency.value=f;fl.type="lowpass";fl.frequency.value=1200;
+g.gain.setValueAtTime(0.001,t);g.gain.linearRampToValueAtTime(0.08,t+dur*0.3);g.gain.linearRampToValueAtTime(0.001,t+dur);
+o.connect(fl);fl.connect(g);g.connect(this.sum);g.connect(this.dSend);o.start(t);o.stop(t+dur+0.1);},
+hat(t,open,v){v=v||0.15;const c=this.ctx,dur=open?0.15:0.04;
+const buf=c.createBuffer(1,c.sampleRate*dur,c.sampleRate);const d=buf.getChannelData(0);
+for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);
+const s=c.createBufferSource();s.buffer=buf;
+const hp=c.createBiquadFilter();hp.type="highpass";hp.frequency.value=8000;
+const g=c.createGain();g.gain.value=v;
+s.connect(hp);hp.connect(g);g.connect(this.sum);s.start(t);},
+clap(t){const c=this.ctx;
+for(let i=0;i<3;i++){const dur=0.08;
+const buf=c.createBuffer(1,c.sampleRate*dur,c.sampleRate);const d=buf.getChannelData(0);
+for(let j=0;j<d.length;j++)d[j]=(Math.random()*2-1)*Math.pow(1-j/d.length,3);
+const s=c.createBufferSource();s.buffer=buf;
+const bp=c.createBiquadFilter();bp.type="bandpass";bp.frequency.value=1500;bp.Q.value=1;
+const g=c.createGain();g.gain.setValueAtTime(0.001,t+i*0.012);g.gain.exponentialRampToValueAtTime(0.3,t+i*0.012+dur);
+s.connect(bp);bp.connect(g);g.connect(this.sum);s.start(t+i*0.012);s.stop(t+i*0.012+dur+0.1);}},
+impact(t){const c=this.ctx,o=c.createOscillator();o.type="sine";
+o.frequency.setValueAtTime(120,t);o.frequency.exponentialRampToValueAtTime(35,t+0.4);
+const g=c.createGain();g.gain.setValueAtTime(0.8,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.5);
+o.connect(g);g.connect(this.sum);o.start(t);o.stop(t+0.55);this.hat(t,true,0.2);}};
 
+const SCALES={PHRY:[0,1,3,5,7,8,10]};
+const SECTIONS=[{n:"INTRO",b:8,e:.35,k:1,ba:1,l:0,p:1},{n:"BUILD",b:8,e:.7,k:1,ba:1,l:.4,p:1,r:1},{n:"DROP",b:16,e:1,k:1,ba:1,l:1,p:1,i:1},{n:"BREAK",b:8,e:.3,k:0,ba:0,l:.6,p:1},{n:"CLIMAX",b:16,e:1,k:1,ba:1,l:1,p:1,i:1}];
+function sectionAt(bar){let b=bar;for(const s of SECTIONS){if(b<s.b)return s;b-=s.b;}return SECTIONS[0];}
 
-// === music.js ===
-// psy3 web twin sequencer
-import {eng} from "./engine.js";
-export const SCALES={PHRY:[0,1,3,5,7,8,10]};
-export const SECTIONS=[{n:"INTRO",b:8,e:.35,k:1,ba:1,l:0,p:1},{n:"BUILD",b:8,e:.7,k:1,ba:1,l:.4,p:1,r:1},{n:"DROP",b:16,e:1,k:1,ba:1,l:1,p:1,i:1},{n:"BREAK",b:8,e:.3,k:0,ba:0,l:.6,p:1},{n:"CLIMAX",b:16,e:1,k:1,ba:1,l:1,p:1,i:1}];
-export function sectionAt(bar){let b=bar;for(const s of SECTIONS){if(b<s.b)return s;b-=s.b;}return SECTIONS[0];}
-export const seq={playing:false,timer:null,next:0,si:0,bar:0,bpm:142,seed:7,motif:[],
- start(){eng.init();eng.ctx.resume();if(this.playing)return;this.playing=true;this.si=0;this.bar=0;this.next=eng.ctx.currentTime+0.1;this.motif=Array.from({length:32},(_,i)=>(i*3+this.seed)%7);this.timer=setInterval(()=>this.tick(),25);},
- stop(){this.playing=false;clearInterval(this.timer);},
- s16(){return 60/this.bpm/4;},
- tick(){while(this.next<eng.ctx.currentTime+0.15){this.step(this.si,this.next);this.si=(this.si+1)%32;this.next+=this.s16();}},
- step(s,t){const sec=sectionAt(this.bar),sc=SCALES.PHRY;
-  if(s===0){ if(sec.i)eng.impact(t); if(sec.r)eng.riser(t,this.s16()*16); if(sec.p)eng.pad(t,40,[0,3,7],this.s16()*32); }
-  if(sec.k&&s%4===0)eng.kick(t);
-  if(sec.ba&&s%2===1)eng.bass(t,40+(s%3),this.s16());
-  if(s%2===0&&sec.k)eng.hat(t);
-  if(s%8===4)eng.hat(t,true);
-  if(s%16===8&&sec.k)eng.clap(t);
-  if(sec.l&&s%4===0)eng.lead(t,64+sc[this.motif[s%32]],this.s16()*3,sec.l);
-  if(s===31)this.bar++;},
-};
+const seq={playing:false,timer:null,next:0,si:0,bar:0,bpm:142,seed:7,motif:[],
+start(){eng.init();if(eng.ctx.state==='suspended')eng.ctx.resume();
+if(this.playing)return;this.playing=true;this.si=0;this.bar=0;
+this.next=eng.ctx.currentTime+0.1;
+this.motif=Array.from({length:32},(_,i)=>(i*3+this.seed)%7);
+this.timer=setInterval(()=>this.tick(),25);},
+stop(){this.playing=false;clearInterval(this.timer);},
+s16(){return 60/this.bpm/4;},
+tick(){while(this.next<eng.ctx.currentTime+0.15){this.step(this.si,this.next);this.si=(this.si+1)%32;if(this.si===0)this.bar++;this.next+=this.s16();}},
+step(s,t){const sec=sectionAt(this.bar);const sc=SCALES.PHRY;const root=45;
+document.getElementById('section').textContent=sec.n;
+if(sec.k&&s%4===0)eng.kick(t,sec.e);
+if(sec.ba&&s%2===1)eng.bass(t,root+sc[this.motif[s]%sc.length]-12,this.s16()*0.8,s%8===7);
+if(sec.l>0&&s%4===2)eng.lead(t,root+12+sc[this.motif[s]%sc.length],this.s16()*1.5*sec.l);
+if(sec.p&&s===0)eng.pad(t,root+sc[0],this.s16()*16);
+if(s%2===0)eng.hat(t,s%8===6,0.12*sec.e);
+if(sec.k&&s%8===4)eng.clap(t);
+if(sec.i&&s===0)eng.impact(t);}};
 
-
-// === sample_engine.js ===
-// sample engine: plays real WAVs from /samples if present (REAL samples path)
-export const sampleEngine={bank:{},ctx:null,
- async init(ctx){this.ctx=ctx;const list=await fetch("samples/manifest.json").then(r=>r.json()).catch(()=>[]);
-  for(const n of list){try{const b=await fetch("samples/"+n).then(r=>r.arrayBuffer());this.bank[n]=await ctx.decodeAudioData(b);}catch(e){}}},
- play(n,t=0){const b=this.bank[n];if(!b)return;const s=this.ctx.createBufferSource();s.buffer=b;s.connect(this.ctx.destination);s.start(t);},
- pick(tag){return Object.keys(this.bank).find(k=>k.includes(tag))||null;}};
-
-
-// === app.js (adapted) ===
-
-
-
-const $=s=>document.querySelector(s);
-function useSamples(){
-  // prefer REAL rendered samples for drums when present
-  if(sampleEngine.bank["kick.wav"]) eng.kick=(t,a)=>sampleEngine.play("kick.wav",t);
-  if(sampleEngine.bank["hat_closed.wav"]){ eng.hat=(t,o,v)=>sampleEngine.play(o?"hat_open.wav":"hat_closed.wav",t); }
-  if(sampleEngine.bank["clap.wav"]) eng.clap=(t)=>sampleEngine.play("clap.wav",t);
-}
 function toggle(){
-  if(seq.playing){seq.stop();$("#play").textContent="PLAY ▶";}
-  else{
-    eng.init();
-    sampleEngine.init(eng.ctx).then(useSamples);
-    seq.start(); $("#play").textContent="■ STOP";
-  }
-}
-document.addEventListener("DOMContentLoaded",()=>{ $("#play").addEventListener("click",toggle); });
-
-
-// === Turso Integration ===
-const TURSO_CONFIG = {
-    host: "forge-db-dudududi144-source.aws-eu-west-1.turso.io",
-    token: "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJVSk5NU0pVb0VmR2x3dEoyNzliUEVBIiwib3JnX2lkIjoxMDAwMjE5MTIwfQ.EIfvdNCYjl26GkZkQUA6DO99iVEcFr3VUOFcMnmQ8i5VM7XX2sVSkh3SmLiQXWKuLvEetWk1HbnGM0VjdsgRDA"
-};
-
-async function tursoQuery(sql, params = []) {
-    const response = await fetch(`https://${TURSO_CONFIG.host}/v2/pipeline`, {
-        method: "POST",
-        headers: {
-            "Authorization": "Bearer " + TURSO_CONFIG.token,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            requests: [{
-                type: "execute",
-                stmt: { sql: sql, args: params }
-            }]
-        })
-    });
-    return response.json();
-}
-
-async function saveProject(name, data) {
-    const id = Date.now().toString(36) + Math.random().toString(36).substr(2);
-    const result = await tursoQuery(
-        "INSERT INTO projects (id, name, data) VALUES (?, ?, ?)",
-        [id, name, JSON.stringify(data)]
-    );
-    console.log("Project saved:", id);
-    return id;
-}
-
-async function loadProject(id) {
-    const result = await tursoQuery(
-        "SELECT data FROM projects WHERE id = ?",
-        [id]
-    );
-    if (result.results && result.results[0]) {
-        return JSON.parse(result.results[0].response.result.rows[0][0].value);
-    }
-    return null;
-}
-
-async function listProjects() {
-    const result = await tursoQuery(
-        "SELECT id, name, created_at FROM projects ORDER BY created_at DESC"
-    );
-    return result.results ? result.results[0].response.result.rows : [];
-}
-
-console.log("Turso integration loaded");
-
+if(seq.playing){seq.stop();document.getElementById('play').textContent='PLAY \u25B6';document.getElementById('status').textContent='Stopped';}
+else{seq.start();document.getElementById('play').textContent='\u25A0 STOP';document.getElementById('status').textContent='Playing...';}}
+document.getElementById('play').addEventListener('click',toggle);
 </script>
 </body>
 </html>
