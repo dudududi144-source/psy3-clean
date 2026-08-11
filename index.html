@@ -107,18 +107,7 @@ footer{text-align:center;padding:30px 20px 46px;color:var(--dim);font-size:12px;
 <div class="kbHint">Play lead: <b>A W S E D F T G Y H U J K</b></div>
 <div class="pads" id="pads"></div>
 </section>
-<section class="panel">
-<h2>Feedback &middot; 30s</h2>
-<form id="fbForm" autocomplete="off">
-<div class="fRow"><label>Genre fit</label><div class="rateBtns" id="rateGenre"></div></div>
-<div class="fRow"><label>Sound quality</label><div class="rateBtns" id="rateQuality"></div></div>
-<div class="fRow"><label>Issues (multi)</label><div class="chips" id="issueChips"></div></div>
-<div class="fRow"><label>Best variant</label><div class="voteRow"><button type="button" data-vote="A">&#9650; A</button><button type="button" data-vote="B">&#9650; B</button></div></div>
-<div class="fRow"><label for="fbComment">Comment</label><textarea id="fbComment" rows="3" placeholder="harsh highs? muddy? not rolling?"></textarea></div>
-<button id="submitFb" type="submit">SEND FEEDBACK &#9656;</button>
-<div class="fbStats"><span>sessions: <b id="statPlays">0</b></span><span>submissions: <b id="statFb">0</b></span></div>
-</form>
-</section>
+
 </div>
 </main>
 <div id="toast">&#10004; Ready</div>
@@ -499,36 +488,6 @@ function refreshMeta(){
 }
 
 /* feedback */
-const fb={genre:0,quality:0,issues:new Set(),vote:null};
-function buildRates(el,key){
-    for(let i=1;i<=5;i++){
-        const b=document.createElement("button");b.type="button";b.textContent=i;
-        b.addEventListener("click",function(){fb[key]=i;Array.from(el.children).forEach(function(c){c.classList.toggle("on",c===b);});});
-        el.appendChild(b);
-    }
-}
-buildRates($("rateGenre"),"genre");buildRates($("rateQuality"),"quality");
-["harsh","muddy","clicks","thin","generic","boring"].forEach(function(t){
-    const c=document.createElement("button");c.type="button";c.className="chip";c.textContent=t;
-    c.addEventListener("click",function(){fb.issues.has(t)?fb.issues.delete(t):fb.issues.add(t);c.classList.toggle("on");});
-    $("issueChips").appendChild(c);
-});
-document.querySelectorAll("[data-vote]").forEach(function(b){
-    b.addEventListener("click",function(){fb.vote=b.dataset.vote;toast("Variant "+fb.vote+" preferred");});
-});
-$("fbForm").addEventListener("submit",function(e){
-    e.preventDefault();
-    const payload={preset_id:activePresetId,variant:activeVariant,genre_fit:fb.genre,sound_quality:fb.quality,issues:Array.from(fb.issues),best_variant:fb.vote,comment:$("fbComment").value.trim(),ts:new Date().toISOString()};
-    const store=JSON.parse(localStorage.getItem("psy6_feedback")||"[]");
-    store.push(payload);localStorage.setItem("psy6_feedback",JSON.stringify(store));
-    bumpStat("fb");
-    toast("✔ Feedback recorded!");
-    e.target.reset();
-    fb.genre=0;fb.quality=0;fb.issues.clear();fb.vote=null;
-    document.querySelectorAll(".rateBtns button,.chip").forEach(function(x){x.classList.remove("on");});
-});
-
-/* stats / toast */
 function bumpStat(kind){
     const k="psy6_stat_"+kind;
     const n=parseInt(localStorage.getItem(k)||"0",10)+1;
@@ -537,7 +496,7 @@ function bumpStat(kind){
 }
 function paintStats(){
     $("statPlays").textContent=localStorage.getItem("psy6_stat_plays")||"0";
-    $("statFb").textContent=localStorage.getItem("psy6_stat_fb")||"0";
+    
 }
 let toastTimer=null;
 function toast(msg){
