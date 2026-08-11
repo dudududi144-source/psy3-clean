@@ -3,426 +3,483 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>PSY3 v3</title>
+<title>PSY3 REBUILD</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:system-ui,-apple-system,sans-serif;background:#05080c;color:#dfe5ee;
+body{font-family:system-ui,-apple-system,sans-serif;background:#030508;color:#dfe5ee;
 display:flex;flex-direction:column;align-items:center;justify-content:center;
 min-height:100vh;padding:16px;text-align:center;overflow:hidden}
-h1{font-size:24px;color:#d4ff3f;text-shadow:0 0 20px rgba(212,255,63,.4);letter-spacing:.3em;margin-bottom:4px}
-.sub{font-size:9px;color:#4a5468;letter-spacing:.25em;margin-bottom:20px}
-#playBtn{width:120px;height:120px;border-radius:50%;border:2px solid #d4ff3f;
-background:radial-gradient(circle at 40% 35%,#1a2410,#0a0f06);color:#d4ff3f;
-font-size:13px;font-weight:700;letter-spacing:.15em;cursor:pointer;
-transition:all .2s;box-shadow:0 0 25px rgba(212,255,63,.12)}
-#playBtn:hover{box-shadow:0 0 45px rgba(212,255,63,.3);transform:scale(1.05)}
-#playBtn.active{background:radial-gradient(circle at 40% 35%,#3a4a10,#1a2406);
-box-shadow:0 0 55px rgba(212,255,63,.5)}
-#state{font-size:28px;font-weight:800;margin-top:14px;letter-spacing:.2em;
-transition:color .5s;text-shadow:0 0 20px currentColor}
-.bar-wrap{width:240px;margin-top:10px}
-.bar-label{font-size:8px;color:#3a4458;letter-spacing:.15em;text-align:left;margin-bottom:2px}
-.bar-bg{height:5px;background:#111;border-radius:3px;overflow:hidden}
-.bar-fill{height:100%;width:0%;border-radius:3px;transition:width .12s linear}
-#energyFill{background:linear-gradient(90deg,#d4ff3f,#ff6b35)}
-#chaosFill{background:#ff2e63}
-#vuFill{background:#4fd6c0;transition:width 50ms linear}
-#info{margin-top:12px;font-size:9px;color:#2a3448;font-family:monospace;line-height:2}
+h1{font-size:22px;color:#d4ff3f;text-shadow:0 0 20px rgba(212,255,63,.4);letter-spacing:.35em;margin-bottom:3px}
+.sub{font-size:8px;color:#3a4458;letter-spacing:.3em;margin-bottom:18px}
+#playBtn{width:110px;height:110px;border-radius:50%;border:2px solid #d4ff3f;
+background:radial-gradient(circle at 40% 35%,#141e0a,#080d04);color:#d4ff3f;
+font-size:12px;font-weight:700;letter-spacing:.15em;cursor:pointer;
+transition:all .2s;box-shadow:0 0 20px rgba(212,255,63,.1)}
+#playBtn:hover{box-shadow:0 0 40px rgba(212,255,63,.3);transform:scale(1.05)}
+#playBtn.active{background:radial-gradient(circle at 40% 35%,#2a3a08,#141e0a);
+box-shadow:0 0 50px rgba(212,255,63,.5)}
+#state{font-size:26px;font-weight:800;margin-top:12px;letter-spacing:.25em;
+transition:color .5s;text-shadow:0 0 18px currentColor}
+.bw{width:220px;margin-top:7px}
+.bl{font-size:7px;color:#2a3448;letter-spacing:.2em;text-align:left;margin-bottom:2px}
+.bb{height:4px;background:#0a0e14;border-radius:2px;overflow:hidden}
+.bf{height:100%;width:0%;border-radius:2px;transition:width .1s linear}
+#ef{background:linear-gradient(90deg,#d4ff3f,#ff6b35)}
+#cf{background:#ff2e63}
+#vf{background:#4fd6c0;transition:width 50ms linear}
+#info{margin-top:10px;font-size:8px;color:#1e2838;font-family:monospace;line-height:2.2}
 </style>
 </head>
 <body>
 <h1>PSY3</h1>
-<div class="sub">FULL ENGINE v3 · WORKER TIMER · ADAPTIVE · 143 BPM</div>
+<div class="sub">REBUILD · AUDIOWORKLET · MOOG LADDER · POLYBLEP · 143 BPM</div>
 <button id="playBtn">PLAY</button>
 <div id="state" style="color:#4ecdc4">READY</div>
-<div class="bar-wrap"><div class="bar-label">ENERGY</div><div class="bar-bg"><div class="bar-fill" id="energyFill"></div></div></div>
-<div class="bar-wrap"><div class="bar-label">CHAOS</div><div class="bar-bg"><div class="bar-fill" id="chaosFill"></div></div></div>
-<div class="bar-wrap"><div class="bar-label">LEVEL</div><div class="bar-bg"><div class="bar-fill" id="vuFill"></div></div></div>
+<div class="bw"><div class="bl">ENERGY</div><div class="bb"><div class="bf" id="ef"></div></div></div>
+<div class="bw"><div class="bl">CHAOS</div><div class="bb"><div class="bf" id="cf"></div></div></div>
+<div class="bw"><div class="bl">LEVEL</div><div class="bb"><div class="bf" id="vf"></div></div></div>
 <div id="info"></div>
-
 <script>
 "use strict";
 
 // ============================================================
-// PSY3 v3 — FULL ENGINE
-// Worker timer + Pump + Distortion + Filter FX + Ping-Pong
-// Adaptive states + Markov + Motif evolution
+// PSY3 COMPLETE REBUILD
+// AudioWorklet + PolyBLEP + Moog Ladder + Voice Manager
 // ============================================================
 
-const BPM=143;
-const STEP=60/BPM/4;
-const DOT8=STEP*3;
-const LOOKAHEAD=0.025;
-const SCALE=[0,1,3,5,7,8,10];
+const BPM=143,STEP=60/BPM/4,DOT8=STEP*3,LOOKAHEAD=0.025;
+const SCALE=[0,1,3,5,7,8,10]; // E Phrygian
 
-// === AUDIO CONTEXT ===
-let ctx=null,unlocked=false;
+// ============================================================
+// AUDIOWORKLET PROCESSOR (runs in audio thread)
+// ============================================================
+const WORKLET_CODE = `
+class PsySynth extends AudioWorkletProcessor {
+  static get parameterDescriptors() { return []; }
+  
+  constructor() {
+    super();
+    this.NV = 12;
+    this.voices = [];
+    for (let i = 0; i < this.NV; i++) {
+      this.voices.push({
+        on: false, age: 0, noteId: -1,
+        ph: 0, ph2: 0,
+        freq: 110, amp: 0, tgtAmp: 0,
+        wave: 0, cut: 1000, tgtCut: 1000,
+        res: 0, drv: 1, det: 0,
+        envSt: 0, envLv: 0,
+        atk: 0.003, dec: 0.1, sus: 0.6, rel: 0.05,
+        fs: [0,0,0,0]
+      });
+    }
+    this.noteCtr = 0;
+    this.port.onmessage = (e) => {
+      const m = e.data;
+      if (m.t === 'on') this.noteOn(m);
+      else if (m.t === 'off') this.noteOff(m);
+      else if (m.t === 'panic') this.panic();
+    };
+  }
+  
+  noteOn(m) {
+    let v = null;
+    for (let i = 0; i < this.NV; i++) {
+      if (!this.voices[i].on) { v = this.voices[i]; break; }
+    }
+    if (!v) {
+      let minA = 999;
+      for (let i = 0; i < this.NV; i++) {
+        if (this.voices[i].amp < minA) { minA = this.voices[i].amp; v = this.voices[i]; }
+      }
+      v.envSt = 3; v.rel = 0.001;
+    }
+    v.on = true; v.age = 0; v.noteId = this.noteCtr++;
+    v.freq = m.f; v.tgtAmp = m.a; v.wave = m.w || 0;
+    v.tgtCut = m.c || 1000; v.res = m.r || 0; v.drv = m.d || 1;
+    v.det = m.dt || 0;
+    v.atk = m.atk || 0.003; v.dec = m.dec || 0.1;
+    v.sus = m.sus || 0.6; v.rel = m.rel || 0.05;
+    v.envSt = 0; v.envLv = 0;
+    v.ph = 0; v.ph2 = 0;
+    v.fs = [0,0,0,0];
+  }
+  
+  noteOff(m) {
+    for (let i = 0; i < this.NV; i++) {
+      if (this.voices[i].noteId === m.id && this.voices[i].on) {
+        this.voices[i].envSt = 3;
+        break;
+      }
+    }
+  }
+  
+  panic() {
+    for (let i = 0; i < this.NV; i++) {
+      this.voices[i].envSt = 3;
+      this.voices[i].rel = 0.001;
+    }
+  }
+  
+  polyblep(ph, dt) {
+    if (ph < dt) { const p = ph/dt; return 2*p - p*p - 1; }
+    if (ph > 1-dt) { const p = (ph-1)/dt; return p*p + 2*p + 1; }
+    return 0;
+  }
+  
+  process(inputs, outputs, params) {
+    const out = outputs[0];
+    if (!out || !out[0]) return true;
+    const ch = out[0];
+    const N = ch.length;
+    const sr = sampleRate;
+    
+    for (let i = 0; i < N; i++) {
+      let mix = 0;
+      
+      for (let vi = 0; vi < this.NV; vi++) {
+        const v = this.voices[vi];
+        if (!v.on) continue;
+        v.age++;
+        
+        // Parameter smoothing (anti-zipper)
+        v.amp += (v.tgtAmp - v.amp) * 0.008;
+        v.cut += (v.tgtCut - v.cut) * 0.015;
+        
+        // Envelope (analog exponential curves)
+        switch (v.envSt) {
+          case 0: // attack
+            v.envLv += (1 - v.envLv) * (1 - Math.exp(-1 / (v.atk * sr)));
+            if (v.envLv >= 0.99) { v.envSt = 1; v.envLv = 1; }
+            break;
+          case 1: // decay
+            v.envLv += (v.sus - v.envLv) * (1 - Math.exp(-1 / (v.dec * sr)));
+            if (Math.abs(v.envLv - v.sus) < 0.002) v.envSt = 2;
+            break;
+          case 2: // sustain
+            v.envLv = v.sus;
+            break;
+          case 3: // release
+            v.envLv *= Math.exp(-1 / (v.rel * sr));
+            if (v.envLv < 0.0005) { v.on = false; v.envLv = 0; }
+            break;
+        }
+        if (!v.on) continue;
+        
+        // Oscillator 1 (PolyBLEP)
+        const dt1 = v.freq / sr;
+        v.ph += dt1;
+        if (v.ph >= 1) v.ph -= 1;
+        let x1;
+        if (v.wave < 0.5) {
+          x1 = 2*v.ph - 1 - this.polyblep(v.ph, dt1);
+        } else if (v.wave < 1.5) {
+          x1 = (v.ph < 0.5 ? 1 : -1) + this.polyblep(v.ph, dt1) - this.polyblep((v.ph+0.5)%1, dt1);
+        } else if (v.wave < 2.5) {
+          x1 = v.ph < 0.5 ? 4*v.ph-1 : 3-4*v.ph;
+        } else {
+          x1 = Math.sin(2*Math.PI*v.ph);
+        }
+        
+        // Oscillator 2 (detuned)
+        let x2 = 0;
+        if (v.det !== 0) {
+          const f2 = v.freq * (1 + v.det);
+          const dt2 = f2 / sr;
+          v.ph2 += dt2;
+          if (v.ph2 >= 1) v.ph2 -= 1;
+          x2 = 2*v.ph2 - 1 - this.polyblep(v.ph2, dt2);
+        }
+        
+        let x = x1 + x2 * 0.7;
+        
+        // Drive (pre-filter analog saturation)
+        x = Math.tanh(x * v.drv);
+        
+        // Moog Ladder Filter (4-pole, nonlinear, ZDF-style)
+        const fc = Math.min(v.cut / (2*sr), 0.25);
+        const p = fc * (1.8 - 0.8 * Math.pow(fc, 0.5));
+        const k = 2 * Math.sin(Math.PI * fc);
+        const rA = v.res / (1 + k * 0.5);
+        const fb = v.fs[3] * rA;
+        const inp = Math.tanh(x - fb);
+        v.fs[0] += p * (inp - v.fs[0]);
+        v.fs[1] += p * (Math.tanh(v.fs[0]*1.1) - v.fs[1]);
+        v.fs[2] += p * (Math.tanh(v.fs[1]*1.1) - v.fs[2]);
+        v.fs[3] += p * (Math.tanh(v.fs[2]*1.1) - v.fs[3]);
+        
+        mix += v.fs[3] * v.envLv * v.amp;
+      }
+      
+      ch[i] = mix;
+    }
+    
+    if (out.length > 1) out[1].set(ch);
+    return true;
+  }
+}
+registerProcessor('psy-synth', PsySynth);
+`;
 
-async function initCtx(){
-    if(ctx&&ctx.state!=='closed'){try{await ctx.close();}catch(e){}}
-    ctx=new(window.AudioContext||window.webkitAudioContext)({
-        latencyHint:'interactive',
-        sampleRate:44100
+// ============================================================
+// AUDIO CONTEXT
+// ============================================================
+let ctx=null, synthNode=null, master=null, duckBus=null;
+let ppIn=null, revIn=null, analyser=null;
+let unlocked=false, ready=false;
+
+async function initAudio() {
+    if (ctx && ctx.state !== 'closed') { try { await ctx.close(); } catch(e){} }
+    ctx = new (window.AudioContext || window.webkitAudioContext)({
+        latencyHint: 'interactive', sampleRate: 44100
     });
-    if(ctx.state==='suspended'){try{await ctx.resume();}catch(e){}}
-    // iOS unlock: silent buffer
-    if(!unlocked){
-        try{
-            const b=ctx.createBuffer(1,1,22050);
-            const s=ctx.createBufferSource();
-            s.buffer=b;s.connect(ctx.destination);s.start(0);
-            unlocked=true;
-        }catch(e){}
+    if (ctx.state === 'suspended') { try { await ctx.resume(); } catch(e){} }
+    
+    // iOS unlock
+    if (!unlocked) {
+        try {
+            const b = ctx.createBuffer(1,1,22050);
+            const s = ctx.createBufferSource();
+            s.buffer = b; s.connect(ctx.destination); s.start(0);
+            unlocked = true;
+        } catch(e){}
     }
-    return ctx;
+    
+    // Load AudioWorklet from Blob
+    const blob = new Blob([WORKLET_CODE], {type:'application/javascript'});
+    const url = URL.createObjectURL(blob);
+    await ctx.audioWorklet.addModule(url);
+    URL.revokeObjectURL(url);
+    
+    synthNode = new AudioWorkletNode(ctx, 'psy-synth', {
+        numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2]
+    });
+    
+    buildChain();
+    ready = true;
 }
 
-document.addEventListener('visibilitychange',()=>{
-    if(!ctx)return;
-    if(document.hidden){if(ctx.state==='running')ctx.suspend();stopEng();}
-    else{if(ctx.state==='suspended')ctx.resume();}
-});
-
-// === MASTER CHAIN ===
-let master,duckBus,analyser,pumpGain;
-
-function buildMaster(c){
-    const input=c.createGain();input.gain.value=0.7;
-
-    // Pump bus (everything breathes through this)
-    duckBus=c.createGain();duckBus.gain.value=1;
-
-    // Even harmonic exciter (asymmetric tanh = warmth/fatness)
-    const exciter=c.createWaveShaper();exciter.oversample='4x';
-    const ec=new Float32Array(44100);
-    for(let i=0;i<44100;i++){
-        const x=(i*2)/44100-1;
-        ec[i]=x>=0?Math.tanh(x*2.2):Math.tanh(x*1.4);
-    }
-    exciter.curve=ec;
-
-    // HP 30Hz
-    const hp=c.createBiquadFilter();hp.type='highpass';hp.frequency.value=30;
-
-    // EQ
-    const eq1=c.createBiquadFilter();eq1.type='peaking';eq1.frequency.value=300;eq1.gain.value=-2;eq1.Q.value=1;
-    const eq2=c.createBiquadFilter();eq2.type='highshelf';eq2.frequency.value=8000;eq2.gain.value=2.5;
-
-    // Parallel compression
-    const dryG=c.createGain();dryG.gain.value=0.6;
-    const comp=c.createDynamicsCompressor();
-    comp.threshold.value=-14;comp.ratio.value=3;
-    comp.attack.value=0.008;comp.release.value=0.12;
-    const wetG=c.createGain();wetG.gain.value=0.4;
-
-    // Limiter
-    const lim=c.createDynamicsCompressor();
-    lim.threshold.value=-1;lim.ratio.value=20;
-    lim.attack.value=0.001;lim.release.value=0.05;
-
-    const out=c.createGain();out.gain.value=0.85;
-
-    // Routing: input → exciter → hp → eq1 → eq2 → [dry+wet] → lim → out
-    input.connect(exciter);
-    exciter.connect(hp);
-    hp.connect(eq1);
-    eq1.connect(eq2);
-    eq2.connect(dryG);dryG.connect(lim);
-    eq2.connect(comp);comp.connect(wetG);wetG.connect(lim);
-    lim.connect(out);
-    out.connect(c.destination);
-
-    analyser=c.createAnalyser();analyser.fftSize=256;
+function buildChain() {
+    // Duck bus (pump)
+    duckBus = ctx.createGain(); duckBus.gain.value = 0.65;
+    
+    // Master chain: sat → HP → EQ → comp → lim → out
+    master = ctx.createGain(); master.gain.value = 0.6;
+    
+    const sat = ctx.createWaveShaper(); sat.oversample = '4x';
+    const sc = new Float32Array(44100);
+    for (let i=0;i<44100;i++){const x=(i*2)/44100-1;sc[i]=x>=0?Math.tanh(x*2.2):Math.tanh(x*1.4);}
+    sat.curve = sc;
+    
+    const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=28;
+    const eq1 = ctx.createBiquadFilter(); eq1.type='peaking'; eq1.frequency.value=300; eq1.gain.value=-2; eq1.Q.value=1;
+    const eq2 = ctx.createBiquadFilter(); eq2.type='highshelf'; eq2.frequency.value=8000; eq2.gain.value=2.5;
+    
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value=-14; comp.ratio.value=3; comp.attack.value=0.008; comp.release.value=0.12;
+    
+    const lim = ctx.createDynamicsCompressor();
+    lim.threshold.value=-1; lim.ratio.value=20; lim.attack.value=0.001; lim.release.value=0.05;
+    
+    const out = ctx.createGain(); out.gain.value=0.9;
+    
+    synthNode.connect(master);
+    master.connect(sat); sat.connect(hp); hp.connect(eq1); eq1.connect(eq2);
+    eq2.connect(comp); comp.connect(lim); lim.connect(out); out.connect(ctx.destination);
+    
+    analyser = ctx.createAnalyser(); analyser.fftSize=256;
     lim.connect(analyser);
-
-    return input;
-}
-
-// === PUMP (sidechain everything, synced to kick) ===
-function buildPump(c,dest){
-    pumpGain=c.createGain();pumpGain.gain.value=0.7;
-    pumpGain.connect(dest);
-    return pumpGain;
-}
-
-function triggerPump(t){
-    const d=pumpGain.gain;
-    d.cancelScheduledValues(t);
-    d.setValueAtTime(0.7,t);
-    d.setTargetAtTime(0.25,t,0.008);
-    d.setTargetAtTime(0.7,t+0.05,0.06);
-}
-
-// === PING-PONG DELAY ===
-let ppInput;
-
-function buildPingPong(c,dest){
-    const input=c.createGain();input.gain.value=0.28;
-    const dlL=c.createDelay(2),dlR=c.createDelay(2);
-    dlL.delayTime.value=DOT8;dlR.delayTime.value=DOT8;
-    const fbL=c.createGain(),fbR=c.createGain();
-    fbL.gain.value=0.32;fbR.gain.value=0.32;
-    const flL=c.createBiquadFilter(),flR=c.createBiquadFilter();
-    flL.type='lowpass';flL.frequency.value=2200;
-    flR.type='lowpass';flR.frequency.value=2200;
-    const hpL=c.createBiquadFilter(),hpR=c.createBiquadFilter();
-    hpL.type='highpass';hpL.frequency.value=250;
-    hpR.type='highpass';hpR.frequency.value=250;
-    const panL=c.createStereoPanner(),panR=c.createStereoPanner();
-    panL.pan.value=-0.8;panR.pan.value=0.8;
-
-    input.connect(dlL);
-    dlL.connect(flL);flL.connect(hpL);hpL.connect(fbL);fbL.connect(dlR);
-    dlR.connect(flR);flR.connect(hpR);hpR.connect(fbR);fbR.connect(dlL);
-    dlL.connect(panL);panL.connect(dest);
-    dlR.connect(panR);panR.connect(dest);
-    return input;
-}
-
-// === REVERB ===
-let revInput;
-
-function buildReverb(c,dest){
-    const input=c.createGain();input.gain.value=0.2;
-    const conv=c.createConvolver();
-    const sr=c.sampleRate,len=Math.floor(sr*1.5);
-    const ir=c.createBuffer(2,len,sr);
-    for(let ch=0;ch<2;ch++){
-        const d=ir.getChannelData(ch);
-        for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3);
-    }
+    
+    // Ping-pong delay
+    ppIn = ctx.createGain(); ppIn.gain.value=0.25;
+    const dlL=ctx.createDelay(2), dlR=ctx.createDelay(2);
+    dlL.delayTime.value=DOT8; dlR.delayTime.value=DOT8;
+    const fbL=ctx.createGain(), fbR=ctx.createGain();
+    fbL.gain.value=0.3; fbR.gain.value=0.3;
+    const flL=ctx.createBiquadFilter(), flR=ctx.createBiquadFilter();
+    flL.type='lowpass'; flL.frequency.value=2200;
+    flR.type='lowpass'; flR.frequency.value=2200;
+    const pnL=ctx.createStereoPanner(), pnR=ctx.createStereoPanner();
+    pnL.pan.value=-0.8; pnR.pan.value=0.8;
+    ppIn.connect(dlL); dlL.connect(flL); flL.connect(fbL); fbL.connect(dlR);
+    dlR.connect(flR); flR.connect(fbR); fbR.connect(dlL);
+    dlL.connect(pnL); pnL.connect(master);
+    dlR.connect(pnR); pnR.connect(master);
+    
+    // Reverb
+    revIn = ctx.createGain(); revIn.gain.value=0.2;
+    const conv = ctx.createConvolver();
+    const sr=ctx.sampleRate, len=Math.floor(sr*1.5);
+    const ir = ctx.createBuffer(2,len,sr);
+    for(let ch=0;ch<2;ch++){const d=ir.getChannelData(ch);
+    for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3);}
     conv.buffer=ir;
-    const rg=c.createGain();rg.gain.value=0.18;
-    input.connect(conv);conv.connect(rg);rg.connect(dest);
-    return input;
+    const rg=ctx.createGain(); rg.gain.value=0.18;
+    revIn.connect(conv); conv.connect(rg); rg.connect(master);
 }
 
-// === INSTRUMENTS ===
+function pump(t) {
+    const d = duckBus.gain;
+    d.cancelScheduledValues(t);
+    d.setValueAtTime(0.65,t);
+    d.setTargetAtTime(0.2,t,0.008);
+    d.setTargetAtTime(0.65,t+0.05,0.06);
+}
 
-function kick(t,vel){
+// ============================================================
+// NOTE TRIGGERS (via AudioWorklet postMessage)
+// ============================================================
+let noteId = 0;
+const activeNotes = new Map();
+
+function noteOn(freq, amp, opts={}) {
+    const id = noteId++;
+    synthNode.port.postMessage({
+        t:'on', f:freq, a:amp, w:opts.w||0,
+        c:opts.c||1000, r:opts.r||0, d:opts.d||1,
+        dt:opts.dt||0,
+        atk:opts.atk||0.003, dec:opts.dec||0.1,
+        sus:opts.sus||0.6, rel:opts.rel||0.05
+    });
+    activeNotes.set(id, true);
+    return id;
+}
+
+function noteOff(id) {
+    synthNode.port.postMessage({t:'off', id:id});
+    activeNotes.delete(id);
+}
+
+// Scheduled note (auto noteOff after duration)
+function playNote(freq, amp, dur, opts={}) {
+    const id = noteOn(freq, amp, opts);
+    setTimeout(() => noteOff(id), dur * 1000);
+    return id;
+}
+
+// ============================================================
+// INSTRUMENTS
+// ============================================================
+const ROOT = 45; // E
+
+function trigKick(t, vel) {
+    // Sub: 41.2Hz sine (worklet voice)
+    playNote(41.2, 0.85*vel, 0.16, {w:3, c:200, r:0, d:1.5, atk:0.002, dec:0.12, sus:0, rel:0.04});
+    // Body: 150→48Hz (worklet voice with high cutoff)
+    playNote(150, 0.5*vel, 0.09, {w:3, c:5000, r:0, d:1, atk:0.001, dec:0.07, sus:0, rel:0.02});
+    // Click: noise burst (regular Web Audio)
     const c=ctx;
-    // SUB 41.2Hz
-    const s=c.createOscillator(),sg=c.createGain();
-    s.type='sine';
-    s.frequency.setValueAtTime(53,t);
-    s.frequency.exponentialRampToValueAtTime(41.2,t+0.04);
-    sg.gain.setValueAtTime(0,t);
-    sg.gain.linearRampToValueAtTime(0.85*vel,t+0.002);
-    sg.gain.exponentialRampToValueAtTime(0.001,t+0.16);
-    s.connect(sg);sg.connect(master);
-    s.start(t);s.stop(t+0.18);
-    s.onended=()=>{s.disconnect();sg.disconnect();};
-
-    // BODY 150→48Hz
-    const b=c.createOscillator(),bg=c.createGain();
-    b.type='sine';
-    b.frequency.setValueAtTime(150,t);
-    b.frequency.exponentialRampToValueAtTime(48,t+0.007);
-    bg.gain.setValueAtTime(0,t);
-    bg.gain.linearRampToValueAtTime(0.5*vel,t+0.001);
-    bg.gain.exponentialRampToValueAtTime(0.001,t+0.09);
-    b.connect(bg);bg.connect(master);
-    b.start(t);b.stop(t+0.11);
-    b.onended=()=>{b.disconnect();bg.disconnect();};
-
-    // CLICK 4kHz
     const cb=c.createBuffer(1,Math.floor(c.sampleRate*0.004),c.sampleRate);
     const cd=cb.getChannelData(0);
     for(let i=0;i<cd.length;i++)cd[i]=(Math.random()*2-1)*(1-i/cd.length);
-    const cs=c.createBufferSource();cs.buffer=cb;
-    const chp=c.createBiquadFilter();chp.type='highpass';chp.frequency.value=4000;
+    const cs=c.createBufferSource(); cs.buffer=cb;
+    const chp=c.createBiquadFilter(); chp.type='highpass'; chp.frequency.value=4000;
     const cg=c.createGain();
-    cg.gain.setValueAtTime(0.06*vel,t);
+    cg.gain.setValueAtTime(0.07*vel,t);
     cg.gain.exponentialRampToValueAtTime(0.001,t+0.005);
-    cs.connect(chp);chp.connect(cg);cg.connect(master);
+    cs.connect(chp); chp.connect(cg); cg.connect(master);
     cs.start(t);
     cs.onended=()=>{cs.disconnect();chp.disconnect();cg.disconnect();};
-
-    triggerPump(t);
+    pump(t);
 }
 
-function bass(t,midi,vel){
-    const c=ctx;
-    const freq=440*Math.pow(2,(midi-69)/12);
-    const dur=STEP*0.65;
-
-    const o=c.createOscillator();o.type='sawtooth';o.frequency.value=freq;
-    const fl=c.createBiquadFilter();fl.type='lowpass';fl.Q.value=7;
-    fl.frequency.setValueAtTime(1400,t);
-    fl.frequency.exponentialRampToValueAtTime(200,t+dur*0.55);
-    const amp=c.createGain();
-    amp.gain.setValueAtTime(0,t);
-    amp.gain.linearRampToValueAtTime(vel,t+0.003);
-    amp.gain.setValueAtTime(vel,t+dur*0.55);
-    amp.gain.exponentialRampToValueAtTime(0.001,t+dur);
-
-    const sub=c.createOscillator();sub.type='sine';sub.frequency.value=freq/2;
-    const sg=c.createGain();
-    sg.gain.setValueAtTime(0,t);
-    sg.gain.linearRampToValueAtTime(vel*0.35,t+0.002);
-    sg.gain.exponentialRampToValueAtTime(0.001,t+dur*0.6);
-
-    o.connect(fl);fl.connect(amp);amp.connect(duckBus);
-    sub.connect(sg);sg.connect(duckBus);
-    o.start(t);o.stop(t+dur+0.02);
-    sub.start(t);sub.stop(t+dur+0.02);
-    o.onended=()=>{o.disconnect();fl.disconnect();amp.disconnect();sub.disconnect();sg.disconnect();};
+function trigBass(t, midi, vel) {
+    const freq = 440*Math.pow(2,(midi-69)/12);
+    const dur = STEP*0.65;
+    // Main: saw, filter env 1400→200, Q=7, drive 1.8
+    playNote(freq, vel, dur, {w:0, c:1400, r:7, d:1.8, atk:0.003, dec:dur*0.55, sus:0.3, rel:0.02});
+    // Sub: sine, octave below
+    playNote(freq/2, vel*0.35, dur*0.7, {w:3, c:300, r:0, d:1, atk:0.002, dec:dur*0.5, sus:0, rel:0.02});
 }
 
-function lead(t,midi,dur,vel){
-    const c=ctx;
-    const freq=440*Math.pow(2,(midi-69)/12);
-
-    const o1=c.createOscillator();o1.type='sawtooth';o1.frequency.value=freq;
-    const o2=c.createOscillator();o2.type='sawtooth';o2.frequency.value=freq*1.004;
-
-    const fl=c.createBiquadFilter();fl.type='lowpass';fl.Q.value=8;
-    fl.frequency.setValueAtTime(5500,t);
-    fl.frequency.exponentialRampToValueAtTime(400,t+dur*0.85);
-
-    const amp=c.createGain();
-    amp.gain.setValueAtTime(0,t);
-    amp.gain.linearRampToValueAtTime(vel,t+0.004);
-    amp.gain.setValueAtTime(vel,t+dur*0.4);
-    amp.gain.exponentialRampToValueAtTime(0.001,t+dur);
-
-    o1.connect(fl);o2.connect(fl);fl.connect(amp);
-    amp.connect(master);
-    amp.connect(ppInput);
-
-    o1.start(t);o2.start(t);
-    o1.stop(t+dur+0.02);o2.stop(t+dur+0.02);
-    o1.onended=()=>{o1.disconnect();o2.disconnect();fl.disconnect();amp.disconnect();};
+function trigLead(t, midi, dur, vel) {
+    const freq = 440*Math.pow(2,(midi-69)/12);
+    // Main osc
+    const id1 = playNote(freq, vel, dur, {w:0, c:5500, r:8, d:2, dt:0, atk:0.004, dec:0.2, sus:0.5, rel:0.1});
+    // Detuned osc
+    playNote(freq, vel*0.7, dur, {w:0, c:5500, r:8, d:2, dt:0.004, atk:0.004, dec:0.2, sus:0.5, rel:0.1});
 }
 
-function pad(t,midi,dur){
-    const c=ctx;
-    const freq=440*Math.pow(2,(midi-69)/12);
-
-    const oscs=[-0.006,0,0.006].map(dt=>{
-        const o=c.createOscillator();
-        o.type='sawtooth';
-        o.frequency.value=freq*(1+dt);
-        return o;
-    });
-
-    const lfo=c.createOscillator();lfo.type='sine';lfo.frequency.value=0.2;
-    const lfoG=c.createGain();lfoG.gain.value=200;
-
-    const fl=c.createBiquadFilter();fl.type='lowpass';fl.frequency.value=700;fl.Q.value=1;
-    lfo.connect(lfoG);lfoG.connect(fl.frequency);
-
-    const amp=c.createGain();
-    amp.gain.setValueAtTime(0.001,t);
-    amp.gain.linearRampToValueAtTime(0.035,t+dur*0.4);
-    amp.gain.setValueAtTime(0.035,t+dur*0.7);
-    amp.gain.linearRampToValueAtTime(0.001,t+dur);
-
-    oscs.forEach(o=>{o.connect(fl);o.start(t);o.stop(t+dur+0.1);});
-    lfo.start(t);lfo.stop(t+dur+0.1);
-    fl.connect(amp);
-    amp.connect(master);
-    amp.connect(revInput);
-    oscs[0].onended=()=>{oscs.forEach(o=>o.disconnect());lfo.disconnect();lfoG.disconnect();fl.disconnect();amp.disconnect();};
+function trigPad(t, midi, dur) {
+    const freq = 440*Math.pow(2,(midi-69)/12);
+    playNote(freq, 0.03, dur, {w:0, c:700, r:1, d:1, dt:-0.006, atk:0.5, dec:1, sus:0.8, rel:1});
+    playNote(freq, 0.03, dur, {w:0, c:700, r:1, d:1, dt:0, atk:0.5, dec:1, sus:0.8, rel:1});
+    playNote(freq, 0.03, dur, {w:0, c:700, r:1, d:1, dt:0.006, atk:0.5, dec:1, sus:0.8, rel:1});
 }
 
-function hat(t,open,vel){
-    const c=ctx;
-    const dur=open?0.15:0.035;
+function trigHat(t, open, vel) {
+    const c=ctx, dur=open?0.15:0.035;
     const buf=c.createBuffer(1,Math.floor(c.sampleRate*dur),c.sampleRate);
     const d=buf.getChannelData(0);
     for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,open?2:4);
-    const s=c.createBufferSource();s.buffer=buf;
-    const hp=c.createBiquadFilter();hp.type='highpass';hp.frequency.value=9000;
+    const s=c.createBufferSource(); s.buffer=buf;
+    const hp=c.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=9000;
     const g=c.createGain();
     g.gain.setValueAtTime(0,t);
     g.gain.linearRampToValueAtTime(vel,t+0.001);
-    s.connect(hp);hp.connect(g);g.connect(master);
+    s.connect(hp); hp.connect(g); g.connect(master);
     s.start(t);
     s.onended=()=>{s.disconnect();hp.disconnect();g.disconnect();};
 }
 
-function clap(t){
+function trigClap(t) {
     const c=ctx;
     for(let i=0;i<3;i++){
         const dur=0.05;
         const buf=c.createBuffer(1,Math.floor(c.sampleRate*dur),c.sampleRate);
         const d=buf.getChannelData(0);
         for(let j=0;j<d.length;j++)d[j]=(Math.random()*2-1)*Math.pow(1-j/d.length,3);
-        const s=c.createBufferSource();s.buffer=buf;
-        const bp=c.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1200+i*300;bp.Q.value=2;
+        const s=c.createBufferSource(); s.buffer=buf;
+        const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1200+i*300; bp.Q.value=2;
         const g=c.createGain();
         g.gain.setValueAtTime(0.001,t+i*0.01);
         g.gain.exponentialRampToValueAtTime(0.15,t+i*0.01+dur);
-        s.connect(bp);bp.connect(g);g.connect(master);
-        s.start(t+i*0.01);s.stop(t+i*0.01+dur+0.05);
+        s.connect(bp); bp.connect(g); g.connect(master);
+        s.start(t+i*0.01); s.stop(t+i*0.01+dur+0.05);
     }
 }
 
-// === FX ===
-
-function riser(t,dur){
+function trigRiser(t, dur) {
     dur=dur||2;
     const c=ctx;
     const nb=c.createBuffer(1,Math.floor(c.sampleRate*dur),c.sampleRate);
     const nd=nb.getChannelData(0);
     for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
-    const ns=c.createBufferSource();ns.buffer=nb;
-    const bp=c.createBiquadFilter();bp.type='bandpass';bp.Q.value=4;
+    const ns=c.createBufferSource(); ns.buffer=nb;
+    const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=4;
     bp.frequency.setValueAtTime(150,t);
     bp.frequency.exponentialRampToValueAtTime(9000,t+dur);
     const g=c.createGain();
     g.gain.setValueAtTime(0.001,t);
-    g.gain.exponentialRampToValueAtTime(0.2,t+dur*0.8);
-    g.gain.linearRampToValueAtTime(0.28,t+dur);
-    ns.connect(bp);bp.connect(g);g.connect(master);
-    ns.start(t);ns.stop(t+dur+0.1);
+    g.gain.exponentialRampToValueAtTime(0.2,t+dur);
+    ns.connect(bp); bp.connect(g); g.connect(master);
+    ns.start(t); ns.stop(t+dur+0.1);
     ns.onended=()=>{ns.disconnect();bp.disconnect();g.disconnect();};
-
-    const o=c.createOscillator();o.type='sawtooth';
-    o.frequency.setValueAtTime(100,t);
-    o.frequency.exponentialRampToValueAtTime(400,t+dur);
-    const og=c.createGain();
-    og.gain.setValueAtTime(0.001,t);
-    og.gain.exponentialRampToValueAtTime(0.05,t+dur);
-    const of=c.createBiquadFilter();of.type='lowpass';
-    of.frequency.setValueAtTime(300,t);
-    of.frequency.exponentialRampToValueAtTime(4000,t+dur);
-    o.connect(of);of.connect(og);og.connect(master);
-    o.start(t);o.stop(t+dur+0.1);
-    o.onended=()=>{o.disconnect();og.disconnect();of.disconnect();};
 }
 
-function impact(t){
+function trigImpact(t) {
     const c=ctx;
-    const o=c.createOscillator();o.type='sine';
-    o.frequency.setValueAtTime(85,t);
-    o.frequency.exponentialRampToValueAtTime(26,t+0.5);
-    const g=c.createGain();
-    g.gain.setValueAtTime(0.8,t);
-    g.gain.exponentialRampToValueAtTime(0.001,t+0.55);
-    o.connect(g);g.connect(master);
-    o.start(t);o.stop(t+0.6);
-    o.onended=()=>{o.disconnect();g.disconnect();};
-
+    playNote(85, 0.8, 0.55, {w:3, c:200, r:0, d:1, atk:0.001, dec:0.4, sus:0, rel:0.15});
     const nb=c.createBuffer(1,Math.floor(c.sampleRate*0.1),c.sampleRate);
     const nd=nb.getChannelData(0);
     for(let i=0;i<nd.length;i++)nd[i]=(Math.random()*2-1)*(1-i/nd.length);
-    const ns=c.createBufferSource();ns.buffer=nb;
-    const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2500;
-    const ng=c.createGain();ng.gain.value=0.4;
-    ns.connect(lp);lp.connect(ng);ng.connect(master);
+    const ns=c.createBufferSource(); ns.buffer=nb;
+    const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=2500;
+    const ng=c.createGain(); ng.gain.value=0.4;
+    ns.connect(lp); lp.connect(ng); ng.connect(master);
     ns.start(t);
     ns.onended=()=>{ns.disconnect();lp.disconnect();ng.disconnect();};
 }
 
-// === ADAPTIVE MIND ===
+// ============================================================
+// ADAPTIVE MIND
+// ============================================================
 const STATES={
-    CALM:{energy:0.2,density:0.3,complexity:0.2,color:'#4ecdc4'},
-    GROOVE:{energy:0.5,density:0.6,complexity:0.5,color:'#d4ff3f'},
-    TENSION:{energy:0.7,density:0.7,complexity:0.7,color:'#ff6b35'},
-    PEAK:{energy:1.0,density:1.0,complexity:1.0,color:'#ff2e63'},
-    RELEASE:{energy:0.3,density:0.4,complexity:0.3,color:'#a8e6cf'}
+    CALM:{energy:.2,density:.3,complexity:.2,color:'#4ecdc4'},
+    GROOVE:{energy:.5,density:.6,complexity:.5,color:'#d4ff3f'},
+    TENSION:{energy:.7,density:.7,complexity:.7,color:'#ff6b35'},
+    PEAK:{energy:1,density:1,complexity:1,color:'#ff2e63'},
+    RELEASE:{energy:.3,density:.4,complexity:.3,color:'#a8e6cf'}
 };
 const TRANS={
     CALM:{CALM:.2,GROOVE:.5,TENSION:.2,PEAK:0,RELEASE:.1},
@@ -433,19 +490,15 @@ const TRANS={
 };
 
 const mind={
-    state:'CALM',energy:0.2,target:0.2,
-    memory:[],motif:[],bar:0,lastTrans:0,minBars:4,
-
+    state:'CALM',energy:.2,target:.2,memory:[],motif:[],bar:0,lastTrans:0,minBars:4,
     init(seed){
-        this.state='CALM';this.energy=0.2;this.target=0.2;
+        this.state='CALM';this.energy=.2;this.target=.2;
         this.memory=[];this.bar=0;this.lastTrans=0;
-        this.motif=[];
-        let v=0;
+        this.motif=[];let v=0;
         for(let i=0;i<32;i++){v=(v+seed+i*3)%7;this.motif.push(v);}
     },
-
     evolve(){
-        const rate=0.08+this.energy*0.1;
+        const rate=.08+this.energy*.1;
         for(let i=0;i<32;i++){
             if(Math.random()<rate){
                 const d=Math.floor(Math.random()*3)-1;
@@ -453,7 +506,6 @@ const mind={
             }
         }
     },
-
     chooseNext(){
         if(this.bar-this.lastTrans<this.minBars)return this.state;
         const probs=TRANS[this.state];
@@ -462,13 +514,12 @@ const mind={
             cum+=p;
             if(r<cum){
                 const recent=this.memory.slice(-4);
-                if(recent.filter(s=>s===next).length>=2&&Math.random()<0.5)continue;
+                if(recent.filter(s=>s===next).length>=2&&Math.random()<.5)continue;
                 return next;
             }
         }
         return this.state;
     },
-
     transition(){
         const next=this.chooseNext();
         if(next!==this.state){
@@ -477,22 +528,22 @@ const mind={
             this.state=next;
             this.target=STATES[next].energy;
             this.lastTrans=this.bar;
-            if(next==='TENSION')riser(ctx.currentTime,2);
-            if(next==='PEAK')impact(ctx.currentTime);
+            if(next==='TENSION')trigRiser(ctx.currentTime,2);
+            if(next==='PEAK')trigImpact(ctx.currentTime);
         }
     },
-
     update(){
-        this.energy+=(this.target-this.energy)*0.05;
+        this.energy+=(this.target-this.energy)*.05;
         if(this.bar%8===0)this.evolve();
         if(this.bar%2===0)this.transition();
     }
 };
 
-// === WORKER TIMER ===
+// ============================================================
+// WORKER TIMER
+// ============================================================
 const WORKER_SRC=`let iv=null;self.onmessage=function(e){if(e.data.cmd==='start'){if(iv)clearInterval(iv);iv=setInterval(()=>self.postMessage('tick'),e.data.ms);}else if(e.data.cmd==='stop'){if(iv)clearInterval(iv);iv=null;}};`;
-
-function makeTimerWorker(ms,onTick){
+function makeTimer(ms,onTick){
     try{
         const blob=new Blob([WORKER_SRC],{type:'application/javascript'});
         const w=new Worker(URL.createObjectURL(blob));
@@ -505,28 +556,36 @@ function makeTimerWorker(ms,onTick){
     }
 }
 
-// === SEQUENCER ===
+// ============================================================
+// SEQUENCER
+// ============================================================
 const eng={running:false,step:0,next:0,timer:null,vuBuf:null};
 
 function scheduleStep(s,t){
     const st=STATES[mind.state];
     const e=mind.energy;
-    const root=45;
-
-    if(s%4===0)kick(t,0.4+e*0.6);
-    if(s%2===1&&Math.random()<st.density){
-        bass(t,root+SCALE[mind.motif[s]%7]-12,0.28);
-    }
-    if(s%4===2&&Math.random()<st.complexity*e*0.7){
-        lead(t,root+12+SCALE[mind.motif[s]%7],STEP*1.2,0.065);
-    }
-    if(s===0&&(mind.state==='CALM'||mind.state==='RELEASE')){
-        pad(t,root+SCALE[mind.motif[0]%7],STEP*16);
-    }
-    if(s%2===0&&Math.random()<0.4+e*0.6){
-        hat(t,s===6||s===14,0.06+e*0.08);
-    }
-    if(s%8===4&&st.density>0.5)clap(t);
+    
+    // Kick: 4-on-the-floor
+    if(s%4===0)trigKick(t,0.4+e*0.6);
+    
+    // Bass: offbeat rolling
+    if(s%2===1&&Math.random()<st.density)
+        trigBass(t,ROOT+SCALE[mind.motif[s]%7]-12,0.28);
+    
+    // Lead: sparse, motif-driven
+    if(s%4===2&&Math.random()<st.complexity*e*0.7)
+        trigLead(t,ROOT+12+SCALE[mind.motif[s]%7],STEP*1.2,0.06);
+    
+    // Pad: CALM/RELEASE only
+    if(s===0&&(mind.state==='CALM'||mind.state==='RELEASE'))
+        trigPad(t,ROOT+SCALE[mind.motif[0]%7],STEP*16);
+    
+    // Hats
+    if(s%2===0&&Math.random()<0.4+e*0.6)
+        trigHat(t,s===6||s===14,0.06+e*0.08);
+    
+    // Clap
+    if(s%8===4&&st.density>0.5)trigClap(t);
 }
 
 function tick(){
@@ -541,27 +600,28 @@ function tick(){
 }
 
 function startEng(){
-    eng.running=true;
-    eng.step=0;
+    eng.running=true;eng.step=0;
     eng.next=ctx.currentTime+0.05;
     mind.init(7);
-    eng.timer=makeTimerWorker(10,()=>tick());
+    eng.timer=makeTimer(10,()=>tick());
 }
 
 function stopEng(){
     eng.running=false;
     if(eng.timer){eng.timer.stop();eng.timer=null;}
+    if(synthNode)synthNode.port.postMessage({t:'panic'});
 }
 
-// === UI ===
+// ============================================================
+// UI
+// ============================================================
 function updateUI(){
     const st=STATES[mind.state];
     const el=document.getElementById('state');
     el.textContent=mind.state;
     el.style.color=st.color;
-    document.getElementById('energyFill').style.width=(mind.energy*100)+'%';
-    document.getElementById('chaosFill').style.width=((mind.energy*0.5+0.1)*100)+'%';
-
+    document.getElementById('ef').style.width=(mind.energy*100)+'%';
+    document.getElementById('cf').style.width=((mind.energy*.5+.1)*100)+'%';
     if(analyser&&eng.vuBuf){
         analyser.getByteTimeDomainData(eng.vuBuf);
         let peak=0;
@@ -569,35 +629,25 @@ function updateUI(){
             const v=Math.abs(eng.vuBuf[i]-128)/128;
             if(v>peak)peak=v;
         }
-        document.getElementById('vuFill').style.width=(peak*100)+'%';
+        document.getElementById('vf').style.width=(peak*100)+'%';
     }
-
     document.getElementById('info').textContent=
-        'bar '+mind.bar+
-        ' | energy '+mind.energy.toFixed(2)+
-        ' | state '+mind.state+
-        ' | latency '+((ctx.baseLatency+ctx.outputLatency)*1000).toFixed(0)+'ms'+
-        ' | worker timer';
+        'bar '+mind.bar+' | energy '+mind.energy.toFixed(2)+' | '+mind.state+
+        ' | lat '+((ctx.baseLatency+ctx.outputLatency)*1000).toFixed(0)+'ms | worklet';
 }
 
-// === INIT ===
-function initAll(){
-    master=buildMaster(ctx);
-    const pump=buildPump(ctx,master);
-    ppInput=buildPingPong(ctx,master);
-    revInput=buildReverb(ctx,master);
-    eng.vuBuf=new Uint8Array(analyser.frequencyBinCount);
-}
-
+// ============================================================
+// INIT
+// ============================================================
 document.getElementById('playBtn').addEventListener('click',async()=>{
-    await initCtx();
+    if(!ready)await initAudio();
     if(ctx.state!=='running'){
         document.getElementById('state').textContent='TAP AGAIN';
         return;
     }
     if(!eng.running){
-        if(!master)initAll();
         startEng();
+        eng.vuBuf=new Uint8Array(analyser.frequencyBinCount);
         document.getElementById('playBtn').textContent='STOP';
         document.getElementById('playBtn').classList.add('active');
     }else{
@@ -606,12 +656,20 @@ document.getElementById('playBtn').addEventListener('click',async()=>{
         document.getElementById('playBtn').classList.remove('active');
         document.getElementById('state').textContent='STOPPED';
         document.getElementById('state').style.color='#5a6478';
-        document.getElementById('vuFill').style.width='0%';
+        document.getElementById('vf').style.width='0%';
     }
 });
 
 ['touchstart','touchend','mousedown'].forEach(ev=>{
-    document.addEventListener(ev,()=>{initCtx();},{passive:true,once:true});
+    document.addEventListener(ev,async()=>{
+        if(!ready)await initAudio();
+    },{passive:true,once:true});
+});
+
+document.addEventListener('visibilitychange',()=>{
+    if(!ctx)return;
+    if(document.hidden){if(ctx.state==='running')ctx.suspend();stopEng();}
+    else{if(ctx.state==='suspended')ctx.resume();}
 });
 </script>
 </body>
