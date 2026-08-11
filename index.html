@@ -101,6 +101,60 @@ function toggle(){
 }
 document.addEventListener("DOMContentLoaded",()=>{ $("#play").addEventListener("click",toggle); });
 
+
+// === Turso Integration ===
+const TURSO_CONFIG = {
+    host: "forge-db-dudududi144-source.aws-eu-west-1.turso.io",
+    token: "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJVSk5NU0pVb0VmR2x3dEoyNzliUEVBIiwib3JnX2lkIjoxMDAwMjE5MTIwfQ.EIfvdNCYjl26GkZkQUA6DO99iVEcFr3VUOFcMnmQ8i5VM7XX2sVSkh3SmLiQXWKuLvEetWk1HbnGM0VjdsgRDA"
+};
+
+async function tursoQuery(sql, params = []) {
+    const response = await fetch(`https://${TURSO_CONFIG.host}/v2/pipeline`, {
+        method: "POST",
+        headers: {
+            "Authorization": "Bearer " + TURSO_CONFIG.token,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            requests: [{
+                type: "execute",
+                stmt: { sql: sql, args: params }
+            }]
+        })
+    });
+    return response.json();
+}
+
+async function saveProject(name, data) {
+    const id = Date.now().toString(36) + Math.random().toString(36).substr(2);
+    const result = await tursoQuery(
+        "INSERT INTO projects (id, name, data) VALUES (?, ?, ?)",
+        [id, name, JSON.stringify(data)]
+    );
+    console.log("Project saved:", id);
+    return id;
+}
+
+async function loadProject(id) {
+    const result = await tursoQuery(
+        "SELECT data FROM projects WHERE id = ?",
+        [id]
+    );
+    if (result.results && result.results[0]) {
+        return JSON.parse(result.results[0].response.result.rows[0][0].value);
+    }
+    return null;
+}
+
+async function listProjects() {
+    const result = await tursoQuery(
+        "SELECT id, name, created_at FROM projects ORDER BY created_at DESC"
+    );
+    return result.results ? result.results[0].response.result.rows : [];
+}
+
+console.log("Turso integration loaded");
+
 </script>
 </body>
 </html>
