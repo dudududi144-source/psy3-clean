@@ -195,6 +195,8 @@ function makeDistCurve(amount){
 }
 
 /* audio graph */
+var _activeVoices=0;
+var MAX_VOICES=24;
 function ensureAudio(){
     if(audioCtx){if(audioCtx.state==="suspended")audioCtx.resume();return;}
     audioCtx=new(window.AudioContext||window.webkitAudioContext)();
@@ -256,6 +258,8 @@ function pump(t){
 
 /* voices */
 function playKick(t){
+if(_activeVoices>=MAX_VOICES)return;
+_activeVoices++;
     const c=audioCtx;
     const o=c.createOscillator(),g=c.createGain();
     o.type="sine";
@@ -266,7 +270,7 @@ function playKick(t){
     g.gain.exponentialRampToValueAtTime(0.001,t+0.28);
     o.connect(g);g.connect(masterGain);
     o.start(t);o.stop(t+0.3);
-    o.onended=function(){o.disconnect();g.disconnect();};
+    o.onended=function(){o.disconnect();g.disconnect();_activeVoices--;};
     /* click transient */
     const cb=c.createBuffer(1,Math.floor(c.sampleRate*0.003),c.sampleRate);
     const cd=cb.getChannelData(0);
@@ -283,6 +287,8 @@ function playKick(t){
 }
 
 function playHat(t,lvl){
+if(_activeVoices>=MAX_VOICES)return;
+_activeVoices++;
     const c=audioCtx;
     const s=c.createBufferSource();s.buffer=noiseBuf;
     const f=c.createBiquadFilter();f.type="highpass";f.frequency.value=7500;
@@ -292,10 +298,12 @@ function playHat(t,lvl){
     g.gain.exponentialRampToValueAtTime(0.001,t+0.05);
     s.connect(f);f.connect(g);g.connect(masterGain);
     s.start(t);s.stop(t+0.06);
-    s.onended=function(){s.disconnect();f.disconnect();g.disconnect();};
+    s.onended=function(){s.disconnect();f.disconnect();g.disconnect();_activeVoices--;};
 }
 
 function playBass(t,freq,v){
+if(_activeVoices>=MAX_VOICES)return;
+_activeVoices++;
     const c=audioCtx;
     const o=c.createOscillator();o.type=v.bassWave;o.frequency.value=freq;
     const f=c.createBiquadFilter();f.type="lowpass";f.Q.value=v.bassQ;
@@ -307,10 +315,12 @@ function playBass(t,freq,v){
     g.gain.exponentialRampToValueAtTime(0.001,t+0.19);
     o.connect(f);f.connect(g);g.connect(duckBus);
     o.start(t);o.stop(t+0.2);
-    o.onended=function(){o.disconnect();f.disconnect();g.disconnect();};
+    o.onended=function(){o.disconnect();f.disconnect();g.disconnect();_activeVoices--;};
 }
 
 function playLead(t,freq,v,accent,echo){
+if(_activeVoices>=MAX_VOICES)return;
+_activeVoices++;
     const c=audioCtx;
     const pan=c.createStereoPanner?c.createStereoPanner():null;
     if(pan)pan.pan.value=(Math.random()*2-1)*0.5;
@@ -329,7 +339,7 @@ function playLead(t,freq,v,accent,echo){
     if(pan){g.connect(pan);pan.connect(masterGain);}else{g.connect(masterGain);}
     if(echo&&ppIn){g.connect(ppIn);}
     o.start(t);o2.start(t);o.stop(t+0.26);o2.stop(t+0.26);
-    o.onended=function(){o.disconnect();o2.disconnect();f.disconnect();g.disconnect();if(pan)pan.disconnect();};
+    o.onended=function(){o.disconnect();o2.disconnect();f.disconnect();g.disconnect();if(pan)pan.disconnect();_activeVoices--;};
 }
 
 /* scheduler */
@@ -341,8 +351,8 @@ function scheduler(){
         currentStep=(currentStep+1)%16;
         if(currentStep===0){
             barCount++;
-            if(barCount%8===0)evolvePatterns();
-            updateStateBar();
+            if(barCount%16===0)evolvePatterns();
+            if(barCount%4===0)updateStateBar();
         }
     }
 }
@@ -357,6 +367,7 @@ function scheduleStep(step,t){
     const l=lp.lead[step];
     if(l!==null&&l!==undefined)playLead(t,mtof(p.root+24+l),v,step%4===0,true);
     stepQueue.push({step:step,time:t});
+if(stepQueue.length>32)stepQueue.splice(0,stepQueue.length-32);
 }
 
 function startSeq(){
@@ -390,7 +401,9 @@ function sizeScopeIfChanged(){
     const w=scope.clientWidth*devicePixelRatio,h=scope.clientHeight*devicePixelRatio;
     if(w!==lastW||h!==lastH){lastW=w;lastH=h;scope.width=w;scope.height=h;}
 }
+var _frameCount=0;
 function drawScope(){
+_frameCount++;if(_frameCount%2!==0)return;
     requestAnimationFrame(drawScope);
     if(!analyser)return;
     sizeScopeIfChanged();
@@ -398,7 +411,7 @@ function drawScope(){
     analyser.getByteTimeDomainData(waveData);
     const W=scope.width,H=scope.height;
     sctx.clearRect(0,0,W,H);
-    const bars=72,bw=W/bars;
+    const bars=48,bw=W/bars;
     for(let i=0;i<bars;i++){
         const val=freqData[Math.floor(i*freqData.length/bars/1.6)]/255;
         const h=Math.max(2,val*H*0.92);
@@ -408,7 +421,7 @@ function drawScope(){
     }
     sctx.strokeStyle="rgba(255,46,136,.8)";sctx.lineWidth=Math.max(1,devicePixelRatio);
     sctx.beginPath();
-    for(let i=0;i<waveData.length;i+=4){
+    for(let i=0;i<waveData.length;i+=8){
         const x=i/waveData.length*W,y=H*0.5+(waveData[i]-128)/128*H*0.3;
         i===0?sctx.moveTo(x,y):sctx.lineTo(x,y);
     }
