@@ -565,14 +565,16 @@ function refreshMeta(){
 
 /* feedback */
 function bumpStat(kind){
-    const k="psy6_stat_"+kind;
-    const n=parseInt(localStorage.getItem(k)||"0",10)+1;
+    try{
+    var k="psy6_stat_"+kind;
+    var n=parseInt(localStorage.getItem(k)||"0",10)+1;
     localStorage.setItem(k,String(n));
     paintStats();
+    }catch(e){}
 }
 function paintStats(){
-    $("statPlays").textContent=localStorage.getItem("psy6_stat_plays")||"0";
-    
+    var sp=$("statPlays");if(sp)sp.textContent=localStorage.getItem("psy6_stat_plays")||"0";
+    var sf=$("statFb");if(sf)sf.textContent=localStorage.getItem("psy6_stat_fb")||"0";
 }
 let toastTimer=null;
 function toast(msg){
