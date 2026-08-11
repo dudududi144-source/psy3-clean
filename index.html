@@ -206,7 +206,7 @@ function ensureAudio(){
     masterGain=audioCtx.createGain();masterGain.gain.value=parseFloat($("vol").value)*0.75;
 
     const sat=audioCtx.createWaveShaper();sat.oversample="4x";
-    sat.curve=makeDistCurve(2.0);
+    sat.curve=makeDistCurve(1.8);
 
     const hp=audioCtx.createBiquadFilter();hp.type="highpass";hp.frequency.value=30;
 
@@ -217,7 +217,11 @@ function ensureAudio(){
     lim.threshold.value=-1;lim.ratio.value=20;lim.attack.value=0.001;lim.release.value=0.05;
 
     duckBus.connect(masterGain);
-    masterGain.connect(sat);sat.connect(hp);hp.connect(comp);comp.connect(lim);lim.connect(audioCtx.destination);
+    masterGain.connect(sat);sat.connect(hp);
+/* EQ: cut mud, boost air */
+var eqMid=audioCtx.createBiquadFilter();eqMid.type="peaking";eqMid.frequency.value=300;eqMid.gain.value=-2;eqMid.Q.value=1;
+var eqHigh=audioCtx.createBiquadFilter();eqHigh.type="highshelf";eqHigh.frequency.value=8000;eqHigh.gain.value=2;
+hp.connect(eqMid);eqMid.connect(eqHigh);eqHigh.connect(comp);comp.connect(lim);lim.connect(audioCtx.destination);
 
     analyser=audioCtx.createAnalyser();analyser.fftSize=512;analyser.smoothingTimeConstant=0.82;
     lim.connect(analyser);
@@ -225,7 +229,18 @@ function ensureAudio(){
     /* ping-pong delay */
     const bpm=activePreset().bpm;
     const dot8=(60/bpm)*0.75;
-    ppIn=audioCtx.createGain();ppIn.gain.value=0.25;
+    /* Reverb (generated impulse response) */
+var revIn=audioCtx.createGain();revIn.gain.value=0.15;
+var conv=audioCtx.createConvolver();
+var revDur=1.2,revSr=audioCtx.sampleRate,revLen=Math.floor(revSr*revDur);
+var ir=audioCtx.createBuffer(2,revLen,revSr);
+for(var _ch=0;_ch<2;_ch++){var _d=ir.getChannelData(_ch);
+for(var _i=0;_i<revLen;_i++)_d[_i]=(Math.random()*2-1)*Math.pow(1-_i/revLen,3);}
+conv.buffer=ir;
+var revOut=audioCtx.createGain();revOut.gain.value=0.2;
+revIn.connect(conv);conv.connect(revOut);revOut.connect(masterGain);
+window._revIn=revIn;
+ppIn=audioCtx.createGain();ppIn.gain.value=0.25;
     const dlL=audioCtx.createDelay(2),dlR=audioCtx.createDelay(2);
     dlL.delayTime.value=dot8;dlR.delayTime.value=dot8;
     const fbL=audioCtx.createGain(),fbR=audioCtx.createGain();
@@ -339,6 +354,7 @@ _activeVoices++;
     o.connect(f);o2.connect(f);f.connect(g);
     if(pan){g.connect(pan);pan.connect(masterGain);}else{g.connect(masterGain);}
     if(echo&&ppIn){g.connect(ppIn);}
+if(window._revIn){g.connect(window._revIn);}
     o.start(t);o2.start(t);o.stop(t+0.26);o2.stop(t+0.26);
     o.onended=function(){o.disconnect();o2.disconnect();f.disconnect();g.disconnect();if(pan)pan.disconnect();_activeVoices--;};
 }
