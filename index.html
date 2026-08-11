@@ -304,7 +304,7 @@ body.start(t);body.stop(t+0.08);
 var cs=c.createBufferSource();cs.buffer=window._clickBuf;
 var chp=c.createBiquadFilter();chp.type="highpass";chp.frequency.value=4000;
 var cg=c.createGain();
-cg.gain.setValueAtTime(0.07,t);
+cg.gain.setValueAtTime(0.09,t);
 cg.gain.exponentialRampToValueAtTime(0.001,t+0.004);
 cs.connect(chp);chp.connect(cg);cg.connect(masterGain);
 cs.start(t);
@@ -312,18 +312,18 @@ sub.onended=function(){sub.disconnect();subG.disconnect();body.disconnect();body
 pump(t);
 }
 
-function playHat(t,lvl){
+function playHat(t,lvl,open){
 if(_activeVoices>=MAX_VOICES)return;
 _activeVoices++;
     const c=audioCtx;
     const s=c.createBufferSource();s.buffer=noiseBuf;
-    const f=c.createBiquadFilter();f.type="highpass";f.frequency.value=7500;
+    const f=c.createBiquadFilter();f.type="highpass";f.frequency.value=open?6000:9000;
     const g=c.createGain();
     g.gain.setValueAtTime(0,t);
     g.gain.linearRampToValueAtTime(lvl,t+0.001);
-    g.gain.exponentialRampToValueAtTime(0.001,t+0.05);
+    g.gain.exponentialRampToValueAtTime(0.001,t+(open?0.15:0.04));
     s.connect(f);f.connect(g);g.connect(masterGain);
-    s.start(t);s.stop(t+0.06);
+    s.start(t);s.stop(t+(open?0.18:0.06));
     s.onended=function(){s.disconnect();f.disconnect();g.disconnect();_activeVoices--;};
 }
 
@@ -336,10 +336,11 @@ var dur=(60/activePreset().bpm)*0.25*0.65; /* 65% of 16th = rolling */
 var o=c.createOscillator();o.type=v.bassWave;o.frequency.value=freq;
 var f=c.createBiquadFilter();f.type="lowpass";f.Q.value=v.bassQ+2;
 f.frequency.setValueAtTime(v.bassCut*1.1,t);
-f.frequency.exponentialRampToValueAtTime(Math.max(120,v.bassCut*0.3),t+dur*0.7);
+f.frequency.exponentialRampToValueAtTime(Math.max(120,v.bassCut*0.3),t+dur*0.55);
 var g=c.createGain();
 g.gain.setValueAtTime(0,t);
-g.gain.linearRampToValueAtTime(0.8,t+0.002);
+var _vel=0.75+Math.random()*0.15;
+g.gain.linearRampToValueAtTime(_vel,t+0.002);
 g.gain.setValueAtTime(0.8,t+dur*0.6);
 g.gain.exponentialRampToValueAtTime(0.001,t+dur);
 o.connect(f);f.connect(g);g.connect(duckBus);
@@ -360,7 +361,7 @@ if(_activeVoices>=MAX_VOICES)return;
 _activeVoices++;
     const c=audioCtx;
     const pan=c.createStereoPanner?c.createStereoPanner():null;
-    if(pan)pan.pan.value=(Math.random()*2-1)*0.5;
+    if(pan)pan.pan.value=(Math.random()*2-1)*(accent?0.6:0.35);
     const o=c.createOscillator();o.type=v.leadWave;o.frequency.value=freq;
     const o2=c.createOscillator();o2.type=v.leadWave;o2.frequency.value=freq;o2.detune.value=5;
     const f=c.createBiquadFilter();f.type="lowpass";f.Q.value=accent?Math.min(14,v.leadQ+4):v.leadQ+2;
