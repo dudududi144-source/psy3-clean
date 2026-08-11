@@ -556,7 +556,7 @@ if(stepQueue.length>32)stepQueue.splice(0,stepQueue.length-32);
 function startSeq(){
     ensureAudio();
     if(isPlaying)return;
-    isPlaying=true;currentStep=0;uiStep=-1;barCount=0;
+    isPlaying=true;currentStep=0;uiStep=-1;mind.bar=0;mind.state='GROOVE';mind.energy=0.5;mind.target=0.5;mind.lastTrans=0;mind.memory=[];initLivePatterns();barCount=0;
     initLivePatterns();
     nextNoteTime=audioCtx.currentTime+0.2;
     schedulerTimer=makeTimer(25,function(){scheduler();});
