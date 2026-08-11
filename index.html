@@ -573,6 +573,7 @@ btn.classList.toggle("on",fx[k]);
 if(k==="wah"&&wahLfoG){wahLfoG.gain.value=fx.wah?1200:0;}
 if(k==="gate"&&gateLfoG){gateLfoG.gain.value=fx.gate?0.35:0;}
 if(k==="crush"&&fxFilt){fxFilt.Q.value=fx.crush?fx.reso+6:fx.reso;}
+if(k==="ring"&&fxFilt){fxFilt.frequency.value=fx.ring?800:12000;fxFilt.Q.value=fx.ring?18:1;}
 if(k==="tape"&&fx.tape&&audioCtx&&isPlaying){
 tapeStopOnce();
 fx.tape=false;
