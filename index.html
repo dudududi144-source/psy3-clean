@@ -69,9 +69,25 @@ header{padding:18px 16px 10px;text-align:center}
 #toast{position:fixed;bottom:16px;left:50%;transform:translate(-50%,80px);background:rgba(10,40,30,.95);border:1px solid var(--ok);color:var(--ok);padding:10px 20px;border-radius:999px;font-family:var(--font-mono);font-size:11px;transition:transform .35s;z-index:99}
 #toast.show{transform:translate(-50%,0)}
 footer{text-align:center;padding:16px;color:var(--dim);font-size:10px;font-family:var(--font-mono)}
+/* PATTERN EDITOR */
+.patternGrid{padding:4px 14px}
+.patternRow{display:flex;align-items:center;gap:4px;margin-bottom:3px}
+.patternLabel{font-family:var(--font-mono);font-size:8px;color:var(--dim);width:28px;flex-shrink:0}
+.pStep{flex:1;height:16px;border-radius:3px;background:rgba(150,90,255,.1);cursor:pointer;transition:all .08s;border:1px solid transparent}
+.pStep.on{background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 6px rgba(0,255,200,.4)}
+.pStep.kick-on{background:var(--magenta);border-color:var(--magenta);box-shadow:0 0 6px rgba(255,46,136,.4)}
+.pStep:active{transform:scale(.9)}
+.bpmWrap{display:flex;align-items:center;gap:8px;padding:3px 14px}
+.bpmWrap span{font-family:var(--font-mono);font-size:9px;color:var(--dim)}
+.bpmWrap input{flex:1;accent-color:var(--magenta)}
+.bpmWrap b{font-family:var(--font-mono);font-size:10px;color:var(--magenta);width:30px;text-align:right}
+@keyframes stateFlash{0%{opacity:1;transform:scale(1.05)}100%{opacity:0;transform:scale(1)}}
+#stateFlash{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;opacity:0;z-index:50}
+#stateFlash.active{animation:stateFlash .4s ease-out}
 </style>
 </head>
 <body>
+<div id="stateFlash"></div>
 <header>
 <div class="logo">PSY6 MAX</div>
 <div class="tagline">Adaptive Psytrance Engine</div>
@@ -83,9 +99,11 @@ footer{text-align:center;padding:16px;color:var(--dim);font-size:10px;font-famil
 </div>
 <div id="stateBar"><span class="sdot" id="stateDot"></span><span id="stateName">GROOVE</span><div id="energyBar"><div id="energyFill"></div></div><span id="barCount">0</span></div>
 <div class="volWrap"><span>VOL</span><input id="vol" type="range" min="0" max="1" step="0.01" value="0.8"></div>
+<div class="bpmWrap"><span>BPM</span><input id="sBpm" type="range" min="130" max="160" step="1" value="145"><b id="vBpm">145</b></div>
 <div class="presets" id="presetList"></div>
 <div id="xyPad"><div id="xyDot"></div><div class="xyLabel xyX">CUTOFF &rarr;</div><div class="xyLabel xyY">RES &uarr;</div></div>
 <div id="xyInfo">cut: 1200Hz &middot; res: 6.0</div>
+<div class="patternGrid" id="patternGrid"></div>
 <div class="tracks">
 <button class="trackBtn on" data-track="kick">KCK</button>
 <button class="trackBtn on" data-track="bass">BSS</button>
@@ -139,6 +157,7 @@ var stepQueue=[];
 var freqData=new Uint8Array(512);
 var _activeVoices=0,MAX_VOICES=24;
 var trackMute={kick:false,bass:false,lead:false,hat:false};
+var bpmOverride=null;
 var fxState={cutoff:1200,reso:6,crush:false,gate:false,wah:false,drive:1.8,echo:.22,pump:.5};
 function $(id){return document.getElementById(id);}
 function activePreset(){for(var i=0;i<PRESETS.length;i++){if(PRESETS[i].id===activePresetId)return PRESETS[i];}return PRESETS[0];}
@@ -167,14 +186,14 @@ window._crushMix=audioCtx.createGain();window._crushMix.gain.value=1;
 /* GATE: trance gate LFO */
 window._gateGain=audioCtx.createGain();window._gateGain.gain.value=1;
 window._gateLfo=audioCtx.createOscillator();window._gateLfo.type="square";
-window._gateLfo.frequency.value=activePreset().bpm/60*2;
+window._gateLfo.frequency.value=(bpmOverride||activePreset().bpm)/60*2;
 window._gateLfoGain=audioCtx.createGain();window._gateLfoGain.gain.value=0;
 window._gateLfo.connect(window._gateLfoGain);
 window._gateLfoGain.connect(window._gateGain.gain);
 window._gateLfo.start();
 /* WAH: auto-wah LFO */
 window._wahLfo=audioCtx.createOscillator();window._wahLfo.type="sine";
-window._wahLfo.frequency.value=activePreset().bpm/60/2;
+window._wahLfo.frequency.value=(bpmOverride||activePreset().bpm)/60/2;
 window._wahLfoGain=audioCtx.createGain();window._wahLfoGain.gain.value=0;
 window._wahLfo.connect(window._wahLfoGain);
 window._wahLfo.start();
@@ -190,7 +209,7 @@ window._crushMix.connect(window._gateGain);
 window._gateGain.connect(comp);comp.connect(lim);lim.connect(analyser);analyser.connect(audioCtx.destination);
 ppIn=audioCtx.createGain();ppIn.gain.value=fxState.echo;
 var dlL=audioCtx.createDelay(2),dlR=audioCtx.createDelay(2);
-var bpm0=activePreset().bpm;var dot8=(60/bpm0)*.75;
+var bpm0=bpmOverride||activePreset().bpm;var dot8=(60/bpm0)*.75;
 dlL.delayTime.value=dot8;dlR.delayTime.value=dot8;
 var fbL=audioCtx.createGain(),fbR=audioCtx.createGain();fbL.gain.value=.3;fbR.gain.value=.3;
 var flL=audioCtx.createBiquadFilter(),flR=audioCtx.createBiquadFilter();flL.type="lowpass";flL.frequency.value=2200;flR.type="lowpass";flR.frequency.value=2200;
@@ -240,7 +259,7 @@ s.onended=function(){s.disconnect();f.disconnect();g.disconnect();_activeVoices-
 }
 function playBass(t,freq,v){
 if(trackMute.bass||_activeVoices>=MAX_VOICES)return;_activeVoices+=2;
-var c=audioCtx;var dur=(60/activePreset().bpm)*.25*.65;
+var c=audioCtx;var dur=(60/(bpmOverride||activePreset().bpm))*.25*.65;
 var o=c.createOscillator();o.type=v.bassWave;o.frequency.value=freq;
 var f=c.createBiquadFilter();f.type="lowpass";f.Q.value=v.bassQ+2;
 var wahBase=Math.min(fxState.cutoff,v.bassCut*(.9+mind.energy*.4));
@@ -278,7 +297,7 @@ o.onended=function(){o.disconnect();o2.disconnect();f.disconnect();g.disconnect(
 function scheduler(){
 while(nextNoteTime<audioCtx.currentTime+0.2){
 scheduleStep(currentStep,nextNoteTime);
-var spb=60/activePreset().bpm;
+var spb=60/(bpmOverride||activePreset().bpm);
 nextNoteTime+=.25*spb;
 currentStep=(currentStep+1)%16;
 if(currentStep===0){mind.bar++;mind.update();}
@@ -288,7 +307,8 @@ function scheduleStep(step,t){
 var p=activePreset(),v=activeParams();
 var lp=livePatterns||p.patterns;
 var st=STATES[mind.state];
-if(p.patterns.kick[step])playKick(t);
+var kp=(livePatterns&&livePatterns.kick)?livePatterns.kick[step]:p.patterns.kick[step];
+if(kp)playKick(t);
 if(lp.hat[step]&&Math.random()<st.density+.3)playHat(t,v.hatLvl,(step===6||step===14));
 var b=lp.bass[step];
 if(b!==null&&b!==undefined&&Math.random()<st.density+.2)playBass(t,mtof(p.root+b),v);
@@ -379,7 +399,44 @@ $("sPump").addEventListener("input",function(){fxState.pump=parseInt(this.value)
 var toastTimer=null;
 function toast(msg){var t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove("show");},2600);}
 document.addEventListener("visibilitychange",function(){if(!audioCtx)return;if(document.hidden){if(audioCtx.state==="running")audioCtx.suspend();if(isPlaying)stopSeq();}else{if(audioCtx.state==="suspended")audioCtx.resume();}});
-buildPresets();buildSteps();buildPads();refreshMeta();updateStateBar();
+
+function buildPatternGrid(){
+var grid=$("patternGrid");if(!grid)return;grid.innerHTML="";
+var tracks=["kick","bass","lead","hat"];var labels=["KCK","BSS","LED","HAT"];
+tracks.forEach(function(tr,ti){
+var row=document.createElement("div");row.className="patternRow";
+var lbl=document.createElement("span");lbl.className="patternLabel";lbl.textContent=labels[ti];row.appendChild(lbl);
+for(var s=0;s<16;s++){var cell=document.createElement("div");cell.className="pStep";cell.dataset.track=tr;cell.dataset.step=s;
+cell.addEventListener("pointerdown",function(e){e.preventDefault();togglePatternStep(this.dataset.track,parseInt(this.dataset.step));});
+row.appendChild(cell);}
+grid.appendChild(row);});
+refreshPatternGrid();}
+function togglePatternStep(tr,step){
+var p=activePreset();if(!livePatterns)initLivePatterns();
+if(tr==="kick"){if(!livePatterns.kick)livePatterns.kick=p.patterns.kick.slice();livePatterns.kick[step]=livePatterns.kick[step]?0:1;}
+else if(tr==="hat"){livePatterns.hat[step]=livePatterns.hat[step]?0:1;}
+else if(tr==="bass"){livePatterns.bass[step]=(livePatterns.bass[step]===null)?0:null;}
+else{livePatterns.lead[step]=(livePatterns.lead[step]===null)?0:null;}
+if(navigator.vibrate)navigator.vibrate(10);refreshPatternGrid();}
+function refreshPatternGrid(){
+var p=activePreset();var lp=livePatterns||p.patterns;
+var cells=document.querySelectorAll(".pStep");
+cells.forEach(function(cell){var tr=cell.dataset.track;var s=parseInt(cell.dataset.step);var val;
+if(tr==="kick"){val=(lp.kick||p.patterns.kick)[s];}else{val=lp[tr]?lp[tr][s]:p.patterns[tr][s];}
+var isOn=(val!==null&&val!==undefined&&val!==0);
+cell.classList.toggle("on",isOn);cell.classList.toggle("kick-on",tr==="kick"&&isOn);});}
+$("sBpm").addEventListener("input",function(){
+var nb=parseInt(this.value);$("vBpm").textContent=nb;bpmOverride=nb;
+if(window._gateLfo)window._gateLfo.frequency.value=nb/60*2;
+if(window._wahLfo)window._wahLfo.frequency.value=nb/60/2;});
+var _origTrans=mind.transition.bind(mind);
+mind.transition=function(){var old=this.state;_origTrans();
+if(this.state!==old){var fl=$("stateFlash");
+if(fl){var st=STATES[this.state];fl.style.background="radial-gradient(circle,"+st.color+"44,transparent 70%)";
+fl.classList.remove("active");void fl.offsetWidth;fl.classList.add("active");}
+if(navigator.vibrate)navigator.vibrate(30);}};
+
+buildPresets();buildSteps();buildPads();refreshMeta();updateStateBar();buildPatternGrid();
 
 </script>
 </body>
