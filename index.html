@@ -305,6 +305,8 @@ noiseBuf=audioCtx.createBuffer(1,Math.floor(audioCtx.sampleRate*0.4),audioCtx.sa
 }
 
 /* sidechain pump */
+function syncDelay(){ /* delay time managed in ensureAudio */ }
+
 function pump(t){
     const d=duckBus.gain;
     d.cancelScheduledValues(t);
