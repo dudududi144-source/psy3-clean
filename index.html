@@ -149,12 +149,25 @@ audioCtx=new(window.AudioContext||window.webkitAudioContext)();
 masterGain=audioCtx.createGain();masterGain.gain.value=parseFloat($("vol").value);
 const comp=audioCtx.createDynamicsCompressor();
 analyser=audioCtx.createAnalyser();analyser.fftSize=512;analyser.smoothingTimeConstant=0.82;
-masterGain.connect(comp);comp.connect(analyser);analyser.connect(audioCtx.destination);
+var sat=audioCtx.createWaveShaper();sat.oversample="4x";
+var sc2=new Float32Array(44100);for(var si=0;si<44100;si++){var sx=(si*2)/44100-1;sc2[si]=sx>=0?Math.tanh(sx*1.8):Math.tanh(sx*1.2);}sat.curve=sc2;
+var hp=audioCtx.createBiquadFilter();hp.type="highpass";hp.frequency.value=30;
+var eqM=audioCtx.createBiquadFilter();eqM.type="peaking";eqM.frequency.value=300;eqM.gain.value=-2;eqM.Q.value=1;
+var eqH=audioCtx.createBiquadFilter();eqH.type="highshelf";eqH.frequency.value=8000;eqH.gain.value=2;
+masterGain.connect(sat);sat.connect(hp);hp.connect(eqM);eqM.connect(eqH);eqH.connect(comp);comp.connect(analyser);analyser.connect(audioCtx.destination);
 delayNode=audioCtx.createDelay(1.5);
 const fb=audioCtx.createGain();fb.gain.value=0.34;
 const out=audioCtx.createGain();out.gain.value=0.22;
 delayNode.connect(fb);fb.connect(delayNode);delayNode.connect(out);out.connect(masterGain);
 delaySend=audioCtx.createGain();delaySend.connect(delayNode);
+/* reverb */
+var revIn=audioCtx.createGain();revIn.gain.value=0.12;
+var conv=audioCtx.createConvolver();var revDur=1.2,revSr=audioCtx.sampleRate,revLen=Math.floor(revSr*revDur);
+var ir=audioCtx.createBuffer(2,revLen,revSr);
+for(var ch=0;ch<2;ch++){var d=ir.getChannelData(ch);for(var ri=0;ri<revLen;ri++)d[ri]=(Math.random()*2-1)*Math.pow(1-ri/revLen,3);}
+conv.buffer=ir;var revOut=audioCtx.createGain();revOut.gain.value=0.18;
+revIn.connect(conv);conv.connect(revOut);revOut.connect(masterGain);
+window._revIn=revIn;
 syncDelay();
 noiseBuf=audioCtx.createBuffer(1,Math.floor(audioCtx.sampleRate*0.4),audioCtx.sampleRate);
 const nd=noiseBuf.getChannelData(0);
