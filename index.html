@@ -187,9 +187,9 @@ if(this.memory.length>16)this.memory.shift();
 this.state=next;
 this.target=STATES[next].energy;
 this.lastTrans=this.bar;
-if(next==="TENSION")trigRiser(audioCtx.currentTime,2);
-if(next==="PEAK")trigImpact(audioCtx.currentTime);
-if(next==="RELEASE")trigDownlifter(audioCtx.currentTime);
+if(next==="TENSION"&&audioCtx)trigRiser(audioCtx.currentTime,2);
+if(next==="PEAK"&&audioCtx)trigImpact(audioCtx.currentTime);
+if(next==="RELEASE"&&audioCtx)trigDownlifter(audioCtx.currentTime);
 }
 },
 update:function(){
@@ -270,7 +270,7 @@ ns.onended=function(){ns.disconnect();bp.disconnect();g.disconnect();};
 
 
 let audioCtx=null,masterGain=null,duckBus=null,analyser=null,ppIn=null,noiseBuf=null;
-let isPlaying=false,schedulerTimer=null,currentStep=0,nextNoteTime=0,barCount=0;
+let isPlaying=false,schedulerTimer=null,currentStep=0,nextNoteTime=0,mind.bar=0;
 let activePresetId=PRESETS[0].id,activeVariant="A",uiStep=-1;
 const stepQueue=[];
 const freqData=new Uint8Array(512);
@@ -282,14 +282,7 @@ const mtof=m=>440*Math.pow(2,(m-69)/12);
 
 /* evolving patterns */
 let livePatterns=null;
-function initLivePatterns(){
-    const p=activePreset();
-    livePatterns={
-        bass:p.patterns.bass.slice(),
-        lead:p.patterns.lead.slice(),
-        hat:p.patterns.hat.slice()
-    };
-}
+
 function evolvePatterns(){
     if(!livePatterns)return;
     for(let i=0;i<16;i++){
@@ -556,7 +549,7 @@ if(stepQueue.length>32)stepQueue.splice(0,stepQueue.length-32);
 function startSeq(){
     ensureAudio();
     if(isPlaying)return;
-    isPlaying=true;currentStep=0;uiStep=-1;mind.bar=0;mind.state='GROOVE';mind.energy=0.5;mind.target=0.5;mind.lastTrans=0;mind.memory=[];initLivePatterns();barCount=0;
+    isPlaying=true;currentStep=0;uiStep=-1;mind.bar=0;mind.state='GROOVE';mind.energy=0.5;mind.target=0.5;mind.lastTrans=0;mind.memory=[];initLivePatterns();mind.bar=0;
     initLivePatterns();
     nextNoteTime=audioCtx.currentTime+0.2;
     schedulerTimer=makeTimer(25,function(){scheduler();});
@@ -572,10 +565,7 @@ function stopSeq(){
     renderSteps(-1);
 }
 
-function updateStateBar(){
-    const el=$("stateBar");
-    if(el)el.innerHTML="state: <b>GROOVE</b> | bar: <b>"+barCount+"</b> | energy: <b>"+(0.5+Math.sin(barCount*0.3)*0.3).toFixed(2)+"</b>";
-}
+
 
 /* scope / steps */
 const scope=$("scope"),sctx=scope.getContext("2d");
