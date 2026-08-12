@@ -139,7 +139,7 @@ footer{text-align:center;padding:16px;color:var(--dim);font-size:10px;font-famil
 <button class="fxBtn" data-fx="tape">TAPE</button>
 </div>
 <div class="fxSliders">
-<div class="fxSl"><label>DRV</label><input id="sDrive" type="range" min="0" max="10" step="0.1" value="1.8"><b id="vDrive">1.8</b></div>
+<div class="fxSl"><label>DRV</label><input id="sDrive" type="range" min="0" max="10" step="0.1" value="2.2"><b id="vDrive">1.8</b></div>
 <div class="fxSl"><label>ECHO</label><input id="sEcho" type="range" min="0" max="80" step="1" value="22"><b id="vEcho">22</b></div>
 <div class="fxSl"><label>PUMP</label><input id="sPump" type="range" min="0" max="100" step="1" value="50"><b id="vPump">50</b></div>
 </div>
@@ -175,58 +175,58 @@ var PRESETS=[
 
 var SOUND_BANK={version:"2.0",compatible:["PSY","PSY2","PSY3","PSY4","PSY5","PSY6"],patches:{
 kick_deep:{name:"Deep Kick",type:"kick",layers:[
-{wave:"sine",f0:48,f1:38,ft:.06,g:.95,dec:.2},
+{wave:"sine",f0:48,f1:36,ft:.07,g:1.0,dec:.26},
 {wave:"sine",f0:160,f1:48,ft:.008,g:.6,dec:.07},
 {wave:"sine",f0:85,f1:50,ft:.012,g:.4,dec:.1},
 {noise:1,hp:4000,g:.12,dec:.004}]},
 kick_punch:{name:"Punch Kick",type:"kick",layers:[
-{wave:"sine",f0:65,f1:44,ft:.05,g:.9,dec:.16},
+{wave:"sine",f0:68,f1:42,ft:.05,g:.95,dec:.2},
 {wave:"sine",f0:220,f1:55,ft:.006,g:.65,dec:.05},
 {wave:"sine",f0:100,f1:60,ft:.01,g:.45,dec:.08},
 {noise:1,hp:5000,g:.14,dec:.003}]},
 kick_sub:{name:"Sub Kick",type:"kick",layers:[
-{wave:"sine",f0:42,f1:36,ft:.07,g:1.0,dec:.24},
+{wave:"sine",f0:40,f1:34,ft:.08,g:1.0,dec:.3},
 {wave:"sine",f0:130,f1:42,ft:.009,g:.35,dec:.09},
 {wave:"sine",f0:75,f1:45,ft:.014,g:.3,dec:.12},
 {noise:1,hp:3000,g:.08,dec:.005}]},
 bass_rolling:{name:"Rolling Bass",type:"bass",wave:"sawtooth",
-filter:{type:"lowpass",freq:750,q:9},
+filter:{type:"lowpass",freq:800,q:11},
 env:{a:.002,hold:.55,rel:.19},
-sub:{wave:"sine",oct:-1,g:.35}},
+sub:{wave:"sine",oct:-1,g:.4}},
 bass_acid:{name:"Acid Bass",type:"bass",wave:"sawtooth",
-filter:{type:"lowpass",freq:650,q:14},
+filter:{type:"lowpass",freq:700,q:16},
 env:{a:.002,hold:.45,rel:.15},
-sub:{wave:"sine",oct:-1,g:.28}},
+sub:{wave:"sine",oct:-1,g:.33}},
 bass_dark:{name:"Dark Bass",type:"bass",wave:"square",
-filter:{type:"lowpass",freq:550,q:10},
+filter:{type:"lowpass",freq:600,q:12},
 env:{a:.003,hold:.65,rel:.22},
-sub:{wave:"sine",oct:-1,g:.38}},
+sub:{wave:"sine",oct:-1,g:.42}},
 bass_funky:{name:"Funky Bass",type:"bass",wave:"sawtooth",
-filter:{type:"lowpass",freq:900,q:12},
+filter:{type:"lowpass",freq:950,q:14},
 env:{a:.002,hold:.5,rel:.17},
-sub:{wave:"sine",oct:-1,g:.3}},
-lead_squelch:{name:"Squelch Lead",type:"lead",wave:"sawtooth",detune:8,
-filter:{type:"lowpass",freq:2400,q:13},
-env:{a:.004,rel:.24},
-sends:{delay:.28,reverb:.15}},
-lead_dark:{name:"Dark Lead",type:"lead",wave:"square",detune:4,
-filter:{type:"lowpass",freq:1500,q:9},
-env:{a:.007,rel:.2},
-sends:{delay:.2,reverb:.25}},
-lead_hitech:{name:"Hi-Tech Lead",type:"lead",wave:"sawtooth",detune:9,
-filter:{type:"lowpass",freq:3400,q:15},
-env:{a:.003,rel:.13},
-sends:{delay:.32,reverb:.1}},
-lead_organic:{name:"Organic Lead",type:"lead",wave:"triangle",detune:5,
-filter:{type:"lowpass",freq:1800,q:6},
-env:{a:.012,rel:.28},
-sends:{delay:.22,reverb:.3}},
+sub:{wave:"sine",oct:-1,g:.35}},
+lead_squelch:{name:"Squelch Lead",type:"lead",wave:"sawtooth",detune:10,
+filter:{type:"lowpass",freq:2600,q:14},
+env:{a:.004,rel:.26},
+sends:{delay:.32,reverb:.2}},
+lead_dark:{name:"Dark Lead",type:"lead",wave:"square",detune:6,
+filter:{type:"lowpass",freq:1600,q:11},
+env:{a:.007,rel:.22},
+sends:{delay:.24,reverb:.3}},
+lead_hitech:{name:"Hi-Tech Lead",type:"lead",wave:"sawtooth",detune:12,
+filter:{type:"lowpass",freq:3600,q:16},
+env:{a:.003,rel:.14},
+sends:{delay:.35,reverb:.14}},
+lead_organic:{name:"Organic Lead",type:"lead",wave:"triangle",detune:7,
+filter:{type:"lowpass",freq:2000,q:8},
+env:{a:.012,rel:.3},
+sends:{delay:.26,reverb:.35}},
 hat_tight:{name:"Tight Hat",type:"hat",noise:1,
-filter:{type:"highpass",freq:10000},dec:.03},
+filter:{type:"highpass",freq:11000},dec:.025},
 hat_bright:{name:"Bright Hat",type:"hat",noise:1,
-filter:{type:"highpass",freq:8000},dec:.05},
+filter:{type:"highpass",freq:9000},dec:.04},
 hat_open:{name:"Open Hat",type:"hat",noise:1,
-filter:{type:"highpass",freq:6500},dec:.18}
+filter:{type:"highpass",freq:7000},dec:.22}
 }};
 var activeBank={kick:"kick_deep",bass:"bass_rolling",lead:"lead_squelch",hat:"hat_tight"};
 
@@ -240,10 +240,10 @@ update:function(){this.energy+=(this.target-this.energy)*.05;if(this.bar%8===0)t
 var livePatterns=null;
 function initLivePatterns(){var p=activePreset();livePatterns={bass:p.patterns.bass.slice(),lead:p.patterns.lead.slice(),hat:p.patterns.hat.slice()};}
 function updateStateBar(){var st=STATES[mind.state];var dot=$("stateDot");if(dot)dot.style.background=st.color;var nm=$("stateName");if(nm){nm.textContent=mind.state;nm.style.color=st.color;}var ef=$("energyFill");if(ef)ef.style.width=(mind.energy*100)+"%";var bc=$("barCount");if(bc)bc.textContent=mind.bar;}
-function trigRiser(t,dur){dur=dur||2;var c=audioCtx;var nb=c.createBuffer(1,Math.floor(c.sampleRate*dur),c.sampleRate);var nd=nb.getChannelData(0);for(var i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;var ns=c.createBufferSource();ns.buffer=nb;var bp=c.createBiquadFilter();bp.type="bandpass";bp.Q.value=4;bp.frequency.setValueAtTime(150,t);bp.frequency.exponentialRampToValueAtTime(9000,t+dur);var g=c.createGain();g.gain.setValueAtTime(.001,t);g.gain.exponentialRampToValueAtTime(.22,t+dur);ns.connect(bp);bp.connect(g);g.connect(masterGain);ns.start(t);ns.stop(t+dur+.1);ns.onended=function(){ns.disconnect();bp.disconnect();g.disconnect();};}
-function trigImpact(t){var c=audioCtx;var o=c.createOscillator();o.type="sine";o.frequency.setValueAtTime(85,t);o.frequency.exponentialRampToValueAtTime(25,t+.5);var g=c.createGain();g.gain.setValueAtTime(.8,t);g.gain.exponentialRampToValueAtTime(.001,t+.55);o.connect(g);g.connect(masterGain);o.start(t);o.stop(t+.6);o.onended=function(){o.disconnect();g.disconnect();};}
+function trigRiser(t,dur){dur=dur||2;var c=audioCtx;var nb=c.createBuffer(1,Math.floor(c.sampleRate*dur),c.sampleRate);var nd=nb.getChannelData(0);for(var i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;var ns=c.createBufferSource();ns.buffer=nb;var bp=c.createBiquadFilter();bp.type="bandpass";bp.Q.value=4;bp.frequency.setValueAtTime(150,t);bp.frequency.exponentialRampToValueAtTime(9000,t+dur);var g=c.createGain();g.gain.setValueAtTime(.001,t);g.gain.exponentialRampToValueAtTime(.3,t+dur);ns.connect(bp);bp.connect(g);g.connect(masterGain);ns.start(t);ns.stop(t+dur+.1);ns.onended=function(){ns.disconnect();bp.disconnect();g.disconnect();};}
+function trigImpact(t){var c=audioCtx;var o=c.createOscillator();o.type="sine";o.frequency.setValueAtTime(85,t);o.frequency.exponentialRampToValueAtTime(25,t+.5);var g=c.createGain();g.gain.setValueAtTime(.9,t);g.gain.exponentialRampToValueAtTime(.001,t+.55);o.connect(g);g.connect(masterGain);o.start(t);o.stop(t+.6);o.onended=function(){o.disconnect();g.disconnect();};}
 function trigDownlifter(t){var c=audioCtx;var dur=1.5;var nb=c.createBuffer(1,Math.floor(c.sampleRate*dur),c.sampleRate);var nd=nb.getChannelData(0);for(var i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;var ns=c.createBufferSource();ns.buffer=nb;var bp=c.createBiquadFilter();bp.type="bandpass";bp.Q.value=2;bp.frequency.setValueAtTime(6000,t);bp.frequency.exponentialRampToValueAtTime(150,t+dur);var g=c.createGain();g.gain.setValueAtTime(.15,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);ns.connect(bp);bp.connect(g);g.connect(masterGain);ns.start(t);ns.stop(t+dur+.1);ns.onended=function(){ns.disconnect();bp.disconnect();g.disconnect();};}
-function pump(t){if(!duckBus)return;var d=duckBus.gain;d.cancelScheduledValues(t);d.setValueAtTime(.7,t);d.setTargetAtTime(.7-fxState.pump*.5,t,.008);d.setTargetAtTime(.7,t+.05,.055);}
+function pump(t){if(!duckBus)return;var d=duckBus.gain;d.cancelScheduledValues(t);d.setValueAtTime(.7,t);d.setTargetAtTime(.7-fxState.pump*.6,t,.008);d.setTargetAtTime(.7,t+.05,.055);}
 var WORKER_SRC="var iv=null;self.onmessage=function(e){if(e.data.c==='s'){if(iv)clearInterval(iv);iv=setInterval(function(){self.postMessage(0)},e.data.ms)}else{if(iv)clearInterval(iv);iv=null}};";
 function makeTimer(ms,fn){try{var b=new Blob([WORKER_SRC],{type:"application/javascript"});var w=new Worker(URL.createObjectURL(b));w.onmessage=fn;w.postMessage({c:"s",ms:ms});return{stop:function(){w.postMessage({c:"x"});w.terminate();}};}catch(e){var iv=setInterval(fn,ms);return{stop:function(){clearInterval(iv);}};}}
 var audioCtx=null,masterGain=null,duckBus=null,analyser=null,noiseBuf=null,ppIn=null;
@@ -256,7 +256,7 @@ var trackMute={kick:false,bass:false,lead:false,hat:false};
 var bpmOverride=null;
 var arpState={on:false,mode:"down",idx:0};
 var ARP_INTERVALS={up:[0,7,12,19],down:[19,12,7,0],random:null};
-var fxState={cutoff:1200,reso:6,crush:false,gate:false,wah:false,drive:1.8,echo:.22,pump:.5};
+var fxState={cutoff:1200,reso:6,crush:false,gate:false,wah:false,drive:2.2,echo:.22,pump:.5};
 function $(id){return document.getElementById(id);}
 function activePreset(){for(var i=0;i<PRESETS.length;i++){if(PRESETS[i].id===activePresetId)return PRESETS[i];}return PRESETS[0];}
 function activeParams(){return activePreset().variants[activeVariant];}
@@ -309,17 +309,17 @@ ppIn=audioCtx.createGain();ppIn.gain.value=fxState.echo;
 var dlL=audioCtx.createDelay(2),dlR=audioCtx.createDelay(2);
 var bpm0=bpmOverride||activePreset().bpm;var dot8=(60/bpm0)*.75;
 dlL.delayTime.value=dot8;dlR.delayTime.value=dot8;
-var fbL=audioCtx.createGain(),fbR=audioCtx.createGain();fbL.gain.value=.3;fbR.gain.value=.3;
+var fbL=audioCtx.createGain(),fbR=audioCtx.createGain();fbL.gain.value=.35;fbR.gain.value=.35;
 var flL=audioCtx.createBiquadFilter(),flR=audioCtx.createBiquadFilter();flL.type="lowpass";flL.frequency.value=2200;flR.type="lowpass";flR.frequency.value=2200;
 var pnL=audioCtx.createStereoPanner(),pnR=audioCtx.createStereoPanner();pnL.pan.value=-.8;pnR.pan.value=.8;
 ppIn.connect(dlL);dlL.connect(flL);flL.connect(fbL);fbL.connect(dlR);
 dlR.connect(flR);flR.connect(fbR);fbR.connect(dlL);
 dlL.connect(pnL);pnL.connect(masterGain);dlR.connect(pnR);pnR.connect(masterGain);
 var revIn=audioCtx.createGain();revIn.gain.value=.12;
-var conv=audioCtx.createConvolver();var revDur=1.2,revSr=audioCtx.sampleRate,revLen=Math.floor(revSr*revDur);
+var conv=audioCtx.createConvolver();var revDur=1.6,revSr=audioCtx.sampleRate,revLen=Math.floor(revSr*revDur);
 var ir=audioCtx.createBuffer(2,revLen,revSr);
 for(var ch=0;ch<2;ch++){var d=ir.getChannelData(ch);for(var ri=0;ri<revLen;ri++)d[ri]=(Math.random()*2-1)*Math.pow(1-ri/revLen,3);}
-conv.buffer=ir;var revOut=audioCtx.createGain();revOut.gain.value=.18;
+conv.buffer=ir;var revOut=audioCtx.createGain();revOut.gain.value=.22;
 revIn.connect(conv);conv.connect(revOut);revOut.connect(masterGain);
 window._revIn=revIn;
 var cb0=audioCtx.createBuffer(1,Math.floor(audioCtx.sampleRate*.003),audioCtx.sampleRate);
@@ -525,7 +525,7 @@ function playBankKick(t){
 var patch=SOUND_BANK.patches[activeBank.kick];
 if(!patch||trackMute.kick||_activeVoices>=MAX_VOICES)return;
 _activeVoices+=patch.layers.length;var c=audioCtx;
-var energyBoost=.7+mind.energy*.3;
+var energyBoost=.6+mind.energy*.4;
 patch.layers.forEach(function(layer){
 if(layer.noise){var s=c.createBufferSource();s.buffer=noiseBuf;var f=c.createBiquadFilter();f.type="highpass";f.frequency.value=layer.hp;var g=c.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(layer.g*energyBoost,t+.001);g.gain.exponentialRampToValueAtTime(.001,t+layer.dec);s.connect(f);f.connect(g);g.connect(masterGain);s.start(t);s.stop(t+layer.dec+.02);s.onended=function(){s.disconnect();f.disconnect();g.disconnect();_activeVoices--;};
 var s2=c.createBufferSource();s2.buffer=noiseBuf;
