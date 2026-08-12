@@ -1665,6 +1665,71 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ BEAT INDICATOR ═══ */
+var beatInterval=setInterval(function(){
+try{
+if(!device||!device.isPlaying)return;
+var beat=Math.floor(device.absStep/4)%4;
+for(var i=0;i<4;i++){
+var dot=$("bd"+i);
+if(dot){
+dot.classList.toggle("on",i===beat);
+dot.classList.toggle("kick",i===beat&&device.absStep%16===0);
+}
+}
+}catch(e){}
+},100);
+
+/* ═══ PATTERN LIBRARY ═══ */
+var PATTERNS={
+rolling:{passing:.18},
+gallop:{passing:.3},
+offbeat:{passing:.05},
+minimal:{passing:.0},
+acid:{passing:.25},
+tribal:{passing:.15}
+};
+document.querySelectorAll("[data-pat]").forEach(function(chip){
+chip.addEventListener("click",function(){
+var key=this.dataset.pat;
+var p=PATTERNS[key];
+if(p&&typeof STYLE!=="undefined"){
+STYLE.bassPassingChance=p.passing;
+device.variate(false);
+}
+document.querySelectorAll("[data-pat]").forEach(function(c){c.style.borderColor="";});
+this.style.borderColor="var(--cyan)";
+if(navigator.vibrate)navigator.vibrate([5,20,5]);
+});
+});
+
+/* ═══ SOUND BANK JS ═══ */
+var SOUND_BANK={
+classic:{wave:"sawtooth",detune:8,cutoff:2200,res:8,drive:1.0},
+acid:{wave:"sawtooth",detune:4,cutoff:1800,res:14,drive:1.2},
+dark:{wave:"square",detune:3,cutoff:1200,res:6,drive:1.5},
+bright:{wave:"sawtooth",detune:12,cutoff:3200,res:10,drive:0.8},
+lofi:{wave:"triangle",detune:6,cutoff:1500,res:4,drive:2.0}
+};
+document.querySelectorAll("[data-snd]").forEach(function(chip){
+chip.addEventListener("click",function(){
+var key=this.dataset.snd;
+var s=SOUND_BANK[key];
+if(s&&device){
+if(device._leadParams){
+device._leadParams.wave=s.wave;
+device._leadParams.detune=s.detune;
+device._leadParams.cutoff=s.cutoff;
+device._leadParams.res=s.res;
+}
+if(device.drivePre)device.drivePre.gain.value=s.drive;
+}
+document.querySelectorAll("[data-snd]").forEach(function(c){c.classList.remove("active");});
+this.classList.add("active");
+if(navigator.vibrate)navigator.vibrate([5,20,5]);
+});
+});
+
 /* ═══ DRUM KIT SELECTOR ═══ */
 var DRUM_KITS={
 psy:{kickTune:1,kickDecay:1,hatTone:1.5},
