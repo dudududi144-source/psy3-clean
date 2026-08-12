@@ -166,6 +166,132 @@ footer{text-align:center;padding:16px;color:var(--dim);font-size:10px;font-famil
 <footer>PSY6 MAX &middot; Adaptive Engine &middot; Mobile</footer>
 <script>
 "use strict";
+
+/* ═══ MUSIC THEORY ENGINE ═══ */
+var SCALES={
+minor:[0,2,3,5,7,8,10],
+phrygian:[0,1,3,5,7,8,10],
+harmonicMinor:[0,2,3,5,7,8,11],
+dorian:[0,2,3,5,7,9,10],
+mixolydian:[0,2,4,5,7,9,10]
+};
+var CHORD_PROG={
+psy:[[0,5,3,4],[0,3,5,4],[0,6,3,4]],
+dark:[[0,1,3,4],[0,3,1,4],[0,5,1,4]],
+goa:[[0,4,5,3],[0,3,4,5],[0,5,4,3]],
+progressive:[[0,3,4,5],[0,5,3,4],[0,4,3,5]]
+};
+var currentScale="minor";
+var currentProg=0;
+var currentChord=0;
+var barInChord=0;
+function getScaleNote(degree,octave){
+var sc=SCALES[currentScale];
+var idx=((degree%sc.length)+sc.length)%sc.length;
+var oct=Math.floor(degree/sc.length)+(octave||0);
+return sc[idx]+oct*12;
+}
+function getChordRoot(){
+var progs=CHORD_PROG[currentGenre]||CHORD_PROG.psy;
+var prog=progs[currentProg%progs.length];
+return prog[currentChord%prog.length];
+}
+function nextChord(){
+barInChord++;
+if(barInChord>=4){barInChord=0;currentChord++;
+var progs=CHORD_PROG[currentGenre]||CHORD_PROG.psy;
+if(currentChord>=progs[currentProg%progs.length].length){currentChord=0;currentProg++;}
+}
+}
+var currentGenre="psy";
+
+
+/* ═══ MELODY ENGINE ═══ */
+var melodyState={
+notes:[],
+idx:0,
+direction:1,
+rhythm:[1,0,1,0,1,1,0,1,0,1,0,1,1,0,1,0],
+lastNote:0
+};
+function generateMelody(){
+var root=getChordRoot();
+var notes=[];
+var patterns=[
+[0,2,4,2,0,4,2,0],
+[0,4,2,4,0,2,4,2],
+[0,2,0,4,2,0,4,2],
+[4,2,0,2,4,2,0,2]
+];
+var pat=patterns[Math.floor(Math.random()*patterns.length)];
+for(var i=0;i<16;i++){
+if(melodyState.rhythm[i]){
+var degree=pat[i%pat.length]+root;
+if(Math.random()<.2)degree+=Math.random()<.5?1:-1;
+notes.push(getScaleNote(degree,1));
+}else{
+notes.push(null);
+}
+}
+melodyState.notes=notes;
+melodyState.idx=0;
+}
+function getMelodyNote(){
+if(!melodyState.notes.length||melodyState.idx>=melodyState.notes.length){
+generateMelody();
+}
+var n=melodyState.notes[melodyState.idx];
+melodyState.idx++;
+return n;
+}
+
+
+/* ═══ SONG STRUCTURE ENGINE ═══ */
+var SONG_SECTIONS=[
+{name:"INTRO",bars:8,energy:.2,kick:1,bass:0,lead:0,hat:1,pad:1},
+{name:"BUILD",bars:8,energy:.5,kick:1,bass:1,lead:0,hat:1,pad:1},
+{name:"DROP",bars:16,energy:1,kick:1,bass:1,lead:1,hat:1,pad:0},
+{name:"BREAKDOWN",bars:8,energy:.3,kick:0,bass:0,lead:1,hat:0,pad:1},
+{name:"BUILD2",bars:8,energy:.6,kick:1,bass:1,lead:0,hat:1,pad:0},
+{name:"DROP2",bars:16,energy:1,kick:1,bass:1,lead:1,hat:1,pad:0},
+{name:"OUTRO",bars:8,energy:.15,kick:1,bass:0,lead:0,hat:0,pad:1}
+];
+var songState={section:0,barInSection:0,totalBars:0};
+function getCurrentSection(){return SONG_SECTIONS[songState.section%SONG_SECTIONS.length];}
+function advanceSong(){
+songState.barInSection++;
+var sec=getCurrentSection();
+if(songState.barInSection>=sec.bars){
+songState.barInSection=0;
+songState.section++;
+if(songState.section>=SONG_SECTIONS.length)songState.section=0;
+generateMelody();
+}
+songState.totalBars++;
+nextChord();
+}
+function sectionAllows(track){
+var sec=getCurrentSection();
+if(track==="kick")return sec.kick===1;
+if(track==="bass")return sec.bass===1;
+if(track==="lead")return sec.lead===1;
+if(track==="hat")return sec.hat===1;
+if(track==="pad")return sec.pad===1;
+return true;
+}
+function getSongEnergy(){return getCurrentSection().energy;}
+
+
+/* ═══ GROOVE ENGINE ═══ */
+var grooveState={swing:0,ghost:0.15};
+function getSwingOffset(step){
+if(step%2===1)return grooveState.swing*0.25*(60/(bpmOverride||activePreset().bpm));
+return 0;
+}
+function shouldPlayGhost(step){
+return step%4===2&&Math.random()<grooveState.groove;
+}
+
 var PRESETS=[
 {id:"rolling_bass_01",name:"Rolling Bass",tag:"full-on",bpm:145,root:33,patterns:{kick:[1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],bass:[null,0,0,0,null,0,0,0,null,0,0,0,null,0,0,3],lead:[null,null,null,null,null,null,12,null,null,null,null,null,15,null,12,null],hat:[0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,1]},variants:{A:{bassWave:"sawtooth",bassCut:700,bassQ:6,leadWave:"sawtooth",leadCut:1800,leadQ:9,hatLvl:.10,leadLvl:.42},B:{bassWave:"square",bassCut:1150,bassQ:11,leadWave:"sawtooth",leadCut:2600,leadQ:14,hatLvl:.18,leadLvl:.55}}},
 {id:"acid_lead_03",name:"Acid Lead",tag:"303-ish",bpm:148,root:33,patterns:{kick:[1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],bass:[null,0,null,0,null,0,null,0,null,0,null,0,null,0,5,7],lead:[0,null,3,null,0,null,7,null,10,null,7,null,3,null,2,null],hat:[0,0,1,0,0,0,1,0,0,0,1,0,0,1,1,0]},variants:{A:{bassWave:"sawtooth",bassCut:600,bassQ:5,leadWave:"sawtooth",leadCut:2200,leadQ:12,hatLvl:.12,leadLvl:.55},B:{bassWave:"sawtooth",bassCut:800,bassQ:8,leadWave:"square",leadCut:3400,leadQ:18,hatLvl:.16,leadLvl:.62}}},
@@ -448,26 +574,35 @@ scheduleStep(currentStep,nextNoteTime);
 var spb=60/(bpmOverride||activePreset().bpm);
 nextNoteTime+=.25*spb;
 currentStep=(currentStep+1)%16;
-if(currentStep===0){mind.bar++;mind.update();}
+if(currentStep===0){mind.bar++;mind.update();advanceSong();}
 }
 }
 function scheduleStep(step,t){
 var p=activePreset(),v=activeParams();
-var lp=livePatterns||p.patterns;
 var st=STATES[mind.state];
-var kp=(livePatterns&&livePatterns.kick)?livePatterns.kick[step]:p.patterns.kick[step];
-if(kp)playBankKick(t);
-if(lp.hat[step]&&Math.random()<st.density+.3)playBankHat(t,(step===6||step===14));
-var b=lp.bass[step];
-if(b!==null&&b!==undefined&&Math.random()<st.density+.2)playBankBass(t,mtof(p.root+b));
-var l=lp.lead[step];
-if(arpState.on){
-if(step%2===0&&Math.random()<st.complexity+.2){var an=getArpNote(p.root+24);playBankLead(t,mtof(an),step%4===0);}
-}else{
-if(l!==null&&l!==undefined&&Math.random()<st.complexity)playBankLead(t,mtof(p.root+24+l),step%4===0);
+var sec=getCurrentSection();
+var swingT=t+getSwingOffset(step);
+var energy=getSongEnergy();
+/* KICK */
+if(sectionAllows("kick")&&step%4===0){playBankKick(swingT);}
+/* BASS */
+if(sectionAllows("bass")&&step%2===0){
+var bassNote=getChordRoot();
+if(Math.random()<energy+.2)playBankBass(swingT,mtof(p.root+bassNote));
 }
-if(st.energy>.6&&step===0&&mind.bar%4===0){playBankPad(t,mtof(p.root+12),4*(60/(bpmOverride||p.bpm)));}
-if(b===null&&step%4===2&&Math.random()<.15*st.density){var nb=lp.bass[(step+2)%16];if(nb!==null&&nb!==undefined)playBankBass(t,mtof(p.root+nb));}
+/* LEAD (melody) */
+if(sectionAllows("lead")){
+var melNote=getMelodyNote();
+if(melNote!==null&&Math.random()<energy)playBankLead(swingT,mtof(p.root+24+melNote),step%4===0);
+}
+/* HAT */
+if(sectionAllows("hat")&&step%2===0){
+playBankHat(swingT,(step===6||step===14));
+}
+/* PAD */
+if(sectionAllows("pad")&&step===0&&songState.barInSection%4===0){
+playBankPad(t,mtof(p.root+getChordRoot()+12),4*(60/(bpmOverride||p.bpm)));
+}
 stepQueue.push({step:step,time:t});
 if(stepQueue.length>32)stepQueue.splice(0,stepQueue.length-32);
 }
@@ -476,7 +611,7 @@ ensureAudio();
 if(isPlaying)return;
 isPlaying=true;currentStep=0;uiStep=-1;
 mind.bar=0;mind.state="GROOVE";mind.energy=.5;mind.target=.5;mind.lastTrans=0;mind.memory=[];
-initLivePatterns();
+initLivePatterns();generateMelody();songState={section:0,barInSection:0,totalBars:0};currentChord=0;currentProg=0;barInChord=0;
 nextNoteTime=audioCtx.currentTime+.2;
 schedulerTimer=makeTimer(25,scheduler);
 $("playBtn").classList.add("playing");$("playBtn").textContent="\u25A0";
