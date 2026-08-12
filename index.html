@@ -146,6 +146,15 @@ text-align:center;cursor:pointer;transition:all .15s}
 .specWrap{padding:4px 14px}
 #specCanvas{width:100%;height:60px;display:block;border-radius:8px;
 background:rgba(5,2,12,.5);border:1px solid var(--border)}
+
+/* ═══ PRESET BANK ═══ */
+.bankRow{display:flex;gap:5px;padding:4px 14px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.bankChip{min-width:60px;padding:6px 8px;border-radius:6px;border:1px solid var(--border);
+background:rgba(12,6,28,.6);color:var(--dim);font-family:var(--mono);font-size:8px;
+text-align:center;cursor:pointer;flex-shrink:0;transition:all .15s}
+.bankChip:hover{border-color:var(--purple);color:var(--purple)}
+.bankChip:active{transform:scale(.95)}
+.bankChip.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,200,.08)}
 </style>
 </head>
 <body>
@@ -210,6 +219,15 @@ background:rgba(5,2,12,.5);border:1px solid var(--border)}
       <label>BPM</label>
       <button class="tapBtn" id="tapBtn">TAP</button>
     </div>
+  <div class="bankRow">
+    <button class="bankChip" data-preset="fullon">FULL-ON</button>
+    <button class="bankChip" data-preset="darkpsy">DARK PSY</button>
+    <button class="bankChip" data-preset="prog">PROG</button>
+    <button class="bankChip" data-preset="goa">GOA</button>
+    <button class="bankChip" data-preset="techno">TECHNO</button>
+    <button class="bankChip" data-preset="forest">FOREST</button>
+    <button class="bankChip" data-preset="hitech">HI-TECH</button>
+  </div>
   </div>
   <div class="ctrlRow">
     <button class="recBtn" id="recBtn">&#9679; REC</button>
@@ -1526,6 +1544,79 @@ function initUi(){
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
+
+/* ═══ MASTER LIMITER ═══ */
+if(device.ctx&&device.master){
+try{
+var limiter=device.ctx.createDynamicsCompressor();
+limiter.threshold.value=-1;
+limiter.knee.value=0;
+limiter.ratio.value=20;
+limiter.attack.value=0.001;
+limiter.release.value=0.05;
+/* insert before destination */
+device.master.disconnect();
+device.master.connect(limiter);
+limiter.connect(device.ctx.destination);
+device._limiter=limiter;
+}catch(e){}
+}
+
+/* ═══ THEMES ═══ */
+var THEMES={
+cyberpunk:{bg:"#07030f",cyan:"#00ffc8",purple:"#b967ff",magenta:"#ff2e88"},
+forest:{bg:"#0a120a",cyan:"#7fff7f",purple:"#4a9f4a",magenta:"#ffcc00"},
+ocean:{bg:"#030a12",cyan:"#00ccff",purple:"#4477ff",magenta:"#ff6644"},
+sunset:{bg:"#120805",cyan:"#ffaa00",purple:"#ff6633",magenta:"#ff2266"}
+};
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=e.key.toLowerCase();
+if(k==="t"){
+var names=Object.keys(THEMES);
+var cur=names.indexOf(window._curTheme||"cyberpunk");
+var next=names[(cur+1)%names.length];
+window._curTheme=next;
+var t=THEMES[next];
+document.documentElement.style.setProperty("--bg",t.bg);
+document.documentElement.style.setProperty("--cyan",t.cyan);
+document.documentElement.style.setProperty("--purple",t.purple);
+document.documentElement.style.setProperty("--magenta",t.magenta);
+document.body.style.background=t.bg;
+if(navigator.vibrate)navigator.vibrate(10);
+}
+});
+
+/* ═══ PRESET BANK ═══ */
+var PRESET_BANK={
+fullon:{bpm:145,scale:"phrygianDominant",genre:"FULL-ON",leadDensity:.7,glide:.3,octave:.3,passing:.18},
+darkpsy:{bpm:160,scale:"harmonicMinor",genre:"DARK-PSY",leadDensity:.5,glide:.4,octave:.2,passing:.25},
+prog:{bpm:138,scale:"naturalMinor",genre:"PROGRESSIVE",leadDensity:.4,glide:.2,octave:.4,passing:.1},
+goa:{bpm:142,scale:"doubleHarmonic",genre:"GOA",leadDensity:.8,glide:.35,octave:.25,passing:.2},
+techno:{bpm:135,scale:"phrygian",genre:"TECHNO",leadDensity:.3,glide:.1,octave:.5,passing:.15},
+forest:{bpm:140,scale:"minorPentatonic",genre:"FULL-ON",leadDensity:.55,glide:.25,octave:.35,passing:.12},
+hitech:{bpm:170,scale:"phrygianDominant",genre:"FULL-ON",leadDensity:.85,glide:.45,octave:.2,passing:.3}
+};
+document.querySelectorAll(".bankChip").forEach(function(chip){
+chip.addEventListener("click",function(){
+var key=this.dataset.preset;
+var p=PRESET_BANK[key];
+if(!p)return;
+device.setKnob("bpm",p.bpm);
+if(SCALES[p.scale]){
+STYLE.scale=p.scale;SCALE=SCALES[p.scale];
+SCALE_EXT=(function(){var a=[],i;for(i=0;i<SCALE.length;i++)a.push(SCALE[i]);for(i=0;i<SCALE.length;i++)a.push(SCALE[i]+12);a.push(24);return a;})();
+var ss=$("scaleSelect");if(ss)ss.value=p.scale;
+}
+STYLE.name=p.genre;STYLE.leadDensity=p.leadDensity;STYLE.glideChance=p.glide;
+STYLE.bassOctaveChance=p.octave;STYLE.bassPassingChance=p.passing;
+var gs=$("genreSelect");if(gs)gs.value=p.genre;
+document.querySelectorAll(".bankChip").forEach(function(c){c.classList.remove("active");});
+this.classList.add("active");
+device.variate(false);
+if(navigator.vibrate)navigator.vibrate([5,20,5]);
+});
+});
 
 /* ═══ PERFORMANCE MONITOR ═══ */
 var perfFrames=0,perfLast=performance.now(),perfFps=60;
