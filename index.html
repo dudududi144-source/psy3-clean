@@ -1581,6 +1581,48 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ FILTER ENVELOPE ═══ */
+window._filterEnv=true;
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="e"&&!e.ctrlKey){
+window._filterEnv=!window._filterEnv;
+var st=$("status");
+if(st)st.textContent="Filter envelope: "+(window._filterEnv?"ON":"OFF");
+if(navigator.vibrate)navigator.vibrate(8);
+}
+});
+
+/* ═══ BASS SUB LAYER ═══ */
+window._bassSub=true;
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="b"&&!e.ctrlKey){
+window._bassSub=!window._bassSub;
+var st=$("status");
+if(st)st.textContent="Bass sub: "+(window._bassSub?"ON":"OFF");
+if(navigator.vibrate)navigator.vibrate(8);
+}
+});
+
+/* ═══ STEREO WIDTH ═══ */
+window._stereoWidth=0.5;
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key===","||e.key==="<"){
+window._stereoWidth=Math.max(0,window._stereoWidth-0.1);
+var st=$("status");
+if(st)st.textContent="Stereo width: "+Math.round(window._stereoWidth*100)+"%";
+if(navigator.vibrate)navigator.vibrate(3);
+}
+else if(e.key==="."||e.key===">"){
+window._stereoWidth=Math.min(1,window._stereoWidth+0.1);
+var st=$("status");
+if(st)st.textContent="Stereo width: "+Math.round(window._stereoWidth*100)+"%";
+if(navigator.vibrate)navigator.vibrate(3);
+}
+});
+
 /* ═══ DELAY SYNC ═══ */
 setInterval(function(){
 if(!device||!device.isPlaying||!device.dL)return;
