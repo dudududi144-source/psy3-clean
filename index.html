@@ -128,6 +128,19 @@ box-shadow:0 0 10px var(--cyan);transform:translate(-50%,-50%);pointer-events:no
 .secProg .name{font-family:var(--mono);font-size:8px;color:var(--dim);min-width:50px}
 
 .energyDot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:4px}
+
+/* ═══ REC + FX ═══ */
+.recBtn{background:var(--panel);border:1px solid var(--border);color:var(--dim);
+font-family:var(--mono);font-size:10px;padding:6px 12px;border-radius:6px;cursor:pointer;
+transition:all .15s}
+.recBtn.recording{color:#ff2e63;border-color:#ff2e63;animation:recPulse 1s infinite}
+@keyframes recPulse{0%,100%{opacity:1}50%{opacity:.5}}
+.fxRow{display:flex;gap:6px;padding:6px 14px;flex-wrap:wrap}
+.fxBtn{flex:1;min-width:55px;padding:8px 4px;border-radius:8px;border:1px solid var(--border);
+background:rgba(12,6,28,.6);color:var(--dim);font-family:var(--mono);font-size:9px;
+text-align:center;cursor:pointer;transition:all .15s}
+.fxBtn.on{border-color:var(--magenta);color:var(--magenta);background:rgba(255,46,136,.1)}
+.fxBtn:active{transform:scale(.95)}
 </style>
 </head>
 <body>
@@ -192,6 +205,17 @@ box-shadow:0 0 10px var(--cyan);transform:translate(-50%,-50%);pointer-events:no
       <label>BPM</label>
       <button class="tapBtn" id="tapBtn">TAP</button>
     </div>
+  </div>
+  <div class="ctrlRow">
+    <button class="recBtn" id="recBtn">&#9679; REC</button>
+    <button class="recBtn" id="dlBtn" style="display:none">&#8615; SAVE</button>
+    <span class="label" id="recTime" style="font-family:var(--mono);font-size:9px;color:var(--dim)"></span>
+  </div>
+  <div class="fxRow">
+    <button class="fxBtn" id="fxCrush">CRUSH</button>
+    <button class="fxBtn" id="fxGate">GATE</button>
+    <button class="fxBtn" id="fxWah">WAH</button>
+    <button class="fxBtn" id="fxTape">TAPE</button>
   </div>
 
 iv>
@@ -1496,6 +1520,117 @@ function initUi(){
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
+
+/* ═══ RECORDING ═══ */
+var mediaRec=null,recChunks=[],recStart=0,recTimer=null;
+var recBtn=$("recBtn"),dlBtn=$("dlBtn"),recTime=$("recTime");
+if(recBtn){
+recBtn.addEventListener("click",function(){
+if(!mediaRec){
+/* start recording */
+if(!device.ctx)return;
+var dest=device.ctx.createMediaStreamDestination();
+device.master.connect(dest);
+var mime="audio/webm";
+if(!MediaRecorder.isTypeSupported(mime))mime="audio/ogg";
+mediaRec=new MediaRecorder(dest.stream,{mimeType:mime});
+recChunks=[];
+mediaRec.ondataavailable=function(e){if(e.data.size>0)recChunks.push(e.data);};
+mediaRec.onstop=function(){
+var blob=new Blob(recChunks,{type:mediaRec.mimeType});
+var url=URL.createObjectURL(blob);
+if(dlBtn){dlBtn.style.display="inline-block";dlBtn.onclick=function(){
+var a=document.createElement("a");a.href=url;a.download="psy6_"+Date.now()+".webm";a.click();};}
+};
+mediaRec.start(100);
+recStart=Date.now();
+recBtn.classList.add("recording");
+recBtn.innerHTML="&#9632; STOP";
+recTimer=setInterval(function(){
+var s=Math.floor((Date.now()-recStart)/1000);
+if(recTime)recTime.textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0");
+},500);
+if(navigator.vibrate)navigator.vibrate([10,50,10]);
+}else{
+/* stop recording */
+mediaRec.stop();
+mediaRec=null;
+recBtn.classList.remove("recording");
+recBtn.innerHTML="&#9679; REC";
+if(recTimer){clearInterval(recTimer);recTimer=null;}
+if(navigator.vibrate)navigator.vibrate([10,50,10]);
+}
+});
+}
+
+/* ═══ REAL FX ═══ */
+var fxState={crush:false,gate:false,wah:false};
+var fxCrush=$("fxCrush"),fxGate=$("fxGate"),fxWah=$("fxWah"),fxTape=$("fxTape");
+if(fxCrush){fxCrush.addEventListener("click",function(){
+fxState.crush=!fxState.crush;
+this.classList.toggle("on",fxState.crush);
+if(device&&device.shaper&&device.ctx){
+if(fxState.crush){
+var cc=new Float32Array(44100);
+for(var i=0;i<44100;i++){var x=(i*2)/44100-1;cc[i]=Math.round(x*8)/8;}
+device._origCurve=device.shaper.curve;
+device.shaper.curve=cc;
+}else{
+if(device._origCurve)device.shaper.curve=device._origCurve;
+}
+}
+if(navigator.vibrate)navigator.vibrate(10);
+});}
+if(fxGate){fxGate.addEventListener("click",function(){
+fxState.gate=!fxState.gate;
+this.classList.toggle("on",fxState.gate);
+if(device&&device.ctx){
+if(fxState.gate){
+device._gateOsc=device.ctx.createOscillator();
+device._gateOsc.type="square";
+device._gateOsc.frequency.value=device.bpm/60*2;
+device._gateGainNode=device.ctx.createGain();
+device._gateGainNode.gain.value=0.4;
+device._gateOsc.connect(device._gateGainNode);
+device._gateGainNode.connect(device.master.gain);
+device._gateOsc.start();
+}else{
+if(device._gateOsc){device._gateOsc.stop();device._gateOsc.disconnect();device._gateOsc=null;}
+if(device._gateGainNode){device._gateGainNode.disconnect();device._gateGainNode=null;}
+}
+}
+if(navigator.vibrate)navigator.vibrate(10);
+});}
+if(fxWah){fxWah.addEventListener("click",function(){
+fxState.wah=!fxState.wah;
+this.classList.toggle("on",fxState.wah);
+if(device&&device.autoFilter&&device.ctx){
+if(fxState.wah){
+device._wahOsc=device.ctx.createOscillator();
+device._wahOsc.type="sine";
+device._wahOsc.frequency.value=device.bpm/60/2;
+device._wahGainNode=device.ctx.createGain();
+device._wahGainNode.gain.value=800;
+device._wahOsc.connect(device._wahGainNode);
+device._wahGainNode.connect(device.autoFilter.frequency);
+device._wahOsc.start();
+}else{
+if(device._wahOsc){device._wahOsc.stop();device._wahOsc.disconnect();device._wahOsc=null;}
+if(device._wahGainNode){device._wahGainNode.disconnect();device._wahGainNode=null;}
+}
+}
+if(navigator.vibrate)navigator.vibrate(10);
+});}
+if(fxTape){fxTape.addEventListener("click",function(){
+if(device&&device.master&&device.ctx){
+var t=device.ctx.currentTime;
+var vol=device.master.gain.value;
+device.master.gain.cancelScheduledValues(t);
+device.master.gain.setTargetAtTime(0.001,t,0.15);
+device.master.gain.setTargetAtTime(vol,t+0.6,0.1);
+}
+if(navigator.vibrate)navigator.vibrate([15,30,15]);
+});}
 
 /* ═══ SCALE SELECTOR ═══ */
 var scaleSelect=$("scaleSelect");
