@@ -1497,6 +1497,59 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ SCALE SELECTOR ═══ */
+var scaleSelect=$("scaleSelect");
+if(scaleSelect){
+scaleSelect.addEventListener("change",function(){
+var newScale=this.value;
+if(SCALES[newScale]){
+STYLE.scale=newScale;
+SCALE=SCALES[newScale];
+SCALE_EXT=(function(){var a=[],i;for(i=0;i<SCALE.length;i++)a.push(SCALE[i]);for(i=0;i<SCALE.length;i++)a.push(SCALE[i]+12);a.push(24);return a;})();
+device.variate(false);
+if(navigator.vibrate)navigator.vibrate(10);
+}
+});
+}
+/* ═══ GENRE SELECTOR ═══ */
+var genreSelect=$("genreSelect");
+if(genreSelect){
+genreSelect.addEventListener("change",function(){
+var g=this.value;
+STYLE.name=g;
+if(g==="DARK-PSY"){STYLE.leadDensity=0.5;STYLE.glideChance=0.4;STYLE.bassOctaveChance=0.2;STYLE.bassPassingChance=0.25;}
+else if(g==="PROGRESSIVE"){STYLE.leadDensity=0.4;STYLE.glideChance=0.2;STYLE.bassOctaveChance=0.4;STYLE.bassPassingChance=0.1;}
+else if(g==="GOA"){STYLE.leadDensity=0.8;STYLE.glideChance=0.35;STYLE.bassOctaveChance=0.25;STYLE.bassPassingChance=0.2;}
+else if(g==="TECHNO"){STYLE.leadDensity=0.3;STYLE.glideChance=0.1;STYLE.bassOctaveChance=0.5;STYLE.bassPassingChance=0.15;}
+else{STYLE.leadDensity=0.7;STYLE.glideChance=0.3;STYLE.bassOctaveChance=0.3;STYLE.bassPassingChance=0.18;}
+device.variate(false);
+if(navigator.vibrate)navigator.vibrate(10);
+});
+}
+/* ═══ BPM TAP ═══ */
+var tapTimes=[];
+var tapBtn=$("tapBtn");
+if(tapBtn){
+tapBtn.addEventListener("click",function(){
+var now=performance.now();
+tapTimes.push(now);
+if(tapTimes.length>8)tapTimes.shift();
+if(tapTimes.length>=2){
+var intervals=[];
+for(var i=1;i<tapTimes.length;i++)intervals.push(tapTimes[i]-tapTimes[i-1]);
+var avg=intervals.reduce(function(a,b){return a+b;},0)/intervals.length;
+var bpm=Math.round(60000/avg);
+if(bpm>=60&&bpm<=200){
+device.setKnob("bpm",bpm);
+if(navigator.vibrate)navigator.vibrate(5);
+}
+}
+if(tapTimes.length>=2&&tapTimes[tapTimes.length-1]-tapTimes[tapTimes.length-2]>2000){
+tapTimes=[now];
+}
+});
+}
+
 /* ═══ XY PAD ═══ */
 var xyPad=$("xyPad"),xyDot=$("xyDot"),xyActive=false;
 function xyUpdate(x,y){
