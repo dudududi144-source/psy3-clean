@@ -1665,6 +1665,39 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ SECTION COLORS ═══ */
+var SECTION_COLORS={
+INTRO:"#4ecdc4",BUILD:"#ffd166",DROP:"#ff2e88",
+BREAK:"#a8e6cf",RISER:"#b967ff",DROP2:"#ff2e88"
+};
+setInterval(function(){
+try{
+if(!device||!device.isPlaying)return;
+var info=typeof sectionAt==="function"?sectionAt(device.song,Math.floor(device.absStep/16)):null;
+if(info){
+var color=SECTION_COLORS[info.section.name]||"#4ecdc4";
+var prog=$("secFill");
+if(prog)prog.style.background=color;
+var name=$("secName");
+if(name)name.style.color=color;
+}
+}catch(e){}
+},300);
+
+/* ═══ SECTION MIXER ═══ */
+window._sectionVolumes={INTRO:0.8,BUILD:0.9,DROP:1.0,BREAK:0.7,RISER:0.85,DROP2:1.0};
+setInterval(function(){
+try{
+if(!device||!device.isPlaying||!device.master)return;
+var info=typeof sectionAt==="function"?sectionAt(device.song,Math.floor(device.absStep/16)):null;
+if(info){
+var secName=info.section.name;
+var vol=window._sectionVolumes[secName]||1.0;
+device.master.gain.setTargetAtTime(Math.min(0.7,vol*0.7),device.ctx.currentTime,0.3);
+}
+}catch(e){}
+},500);
+
 /* ═══ BEAT INDICATOR ═══ */
 var beatInterval=setInterval(function(){
 try{
