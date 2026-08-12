@@ -1652,6 +1652,77 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ DRUM KIT SELECTOR ═══ */
+var DRUM_KITS={
+psy:{kickTune:1,kickDecay:1,hatTone:1.5},
+techno:{kickTune:0.85,kickDecay:1.6,hatTone:1.0},
+trance:{kickTune:1.05,kickDecay:0.85,hatTone:1.2},
+dnb:{kickTune:1.2,kickDecay:0.6,hatTone:0.8}
+};
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="p"&&e.ctrlKey){
+/* cycle drum kits */
+var kits=Object.keys(DRUM_KITS);
+var cur=kits.indexOf(window._curKit||"psy");
+var next=kits[(cur+1)%kits.length];
+window._curKit=next;
+var kit=DRUM_KITS[next];
+if(device&&device._kickParams){
+device._kickParams.tune=kit.kickTune;
+device._kickParams.decay=kit.kickDecay;
+}
+var st=$("status");
+if(st)st.textContent="Drum kit: "+next.toUpperCase();
+if(navigator.vibrate)navigator.vibrate([5,20,5]);
+}
+});
+
+/* ═══ MASTER EQ ═══ */
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(!device||!device.ctx)return;
+var st=$("status");
+/* create EQ if not exists */
+if(!device._eqLow){
+try{
+device._eqLow=device.ctx.createBiquadFilter();
+device._eqLow.type="lowshelf";device._eqLow.frequency.value=200;device._eqLow.gain.value=0;
+device._eqMid=device.ctx.createBiquadFilter();
+device._eqMid.type="peaking";device._eqMid.frequency.value=1000;device._eqMid.Q.value=1;device._eqMid.gain.value=0;
+device._eqHigh=device.ctx.createBiquadFilter();
+device._eqHigh.type="highshelf";device._eqHigh.frequency.value=4000;device._eqHigh.gain.value=0;
+/* insert before master */
+device._eqLow.connect(device._eqMid);
+device._eqMid.connect(device._eqHigh);
+}catch(e2){}
+}
+if(e.key==="1"&&e.ctrlKey){
+if(device._eqLow){device._eqLow.gain.value=Math.max(-12,device._eqLow.gain.value-1);
+if(st)st.textContent="EQ Low: "+device._eqLow.gain.value+"dB";}
+}
+else if(e.key==="2"&&e.ctrlKey){
+if(device._eqLow){device._eqLow.gain.value=Math.min(12,device._eqLow.gain.value+1);
+if(st)st.textContent="EQ Low: "+device._eqLow.gain.value+"dB";}
+}
+else if(e.key==="3"&&e.ctrlKey){
+if(device._eqMid){device._eqMid.gain.value=Math.max(-12,device._eqMid.gain.value-1);
+if(st)st.textContent="EQ Mid: "+device._eqMid.gain.value+"dB";}
+}
+else if(e.key==="4"&&e.ctrlKey){
+if(device._eqMid){device._eqMid.gain.value=Math.min(12,device._eqMid.gain.value+1);
+if(st)st.textContent="EQ Mid: "+device._eqMid.gain.value+"dB";}
+}
+else if(e.key==="5"&&e.ctrlKey){
+if(device._eqHigh){device._eqHigh.gain.value=Math.max(-12,device._eqHigh.gain.value-1);
+if(st)st.textContent="EQ High: "+device._eqHigh.gain.value+"dB";}
+}
+else if(e.key==="6"&&e.ctrlKey){
+if(device._eqHigh){device._eqHigh.gain.value=Math.min(12,device._eqHigh.gain.value+1);
+if(st)st.textContent="EQ High: "+device._eqHigh.gain.value+"dB";}
+}
+});
+
 /* ═══ EXPORT/IMPORT SETTINGS ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
