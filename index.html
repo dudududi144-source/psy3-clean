@@ -166,6 +166,34 @@ box-shadow:0 0 10px var(--cyan);transform:translate(-50%,-50%);pointer-events:no
     <div class="xyPad" id="xyPad"><div class="xyDot" id="xyDot"></div></div>
     <div class="xyInfo" id="xyInfo">FILTER XY &middot; drag to control cutoff + resonance</div>
   </section>
+  <div class="ctrlRow">
+    <div class="ctrlGroup">
+      <label>SCALE</label>
+      <select id="scaleSelect">
+        <option value="phrygianDominant" selected>Phrygian Dominant</option>
+        <option value="harmonicMinor">Harmonic Minor</option>
+        <option value="naturalMinor">Natural Minor</option>
+        <option value="phrygian">Phrygian</option>
+        <option value="doubleHarmonic">Double Harmonic</option>
+        <option value="minorPentatonic">Minor Pentatonic</option>
+      </select>
+    </div>
+    <div class="ctrlGroup">
+      <label>GENRE</label>
+      <select id="genreSelect">
+        <option value="FULL-ON" selected>Full-On</option>
+        <option value="DARK-PSY">Dark Psy</option>
+        <option value="PROGRESSIVE">Progressive</option>
+        <option value="GOA">Goa</option>
+        <option value="TECHNO">Techno</option>
+      </select>
+    </div>
+    <div class="ctrlGroup">
+      <label>BPM</label>
+      <button class="tapBtn" id="tapBtn">TAP</button>
+    </div>
+  </div>
+
 iv>
   </section>
   <section class="panel">
