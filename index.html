@@ -812,6 +812,7 @@ function Groovebox(){
   this._barCacheKey=-1;
   this._lastSecIdx=-1;
   this.arr={secIdx:0,barInSec:0,cycle:0};
+  this._lastCycle=0;
   this.mutes={KICK:0,BASS:0,PERC:0,LEAD:0,ARP:0,PAD:0};
   this.knobVals={bpm:(145-120)/45,filter:1,res:0.15,drive:0.15,delay:0.35,reverb:0.30,swing:0.20};
   this.lastLeadMidi=null;
@@ -1090,6 +1091,7 @@ Groovebox.prototype.onBar=function(absBar,t){
   this.arr.secIdx=info.sectionIndex;
   this.arr.barInSec=info.barInSection;
   this.arr.cycle=Math.floor(absBar/this.song.totalBars);
+  if(this.arr.cycle>this._lastCycle){this._lastCycle=this.arr.cycle;this.variate(true);}
   if(this._lastSecIdx!==info.sectionIndex){
     this._lastSecIdx=info.sectionIndex;
     this.applySongSection(info.section);
