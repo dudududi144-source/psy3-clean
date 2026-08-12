@@ -1665,6 +1665,32 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ GENRE FX2 (Risers + Impacts + Vocal) ═══ */
+var GENRE_RISER={
+"FULL-ON":{type:"sweep",startFreq:200,endFreq:2000,dur:2.0},
+"DARK-PSY":{type:"sweep",startFreq:100,endFreq:1500,dur:3.0},
+"PROGRESSIVE":{type:"sweep",startFreq:300,endFreq:2500,dur:1.5},
+"GOA":{type:"sweep",startFreq:250,endFreq:3000,dur:2.5},
+"TECHNO":{type:"noise",startFreq:500,endFreq:1000,dur:1.0}
+};
+var GENRE_IMPACT={
+"FULL-ON":{type:"sub",freq:60,dur:.5,drive:1.5},
+"DARK-PSY":{type:"sub",freq:35,dur:.8,drive:2.0},
+"PROGRESSIVE":{type:"impact",freq:80,dur:.3,drive:1.0},
+"GOA":{type:"sub",freq:70,dur:.4,drive:1.2},
+"TECHNO":{type:"impact",freq:50,dur:.2,drive:2.5}
+};
+var GENRE_VOCAL={
+"FULL-ON":{chopChance:.1,pitchShift:0,formant:1.0},
+"DARK-PSY":{chopChance:.15,pitchShift:-3,formant:.8},
+"PROGRESSIVE":{chopChance:.05,pitchShift:2,formant:1.2},
+"GOA":{chopChance:.08,pitchShift:0,formant:1.1},
+"TECHNO":{chopChance:.2,pitchShift:-5,formant:.7}
+};
+function getGenreRiser(){return GENRE_RISER[STYLE.name]||GENRE_RISER["FULL-ON"];}
+function getGenreImpact(){return GENRE_IMPACT[STYLE.name]||GENRE_IMPACT["FULL-ON"];}
+function getGenreVocal(){return GENRE_VOCAL[STYLE.name]||GENRE_VOCAL["FULL-ON"];}
+
 /* ═══ GENRE MASTERING ═══ */
 var GENRE_STEREO={
 "FULL-ON":{width:.7,bassWidth:.3,leadPan:.2},
