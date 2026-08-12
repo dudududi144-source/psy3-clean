@@ -1527,6 +1527,84 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ PERFORMANCE MONITOR ═══ */
+var perfFrames=0,perfLast=performance.now(),perfFps=60;
+function perfLoop(){
+perfFrames++;
+var now=performance.now();
+if(now-perfLast>=1000){
+perfFps=perfFrames;
+perfFrames=0;
+perfLast=now;
+var st=$("status");
+if(st&&device&&device.isPlaying){
+var latency=device.ctx?Math.round(device.ctx.baseLatency*1000):0;
+st.textContent="FPS:"+perfFps+"  LAT:"+latency+"ms  STEP:"+device.absStep;
+}
+}
+requestAnimationFrame(perfLoop);
+}
+requestAnimationFrame(perfLoop);
+
+/* ═══ URL SHARING ═══ */
+function encodePresetUrl(){
+try{
+var preset={b:device.bpm,s:STYLE.scale,g:STYLE.name};
+var encoded=btoa(JSON.stringify(preset));
+var url=location.origin+location.pathname+"#p="+encoded;
+if(navigator.clipboard){navigator.clipboard.writeText(url).catch(function(){});}
+return url;
+}catch(e){return "";}
+}
+function decodePresetUrl(){
+try{
+var hash=location.hash;
+if(hash&&hash.indexOf("#p=")===0){
+var encoded=hash.substring(3);
+var preset=JSON.parse(atob(encoded));
+if(preset.b)device.setKnob("bpm",preset.b);
+if(preset.s&&SCALES[preset.s]){
+STYLE.scale=preset.s;SCALE=SCALES[preset.s];
+SCALE_EXT=(function(){var a=[],i;for(i=0;i<SCALE.length;i++)a.push(SCALE[i]);for(i=0;i<SCALE.length;i++)a.push(SCALE[i]+12);a.push(24);return a;})();
+}
+if(preset.g)STYLE.name=preset.g;
+device.variate(false);
+}
+}catch(e){}
+}
+/* share on double-click of section progress */
+var secProg=document.querySelector(".secProg");
+if(secProg){secProg.addEventListener("dblclick",function(){
+var url=encodePresetUrl();
+if(url){
+var st=$("status");
+if(st)st.textContent="Shared: "+url.substring(0,60)+"...";
+}
+});}
+/* decode on load */
+decodePresetUrl();
+
+/* ═══ ADAPTIVE STATE MACHINE ═══ */
+var adaptState={energy:0.5,target:0.5,timer:null};
+function adaptUpdate(){
+if(!device||!device.isPlaying)return;
+var info=typeof sectionAt==="function"?sectionAt(device.song,Math.floor(device.absStep/16)):null;
+if(info){
+var sec=info.section;
+if(sec.name==="INTRO"||sec.name==="BREAK")adaptState.target=0.3;
+else if(sec.name==="BUILD"||sec.name==="RISER")adaptState.target=0.6;
+else if(sec.name==="DROP"||sec.name==="DROP2")adaptState.target=1.0;
+else adaptState.target=0.5;
+}
+adaptState.energy+=(adaptState.target-adaptState.energy)*0.02;
+/* modulate drive based on energy */
+if(device.drivePre&&device.ctx){
+var baseDrive=device.knobs?device.knobs.drive:0.5;
+device.drivePre.gain.setTargetAtTime(baseDrive*(0.7+adaptState.energy*0.6),device.ctx.currentTime,0.1);
+}
+}
+adaptState.timer=setInterval(adaptUpdate,200);
+
 /* ═══ FX FINE CONTROLS ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
