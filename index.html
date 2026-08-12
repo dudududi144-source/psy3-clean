@@ -121,6 +121,13 @@ border:1px solid var(--border);touch-action:none;margin:4px 0}
 background:radial-gradient(circle,var(--cyan),rgba(0,255,200,.3));
 box-shadow:0 0 10px var(--cyan);transform:translate(-50%,-50%);pointer-events:none;left:50%;top:50%}
 .xyInfo{font-family:var(--mono);font-size:8px;color:var(--dim);text-align:center;padding:2px}
+
+.secProg{display:flex;align-items:center;gap:6px;padding:4px 14px}
+.secProg .track{flex:1;height:3px;background:rgba(150,90,255,.1);border-radius:2px;overflow:hidden}
+.secProg .fill{height:100%;width:0%;background:var(--magenta);border-radius:2px;transition:width .2s}
+.secProg .name{font-family:var(--mono);font-size:8px;color:var(--dim);min-width:50px}
+
+.energyDot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:4px}
 </style>
 </head>
 <body>
@@ -146,6 +153,11 @@ box-shadow:0 0 10px var(--cyan);transform:translate(-50%,-50%);pointer-events:no
       <span>engine: <span id="engState" class="dim">idle</span></span>
     </div>
   </section>
+  <div class="secProg">
+    <span class="name" id="secName">INTRO</span>
+    <div class="track"><div class="fill" id="secFill"></div></div>
+    <span class="name" id="secBar">1/8</span>
+  </div>
   <section class="panel">
     <div id="knobs" class="knobs-row"></d
 
