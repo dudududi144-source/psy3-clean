@@ -252,6 +252,13 @@ cursor:pointer;transition:all .15s}
     <button class="styleChip" data-kick="rumble">RUMBLE</button>
   </div>
   <div class="styleRow">
+    <label>LEAD</label>
+    <button class="styleChip active" data-lead="squelch">SQUELCH</button>
+    <button class="styleChip" data-lead="dark">DARK</button>
+    <button class="styleChip" data-lead="hitech">HI-TECH</button>
+    <button class="styleChip" data-lead="organic">ORGANIC</button>
+  </div>
+  <div class="styleRow">
     <label>SWING</label>
     <button class="styleChip" data-swing="0">STRAIGHT</button>
     <button class="styleChip active" data-swing="0.15">LIGHT</button>
@@ -1573,6 +1580,65 @@ function initUi(){
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
+
+/* ═══ BACKGROUND ANIMATION ═══ */
+var bgPhase=0;
+setInterval(function(){
+if(!device||!device.isPlaying)return;
+bgPhase+=0.05;
+var intensity=0.03+adaptState.energy*0.05;
+var r=Math.round(120+Math.sin(bgPhase)*20*intensity);
+var g=Math.round(40+Math.sin(bgPhase*0.7)*10*intensity);
+var b=Math.round(200+Math.sin(bgPhase*1.3)*30*intensity);
+document.body.style.background="radial-gradient(1200px 600px at 80% -10%,rgba("+r+","+g+","+b+","+(0.15+intensity)+"),transparent 60%),radial-gradient(900px 500px at 10% 110%,rgba(0,255,200,"+(0.05+intensity*0.5)+"),transparent 60%)";
+},100);
+
+/* ═══ SECTION LENGTH (+/- keys) ═══ */
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="+"||e.key==="="){
+if(device.song&&device.song.sections){
+device.song.sections.forEach(function(s){s.bars=Math.min(32,s.bars+2);});
+var st=$("status");
+if(st)st.textContent="Section length: +2 bars";
+if(navigator.vibrate)navigator.vibrate(5);
+}
+}
+else if(e.key==="-"||e.key==="_"){
+if(device.song&&device.song.sections){
+device.song.sections.forEach(function(s){s.bars=Math.max(2,s.bars-2);});
+var st=$("status");
+if(st)st.textContent="Section length: -2 bars";
+if(navigator.vibrate)navigator.vibrate(5);
+}
+}
+});
+
+/* ═══ LEAD STYLE SELECTOR ═══ */
+var leadStyles={
+squelch:{wave:"sawtooth",detune:8,cutoff:2400,res:13,glide:.3},
+dark:{wave:"square",detune:4,cutoff:1500,res:9,glide:.4},
+hitech:{wave:"sawtooth",detune:12,cutoff:3400,res:15,glide:.15},
+organic:{wave:"triangle",detune:5,cutoff:1800,res:6,glide:.25}
+};
+document.querySelectorAll("[data-lead]").forEach(function(chip){
+chip.addEventListener("click",function(){
+var style=this.dataset.lead;
+var ls=leadStyles[style];
+if(ls){
+STYLE.glideChance=ls.glide;
+if(device&&device._leadParams){
+device._leadParams.wave=ls.wave;
+device._leadParams.detune=ls.detune;
+device._leadParams.cutoff=ls.cutoff;
+device._leadParams.res=ls.res;
+}
+}
+document.querySelectorAll("[data-lead]").forEach(function(c){c.classList.remove("active");});
+this.classList.add("active");
+if(navigator.vibrate)navigator.vibrate(8);
+});
+});
 
 /* ═══ VISUAL PULSE ═══ */
 var pulseActive=false;
