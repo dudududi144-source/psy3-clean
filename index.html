@@ -1620,6 +1620,81 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ SECTION TRANSITION FX ═══ */
+var _lastSectionIdx=-1;
+setInterval(function(){
+if(!device||!device.isPlaying)return;
+try{
+var info=typeof sectionAt==="function"?sectionAt(device.song,Math.floor(device.absStep/16)):null;
+if(info&&info.sectionIndex!==_lastSectionIdx){
+if(_lastSectionIdx>=0){
+/* section changed - trigger transition FX */
+var sec=info.section;
+if(sec.name==="DROP"||sec.name==="DROP2"){
+/* impact on drop */
+if(device.ctx){
+var t=device.ctx.currentTime;
+var o=device.ctx.createOscillator();
+o.type="sine";
+o.frequency.setValueAtTime(80,t);
+o.frequency.exponentialRampToValueAtTime(30,t+0.4);
+var g=device.ctx.createGain();
+g.gain.setValueAtTime(0.6,t);
+g.gain.exponentialRampToValueAtTime(0.001,t+0.4);
+o.connect(g);g.connect(device.master);
+o.start(t);o.stop(t+0.5);
+}
+}
+else if(sec.name==="RISER"){
+/* riser sweep */
+if(device.ctx){
+var t2=device.ctx.currentTime;
+var o2=device.ctx.createOscillator();
+o2.type="sawtooth";
+o2.frequency.setValueAtTime(200,t2);
+o2.frequency.exponentialRampToValueAtTime(2000,t2+1.5);
+var g2=device.ctx.createGain();
+g2.gain.setValueAtTime(0.1,t2);
+g2.gain.exponentialRampToValueAtTime(0.001,t2+1.5);
+var f2=device.ctx.createBiquadFilter();
+f2.type="lowpass";f2.frequency.value=3000;
+o2.connect(f2);f2.connect(g2);g2.connect(device.master);
+o2.start(t2);o2.stop(t2+1.6);
+}
+}
+if(navigator.vibrate)navigator.vibrate([10,50,10]);
+}
+_lastSectionIdx=info.sectionIndex;
+}
+}catch(e){}
+},200);
+
+/* ═══ PAD CHORD MODE ═══ */
+window._chordMode=false;
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="c"&&!e.ctrlKey){
+window._chordMode=!window._chordMode;
+var st=$("status");
+if(st)st.textContent="Chord mode: "+(window._chordMode?"ON":"OFF");
+if(navigator.vibrate)navigator.vibrate(8);
+}
+});
+
+/* ═══ ARP MODE SELECTOR ═══ */
+window._arpMode="up";
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="a"&&!e.ctrlKey){
+var modes=["up","down","random","alternate"];
+var cur=modes.indexOf(window._arpMode);
+window._arpMode=modes[(cur+1)%modes.length];
+var st=$("status");
+if(st)st.textContent="Arp mode: "+window._arpMode.toUpperCase();
+if(navigator.vibrate)navigator.vibrate(8);
+}
+});
+
 /* ═══ BPM NUDGE ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
