@@ -1665,6 +1665,23 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ GENRE VISUAL THEMES ═══ */
+var GENRE_THEMES={
+"FULL-ON":{accent:"#ff2e88",bg1:"rgba(255,46,136,.06)",bg2:"rgba(185,103,255,.04)"},
+"DARK-PSY":{accent:"#8b00ff",bg1:"rgba(139,0,255,.08)",bg2:"rgba(0,255,200,.03)"},
+"PROGRESSIVE":{accent:"#00ffc8",bg1:"rgba(0,255,200,.06)",bg2:"rgba(76,201,240,.04)"},
+"GOA":{accent:"#ffd166",bg1:"rgba(255,209,102,.07)",bg2:"rgba(255,107,53,.04)"},
+"TECHNO":{accent:"#4cc9f0",bg1:"rgba(76,201,240,.06)",bg2:"rgba(122,229,130,.03)"}
+};
+function applyGenreTheme(g){
+var t=GENRE_THEMES[g];
+if(!t)return;
+try{
+document.documentElement.style.setProperty("--magenta",t.accent);
+document.body.style.background="radial-gradient(1200px 600px at 80% -10%,"+t.bg1+",transparent 60%),radial-gradient(900px 500px at 10% 110%,"+t.bg2+",transparent 60%)";
+}catch(e){}
+}
+
 /* GENRE PROFILES */
 var GENRE_PROFILES={
 "FULL-ON":{bpm:145,scale:"phrygianDominant",leadDensity:.7,glideChance:.3,bassOctaveChance:.3,bassPassingChance:.18,swing:.15,wave:"sawtooth",detune:8,cutoff:2200,res:8,drive:1.0,bassPattern:"rolling",kickStyle:"deep",delaySend:.3,reverbSend:.2},
