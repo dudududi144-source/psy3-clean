@@ -1620,6 +1620,154 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ MIDI EXPORT ═══ */
+function exportMidi(){
+if(!device||!device.song)return;
+try{
+var notes=[];
+var bpm=device.bpm||145;
+var ticksPerBeat=480;
+var absStep=0;
+var totalSteps=device.song.totalBars*16;
+for(var s=0;s<Math.min(totalSteps,256);s++){
+var info=typeof sectionAt==="function"?sectionAt(device.song,Math.floor(s/16)):null;
+if(!info)continue;
+/* add kick notes */
+if(s%4===0){
+notes.push({time:s*ticksPerBeat/4,pitch:36,dur:ticksPerBeat/8,vel:100});
+}
+/* add bass notes */
+if(s%2===0){
+var bassNote=36+((s/2)%12);
+notes.push({time:s*ticksPerBeat/4,pitch:bassNote,dur:ticksPerBeat/8,vel:80});
+}
+}
+/* build MIDI file */
+var midi=buildMidiFile(notes,bpm,ticksPerBeat);
+var blob=new Blob([midi],{type:"audio/midi"});
+var url=URL.createObjectURL(blob);
+var a=document.createElement("a");
+a.href=url;
+a.download="psy6_export.mid";
+a.click();
+URL.revokeObjectURL(url);
+var st=$("status");
+if(st)st.textContent="MIDI exported: "+notes.length+" notes";
+if(navigator.vibrate)navigator.vibrate([10,30,10]);
+}catch(e){
+var st2=$("status");
+if(st2)st2.textContent="MIDI export failed";
+}
+}
+function buildMidiFile(notes,bpm,tpb){
+/* minimal MIDI file builder */
+var data=[];
+/* header: MThd */
+data.push(0x4D,0x54,0x68,0x64);
+data.push(0,0,0,6);
+data.push(0,0); /* format 0 */
+data.push(0,1); /* 1 track */
+data.push((tpb>>8)&0xFF,tpb&0xFF);
+/* track: MTrk */
+var track=[];
+/* tempo */
+var usPerBeat=Math.round(60000000/bpm);
+track.push(0x00,0xFF,0x51,0x03,(usPerBeat>>16)&0xFF,(usPerBeat>>8)&0xFF,usPerBeat&0xFF);
+/* notes */
+var lastTime=0;
+notes.sort(function(a,b){return a.time-b.time;});
+for(var i=0;i<notes.length;i++){
+var n=notes[i];
+var delta=n.time-lastTime;
+/* note on */
+track.push(encodeVarLen(delta),0x90,n.pitch,n.vel);
+/* note off */
+track.push(encodeVarLen(n.dur),0x80,n.pitch,0);
+lastTime=n.time+n.dur;
+}
+/* end of track */
+track.push(0x00,0xFF,0x2F,0x00);
+/* track header */
+data.push(0x4D,0x54,0x72,0x6B);
+data.push((track.length>>24)&0xFF,(track.length>>16)&0xFF,(track.length>>8)&0xFF,track.length&0xFF);
+data=data.concat(track);
+return new Uint8Array(data);
+}
+function encodeVarLen(val){
+var bytes=[];
+bytes.push(val&0x7F);
+val>>=7;
+while(val>0){
+bytes.push((val&0x7F)|0x80);
+val>>=7;
+}
+bytes.reverse();
+return bytes;
+}
+/* keyboard shortcut for MIDI export */
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="m"&&!e.ctrlKey&&!e.metaKey){
+/* only if not mute */
+if(e.shiftKey){
+exportMidi();
+}
+}
+});
+
+/* ═══ STEP EDITOR ═══ */
+window._stepEditMode=false;
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="i"||e.key==="I"){
+window._stepEditMode=!window._stepEditMode;
+var st=$("status");
+if(st)st.textContent="Step edit: "+(window._stepEditMode?"ON":"OFF");
+if(navigator.vibrate)navigator.vibrate(8);
+}
+});
+
+/* ═══ MULTI-TOUCH XY ═══ */
+var xyPad=$("xyPad");
+if(xyPad){
+var xyTouches={};
+xyPad.addEventListener("touchstart",function(e){
+e.preventDefault();
+for(var i=0;i<e.changedTouches.length;i++){
+var t=e.changedTouches[i];
+xyTouches[t.identifier]={x:t.clientX,y:t.clientY};
+}
+},{passive:false});
+xyPad.addEventListener("touchmove",function(e){
+e.preventDefault();
+for(var i=0;i<e.changedTouches.length;i++){
+var t=e.changedTouches[i];
+if(xyTouches[t.identifier]){
+var r=xyPad.getBoundingClientRect();
+var nx=Math.max(0,Math.min(1,(t.clientX-r.left)/r.width));
+var ny=Math.max(0,Math.min(1,1-(t.clientY-r.top)/r.height));
+/* first finger: cutoff, second finger: resonance */
+var touchCount=Object.keys(xyTouches).length;
+if(touchCount===1){
+if(device&&device.autoFilter&&device.ctx){
+device.autoFilter.frequency.setTargetAtTime(100*Math.pow(80,nx),device.ctx.currentTime,0.05);
+}
+}else if(touchCount>=2){
+if(device&&device.autoFilter&&device.ctx){
+device.autoFilter.Q.setTargetAtTime(1+ny*20,device.ctx.currentTime,0.05);
+}
+}
+xyTouches[t.identifier]={x:t.clientX,y:t.clientY};
+}
+}
+},{passive:false});
+xyPad.addEventListener("touchend",function(e){
+for(var i=0;i<e.changedTouches.length;i++){
+delete xyTouches[e.changedTouches[i].identifier];
+}
+});
+}
+
 /* ═══ SECTION TRANSITION FX ═══ */
 var _lastSectionIdx=-1;
 setInterval(function(){
