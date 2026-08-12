@@ -1665,6 +1665,32 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ GENRE MASTERING ═══ */
+var GENRE_STEREO={
+"FULL-ON":{width:.7,bassWidth:.3,leadPan:.2},
+"DARK-PSY":{width:.5,bassWidth:.2,leadPan:.3},
+"PROGRESSIVE":{width:.8,bassWidth:.4,leadPan:.15},
+"GOA":{width:.9,bassWidth:.3,leadPan:.25},
+"TECHNO":{width:.4,bassWidth:.1,leadPan:.1}
+};
+var GENRE_COMP={
+"FULL-ON":{threshold:-12,ratio:4,attack:.003,release:.15},
+"DARK-PSY":{threshold:-15,ratio:6,attack:.005,release:.2},
+"PROGRESSIVE":{threshold:-10,ratio:3,attack:.002,release:.1},
+"GOA":{threshold:-12,ratio:4,attack:.004,release:.18},
+"TECHNO":{threshold:-18,ratio:8,attack:.001,release:.25}
+};
+var GENRE_EQ={
+"FULL-ON":{low:2,mid:0,high:1},
+"DARK-PSY":{low:3,mid:-1,high:-2},
+"PROGRESSIVE":{low:1,mid:1,high:2},
+"GOA":{low:2,mid:1,high:3},
+"TECHNO":{low:4,mid:-2,high:-1}
+};
+function getGenreStereo(){return GENRE_STEREO[STYLE.name]||GENRE_STEREO["FULL-ON"];}
+function getGenreComp(){return GENRE_COMP[STYLE.name]||GENRE_COMP["FULL-ON"];}
+function getGenreEq(){return GENRE_EQ[STYLE.name]||GENRE_EQ["FULL-ON"];}
+
 /* ═══ GENRE MODULATION + TEXTURE ═══ */
 var GENRE_MODULATION={
 "FULL-ON":{lfoRate:4,lfoDepth:200,lfoTarget:"filter"},
