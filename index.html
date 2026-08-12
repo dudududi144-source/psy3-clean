@@ -1847,22 +1847,43 @@ var GENRE_PROFILES={
 "TECHNO":{bpm:135,scale:"phrygian",leadDensity:.3,glideChance:.1,bassOctaveChance:.5,bassPassingChance:.15,swing:0,wave:"square",detune:3,cutoff:900,res:5,drive:2.0,bassPattern:"minimal",kickStyle:"rumble",delaySend:.15,reverbSend:.1}
 };
 function applyGenre(g){
-var p=GENRE_PROFILES[g];if(!p)return;
+var p=GENRE_PROFILES[g];
+if(!p)return;
+/* STOP current playback to prevent glitches */
+var wasPlaying=device&&device.isPlaying;
+if(wasPlaying){
+device.stop();
+}
+/* Apply genre changes */
 STYLE.name=g;STYLE.leadDensity=p.leadDensity;STYLE.glideChance=p.glideChance;
 STYLE.bassOctaveChance=p.bassOctaveChance;STYLE.bassPassingChance=p.bassPassingChance;
 if(SCALES[p.scale]){STYLE.scale=p.scale;SCALE=SCALES[p.scale];
 SCALE_EXT=(function(){var a=[],i;for(i=0;i<SCALE.length;i++)a.push(SCALE[i]);for(i=0;i<SCALE.length;i++)a.push(SCALE[i]+12);a.push(24);return a;})();
 var ss=$("scaleSelect");if(ss)ss.value=p.scale;}
-device.setKnob("bpm",p.bpm);device.swing=p.swing;
+device.setKnob("bpm",p.bpm);
+device.swing=p.swing;
 if(typeof PATTERNS!=="undefined"&&PATTERNS[p.bassPattern])STYLE.bassPassingChance=PATTERNS[p.bassPattern].passing;
 if(typeof kickStyles!=="undefined"&&kickStyles[p.kickStyle]&&device._kickParams){device._kickParams.tune=kickStyles[p.kickStyle].tune;device._kickParams.decay=kickStyles[p.kickStyle].decay;device._kickParams.punch=kickStyles[p.kickStyle].punch;}
 if(device._leadParams){device._leadParams.wave=p.wave;device._leadParams.detune=p.detune;device._leadParams.cutoff=p.cutoff;device._leadParams.res=p.res;}
 if(device.drivePre)device.drivePre.gain.value=p.drive;
 if(device.delayIn)device.delayIn.gain.value=p.delaySend;
 if(device.reverbIn)device.reverbIn.gain.value=p.reverbSend;
+/* Regenerate patterns */
 device.variate(false);
-var st=$("status");if(st)st.textContent=g+": "+p.bpm+"BPM "+p.scale+" "+p.bassPattern+" bass";
+/* Update UI */
+var st=$("status");
+if(st)st.textContent=g+": "+p.bpm+"BPM "+p.scale+" "+p.bassPattern+" bass";
+if(typeof applyGenreTheme==="function")applyGenreTheme(g);
+if(typeof applyGenreFx==="function")applyGenreFx();
 if(navigator.vibrate)navigator.vibrate([5,20,5]);
+/* Restart if was playing */
+if(wasPlaying){
+setTimeout(function(){
+if(device&&!device.isPlaying){
+device.play();
+}
+},100);
+}
 }
 var gs2=$("genreSelect");if(gs2)gs2.addEventListener("change",function(){applyGenre(this.value);});
 
