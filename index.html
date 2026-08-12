@@ -1581,9 +1581,87 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ GAIN OPTIMIZATION ═══ */
+if(device.ctx&&device.master){
+try{
+/* reduce master gain to prevent clipping */
+device.master.gain.value=Math.min(device.master.gain.value,0.7);
+/* add soft clipper */
+var softClip=device.ctx.createWaveShaper();
+var clipCurve=new Float32Array(44100);
+for(var i=0;i<44100;i++){
+var x=(i*2)/44100-1;
+clipCurve[i]=Math.tanh(x*1.5);
+}
+softClip.curve=clipCurve;
+/* insert before limiter */
+if(device._limiter){
+device.master.disconnect();
+device.master.connect(softClip);
+softClip.connect(device._limiter);
+device._softClip=softClip;
+}
+}catch(e){}
+}
+
+/* ═══ PERFORMANCE OPTIMIZER ═══ */
+var perfTick=0;
+var masterTimer=setInterval(function(){
+perfTick++;
+if(!device||!device.isPlaying)return;
+/* adaptive state - every 2 ticks (200ms) */
+if(perfTick%2===0){
+try{adaptUpdate();}catch(e){}
+}
+/* energy meter - every 1 tick (100ms) */
+try{
+var e=device.getEnergy();
+var ed=$("energyDot");
+if(ed){
+var hue=120+Math.min(1,e*3)*180;
+ed.style.background="hsl("+hue+",100%,60%)";
+ed.style.boxShadow="0 0 "+(4+e*20)+"px hsl("+hue+",100%,60%)";
+}
+}catch(e2){}
+/* visual pulse - every 3 ticks (300ms) */
+if(perfTick%3===0){
+try{
+var step=device.absStep%16;
+if(step===0||step===4||step===8||step===12){
+var panels=document.querySelectorAll(".panel");
+panels.forEach(function(p){
+p.style.boxShadow="0 0 15px rgba(255,46,136,0.2)";
+setTimeout(function(){p.style.boxShadow="";},100);
+});
+}
+}catch(e3){}
+}
+/* background - every 5 ticks (500ms) */
+if(perfTick%5===0){
+try{
+bgPhase+=0.1;
+var intensity=0.02+adaptState.energy*0.03;
+var r=Math.round(120+Math.sin(bgPhase)*15*intensity);
+var g=Math.round(40+Math.sin(bgPhase*0.7)*8*intensity);
+var b=Math.round(200+Math.sin(bgPhase*1.3)*20*intensity);
+document.body.style.background="radial-gradient(1200px 600px at 80% -10%,rgba("+r+","+g+","+b+","+(0.12+intensity)+"),transparent 60%),radial-gradient(900px 500px at 10% 110%,rgba(0,255,200,"+(0.04+intensity*0.3)+"),transparent 60%)";
+}catch(e4){}
+}
+/* perf monitor - every 10 ticks (1s) */
+if(perfTick%10===0){
+try{
+var st=$("status");
+if(st&&device.ctx){
+var latency=Math.round(device.ctx.baseLatency*1000);
+st.textContent="FPS:"+perfFps+"  LAT:"+latency+"ms  STEP:"+device.absStep;
+}
+}catch(e5){}
+}
+},100);
+
 /* ═══ BACKGROUND ANIMATION ═══ */
 var bgPhase=0;
-setInterval(function(){
+if(!window._masterTimerActive){setInterval(function(){
 if(!device||!device.isPlaying)return;
 bgPhase+=0.05;
 var intensity=0.03+adaptState.energy*0.05;
@@ -1591,7 +1669,7 @@ var r=Math.round(120+Math.sin(bgPhase)*20*intensity);
 var g=Math.round(40+Math.sin(bgPhase*0.7)*10*intensity);
 var b=Math.round(200+Math.sin(bgPhase*1.3)*30*intensity);
 document.body.style.background="radial-gradient(1200px 600px at 80% -10%,rgba("+r+","+g+","+b+","+(0.15+intensity)+"),transparent 60%),radial-gradient(900px 500px at 10% 110%,rgba(0,255,200,"+(0.05+intensity*0.5)+"),transparent 60%)";
-},100);
+},100);}
 
 /* ═══ SECTION LENGTH (+/- keys) ═══ */
 document.addEventListener("keydown",function(e){
@@ -1642,7 +1720,7 @@ if(navigator.vibrate)navigator.vibrate(8);
 
 /* ═══ VISUAL PULSE ═══ */
 var pulseActive=false;
-setInterval(function(){
+if(!window._masterTimerActive){setInterval(function(){
 if(!device||!device.isPlaying)return;
 var step=device.absStep%16;
 if(step===0||step===4||step===8||step===12){
@@ -1653,7 +1731,7 @@ p.style.boxShadow="0 0 20px rgba(255,46,136,0.3)";
 setTimeout(function(){p.style.boxShadow="";},150);
 });
 }
-},250);
+},250);}
 
 /* ═══ ARP DENSITY (keys 6-0) ═══ */
 document.addEventListener("keydown",function(e){
@@ -2009,7 +2087,7 @@ if(navigator.vibrate)navigator.vibrate([5,20,5]);
 });
 
 /* ═══ LIVE ENERGY METER ═══ */
-setInterval(function(){
+if(!window._masterTimerActive){setInterval(function(){
 if(!device||!device.isPlaying||!device.analyser)return;
 try{
 var e=device.getEnergy();
@@ -2020,7 +2098,7 @@ ed.style.background="hsl("+hue+",100%,60%)";
 ed.style.boxShadow="0 0 "+(4+e*20)+"px hsl("+hue+",100%,60%)";
 }
 }catch(e2){}
-},100);
+},100);}
 
 /* ═══ KEYBOARD SHORTCUTS ═══ */
 document.addEventListener("keydown",function(e){
