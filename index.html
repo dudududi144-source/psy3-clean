@@ -290,7 +290,7 @@ cursor:pointer;transition:all .15s}
   </div>
     <div id="status" class="status mono"></div>
     <div id="timeline" class="timeline"></div>
-    <div class="hint">Keys <b>A W S E D F T G</b> pads &middot; <b>Space</b> play/stop &middot; <b>M</b> mute all &middot; <b>V</b> variate &middot; <b>N</b> next section &middot; <b>R</b> record</div>
+    <div class="hint">Keys <b>A W S E D F T G</b> pads &middot; <b>P</b> probability &middot; <b>Space</b> play/stop &middot; <b>M</b> mute all &middot; <b>V</b> variate &middot; <b>N</b> next section &middot; <b>R</b> record</div>
   </section>
 </main>
 <footer class="footer mono">
@@ -1580,6 +1580,40 @@ function initUi(){
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
+
+/* ═══ DELAY SYNC ═══ */
+setInterval(function(){
+if(!device||!device.isPlaying||!device.dL)return;
+try{
+var beatDur=60/device.bpm;
+var delayTime=beatDur*0.75; /* dotted 8th */
+device.dL.delayTime.setTargetAtTime(delayTime,device.ctx.currentTime,0.1);
+device.dR.delayTime.setTargetAtTime(delayTime,device.ctx.currentTime,0.1);
+}catch(e){}
+},2000);
+
+/* ═══ STEP PROBABILITY ═══ */
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="p"||e.key==="P"){
+/* toggle probability mode */
+window._probMode=!window._probMode;
+var st=$("status");
+if(st)st.textContent="Probability mode: "+(window._probMode?"ON":"OFF");
+if(navigator.vibrate)navigator.vibrate(10);
+}
+});
+
+/* ═══ PAD VELOCITY ═══ */
+var padVelocities=[0.8,0.9,1.0,0.85,0.95,0.8,0.9,1.0];
+var origHitPad=null;
+if(typeof hitPad==="function"){
+origHitPad=hitPad;
+hitPad=function(idx,vel){
+vel=vel||padVelocities[idx%padVelocities.length];
+origHitPad(idx,vel);
+};
+}
 
 /* ═══ GAIN OPTIMIZATION ═══ */
 if(device.ctx&&device.master){
