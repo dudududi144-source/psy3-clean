@@ -1665,6 +1665,34 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* GENRE PROFILES */
+var GENRE_PROFILES={
+"FULL-ON":{bpm:145,scale:"phrygianDominant",leadDensity:.7,glideChance:.3,bassOctaveChance:.3,bassPassingChance:.18,swing:.15,wave:"sawtooth",detune:8,cutoff:2200,res:8,drive:1.0,bassPattern:"rolling",kickStyle:"deep",delaySend:.3,reverbSend:.2},
+"DARK-PSY":{bpm:160,scale:"harmonicMinor",leadDensity:.5,glideChance:.4,bassOctaveChance:.2,bassPassingChance:.25,swing:.1,wave:"square",detune:4,cutoff:1200,res:6,drive:1.5,bassPattern:"gallop",kickStyle:"sub",delaySend:.2,reverbSend:.35},
+"PROGRESSIVE":{bpm:138,scale:"naturalMinor",leadDensity:.4,glideChance:.2,bassOctaveChance:.4,bassPassingChance:.1,swing:.25,wave:"triangle",detune:5,cutoff:1500,res:4,drive:.8,bassPattern:"offbeat",kickStyle:"punch",delaySend:.35,reverbSend:.3},
+"GOA":{bpm:142,scale:"doubleHarmonic",leadDensity:.8,glideChance:.35,bassOctaveChance:.25,bassPassingChance:.2,swing:.2,wave:"sawtooth",detune:12,cutoff:2800,res:10,drive:1.2,bassPattern:"tribal",kickStyle:"punch",delaySend:.4,reverbSend:.25},
+"TECHNO":{bpm:135,scale:"phrygian",leadDensity:.3,glideChance:.1,bassOctaveChance:.5,bassPassingChance:.15,swing:0,wave:"square",detune:3,cutoff:900,res:5,drive:2.0,bassPattern:"minimal",kickStyle:"rumble",delaySend:.15,reverbSend:.1}
+};
+function applyGenre(g){
+var p=GENRE_PROFILES[g];if(!p)return;
+STYLE.name=g;STYLE.leadDensity=p.leadDensity;STYLE.glideChance=p.glideChance;
+STYLE.bassOctaveChance=p.bassOctaveChance;STYLE.bassPassingChance=p.bassPassingChance;
+if(SCALES[p.scale]){STYLE.scale=p.scale;SCALE=SCALES[p.scale];
+SCALE_EXT=(function(){var a=[],i;for(i=0;i<SCALE.length;i++)a.push(SCALE[i]);for(i=0;i<SCALE.length;i++)a.push(SCALE[i]+12);a.push(24);return a;})();
+var ss=$("scaleSelect");if(ss)ss.value=p.scale;}
+device.setKnob("bpm",p.bpm);device.swing=p.swing;
+if(typeof PATTERNS!=="undefined"&&PATTERNS[p.bassPattern])STYLE.bassPassingChance=PATTERNS[p.bassPattern].passing;
+if(typeof kickStyles!=="undefined"&&kickStyles[p.kickStyle]&&device._kickParams){device._kickParams.tune=kickStyles[p.kickStyle].tune;device._kickParams.decay=kickStyles[p.kickStyle].decay;device._kickParams.punch=kickStyles[p.kickStyle].punch;}
+if(device._leadParams){device._leadParams.wave=p.wave;device._leadParams.detune=p.detune;device._leadParams.cutoff=p.cutoff;device._leadParams.res=p.res;}
+if(device.drivePre)device.drivePre.gain.value=p.drive;
+if(device.delayIn)device.delayIn.gain.value=p.delaySend;
+if(device.reverbIn)device.reverbIn.gain.value=p.reverbSend;
+device.variate(false);
+var st=$("status");if(st)st.textContent=g+": "+p.bpm+"BPM "+p.scale+" "+p.bassPattern+" bass";
+if(navigator.vibrate)navigator.vibrate([5,20,5]);
+}
+var gs2=$("genreSelect");if(gs2)gs2.addEventListener("change",function(){applyGenre(this.value);});
+
 /* ═══ SECTION COLORS ═══ */
 var SECTION_COLORS={
 INTRO:"#4ecdc4",BUILD:"#ffd166",DROP:"#ff2e88",
