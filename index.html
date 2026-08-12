@@ -1636,6 +1636,103 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ SECTION AUTOMATION ═══ */
+window._autoSection=false;
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="o"||e.key==="O"){
+window._autoSection=!window._autoSection;
+var st=$("status");
+if(st)st.textContent="Auto section: "+(window._autoSection?"ON":"OFF");
+if(navigator.vibrate)navigator.vibrate(8);
+}
+});
+setInterval(function(){
+if(!window._autoSection||!device||!device.isPlaying)return;
+try{
+var info=typeof sectionAt==="function"?sectionAt(device.song,Math.floor(device.absStep/16)):null;
+if(info){
+var sec=info.section;
+var barInSection=info.barInSection;
+/* auto-advance at end of section */
+if(barInSection>=sec.bars-1){
+device.jumpSection((info.sectionIndex+1)%6);
+}
+}
+}catch(e){}
+},500);
+
+/* ═══ LOOP RECORDING ═══ */
+window._loopRec=false;
+window._loopData=[];
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="u"||e.key==="U"){
+window._loopRec=!window._loopRec;
+var st=$("status");
+if(st)st.textContent="Loop rec: "+(window._loopRec?"ON":"OFF");
+if(window._loopRec){
+window._loopData=[];
+/* capture current state */
+if(device&&device.song){
+window._loopData.push({
+bpm:device.bpm,
+scale:STYLE.scale,
+genre:STYLE.name,
+swing:device.swing
+});
+}
+}else{
+/* replay loop */
+if(window._loopData.length>0){
+var d=window._loopData[0];
+if(d.bpm)device.setKnob("bpm",d.bpm);
+if(d.scale&&SCALES[d.scale]){
+STYLE.scale=d.scale;SCALE=SCALES[d.scale];
+SCALE_EXT=(function(){var a=[],i;for(i=0;i<SCALE.length;i++)a.push(SCALE[i]);for(i=0;i<SCALE.length;i++)a.push(SCALE[i]+12);a.push(24);return a;})();
+}
+if(d.genre)STYLE.name=d.genre;
+if(d.swing!==undefined)device.swing=d.swing;
+device.variate(false);
+}
+}
+if(navigator.vibrate)navigator.vibrate([5,20,5]);
+}
+});
+
+/* ═══ PAD ARPEGGIATOR ═══ */
+window._padArp=false;
+window._padArpInterval=null;
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="k"||e.key==="K"){
+window._padArp=!window._padArp;
+var st=$("status");
+if(st)st.textContent="Pad arpeggiator: "+(window._padArp?"ON":"OFF");
+if(window._padArp){
+/* start arp */
+var arpIdx=0;
+var arpNotes=[0,7,12,19,24,19,12,7];
+if(window._padArpInterval)clearInterval(window._padArpInterval);
+window._padArpInterval=setInterval(function(){
+if(!window._padArp||!device||!device.isPlaying){
+clearInterval(window._padArpInterval);
+return;
+}
+var note=arpNotes[arpIdx%arpNotes.length];
+if(typeof hitPad==="function")hitPad(note%8,0.6);
+arpIdx++;
+},150);
+}else{
+if(window._padArpInterval){
+clearInterval(window._padArpInterval);
+window._padArpInterval=null;
+}
+}
+if(navigator.vibrate)navigator.vibrate(8);
+}
+});
+
 /* ═══ VISUAL STROBE ═══ */
 window._strobeActive=false;
 document.addEventListener("keydown",function(e){
