@@ -1665,6 +1665,30 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ GENRE PATTERNS ═══ */
+var GENRE_DRUM_PATTERNS={
+"FULL-ON":{kick:[1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],hat:[0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0],perc:[0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1]},
+"DARK-PSY":{kick:[1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],hat:[0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0],perc:[0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0]},
+"PROGRESSIVE":{kick:[1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],hat:[0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0],perc:[0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0]},
+"GOA":{kick:[1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],hat:[0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],perc:[0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0]},
+"TECHNO":{kick:[1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],hat:[0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0],perc:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0]}
+};
+var GENRE_LEAD_NOTES={
+"FULL-ON":[0,7,12,19,24,19,12,7],
+"DARK-PSY":[0,3,7,10,12,10,7,3],
+"PROGRESSIVE":[0,5,7,12,17,12,7,5],
+"GOA":[0,4,7,11,12,11,7,4],
+"TECHNO":[0,1,3,5,7,5,3,1]
+};
+function getGenreDrums(){
+var g=STYLE.name;
+return GENRE_DRUM_PATTERNS[g]||GENRE_DRUM_PATTERNS["FULL-ON"];
+}
+function getGenreLead(){
+var g=STYLE.name;
+return GENRE_LEAD_NOTES[g]||GENRE_LEAD_NOTES["FULL-ON"];
+}
+
 /* ═══ GENRE VISUAL THEMES ═══ */
 var GENRE_THEMES={
 "FULL-ON":{accent:"#ff2e88",bg1:"rgba(255,46,136,.06)",bg2:"rgba(185,103,255,.04)"},
