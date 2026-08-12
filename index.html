@@ -1608,6 +1608,57 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ RANDOMIZE ALL ═══ */
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="x"||e.key==="X"){
+/* randomize everything */
+var scales=Object.keys(SCALES);
+STYLE.scale=scales[Math.floor(Math.random()*scales.length)];
+SCALE=SCALES[STYLE.scale];
+SCALE_EXT=(function(){var a=[],i;for(i=0;i<SCALE.length;i++)a.push(SCALE[i]);for(i=0;i<SCALE.length;i++)a.push(SCALE[i]+12);a.push(24);return a;})();
+var ss=$("scaleSelect");if(ss)ss.value=STYLE.scale;
+STYLE.leadDensity=0.3+Math.random()*0.6;
+STYLE.glideChance=Math.random()*0.5;
+STYLE.bassOctaveChance=Math.random()*0.5;
+STYLE.bassPassingChance=Math.random()*0.3;
+device.swing=Math.random()*0.4;
+device.variate(true);
+var st=$("status");
+if(st)st.textContent="RANDOMIZED! Scale: "+STYLE.scale;
+if(navigator.vibrate)navigator.vibrate([10,30,10,30,10]);
+}
+});
+
+/* ═══ SECTION REPEAT ═══ */
+window._secRepeat=false;
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="r"&&!e.ctrlKey&&!e.metaKey){
+/* only if not recording */
+if(!window._isRecording){
+window._secRepeat=!window._secRepeat;
+var st=$("status");
+if(st)st.textContent="Section repeat: "+(window._secRepeat?"ON":"OFF");
+if(navigator.vibrate)navigator.vibrate(8);
+}
+}
+});
+
+/* ═══ PAD MODES ═══ */
+window._padMode="melodic";
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="q"||e.key==="Q"){
+var modes=["melodic","percussive","fx"];
+var cur=modes.indexOf(window._padMode);
+window._padMode=modes[(cur+1)%modes.length];
+var st=$("status");
+if(st)st.textContent="Pad mode: "+window._padMode.toUpperCase();
+if(navigator.vibrate)navigator.vibrate(8);
+}
+});
+
 /* ═══ MASTER VOLUME ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
