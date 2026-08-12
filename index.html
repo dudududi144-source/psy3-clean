@@ -1581,6 +1581,72 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ AUTO-FILTER SWEEP ═══ */
+window._sweepActive=false;
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="f"&&!e.ctrlKey){
+window._sweepActive=!window._sweepActive;
+var st=$("status");
+if(st)st.textContent="Filter sweep: "+(window._sweepActive?"ON":"OFF");
+if(navigator.vibrate)navigator.vibrate(8);
+}
+});
+setInterval(function(){
+if(!window._sweepActive||!device||!device.isPlaying||!device.autoFilter)return;
+try{
+var t=Date.now()/1000;
+var freq=200+Math.abs(Math.sin(t*0.3))*3000;
+device.autoFilter.frequency.setTargetAtTime(freq,device.ctx.currentTime,0.05);
+}catch(e){}
+},50);
+
+/* ═══ PAD FX ═══ */
+var lastPadTap=0;
+var origTriggerPad=null;
+if(typeof hitPad==="function"&&!window._padFxHooked){
+window._padFxHooked=true;
+var _origHP=hitPad;
+hitPad=function(idx,vel){
+var now=Date.now();
+if(now-lastPadTap<200){
+/* double tap - stutter effect */
+var t=device.ctx.currentTime;
+for(var i=0;i<4;i++){
+setTimeout(function(){_origHP(idx,vel*0.7);},i*60);
+}
+}else{
+_origHP(idx,vel);
+}
+lastPadTap=now;
+};
+}
+
+/* ═══ GROOVE TEMPLATES ═══ */
+var GROOVES={
+straight:{swing:0,vel:[1,1,1,1,1,1,1,1]},
+shuffle:{swing:0.25,vel:[1,.7,1,.7,1,.7,1,.7]},
+driving:{swing:0.1,vel:[1,.8,1,.9,1,.8,1,.9]},
+laid_back:{swing:0.35,vel:[.8,1,.8,1,.8,1,.8,1]},
+robotic:{swing:0,vel:[1,1,1,1,1,1,1,1]}
+};
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="g"||e.key==="G"){
+/* cycle through grooves */
+var names=Object.keys(GROOVES);
+var cur=names.indexOf(window._curGroove||"straight");
+var next=names[(cur+1)%names.length];
+window._curGroove=next;
+var g=GROOVES[next];
+device.swing=g.swing;
+if(typeof padVelocities!=="undefined")padVelocities=g.vel;
+var st=$("status");
+if(st)st.textContent="Groove: "+next.toUpperCase();
+if(navigator.vibrate)navigator.vibrate([5,20,5]);
+}
+});
+
 /* ═══ FILTER ENVELOPE ═══ */
 window._filterEnv=true;
 document.addEventListener("keydown",function(e){
