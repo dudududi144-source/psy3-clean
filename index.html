@@ -3158,6 +3158,7 @@ var mediaRec=null,recChunks=[],recStart=0,recTimer=null;
 var recBtn=$("recBtn"),dlBtn=$("dlBtn"),recTime=$("recTime");
 if(recBtn){
 recBtn.addEventListener("click",function(){
+if(!device||!device.ctx)return;
 if(!mediaRec){
 /* start recording */
 if(!device.ctx)return;
