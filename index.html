@@ -1453,6 +1453,28 @@ function initUi(){
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
+
+/* ═══ XY PAD ═══ */
+var xyPad=$("xyPad"),xyDot=$("xyDot"),xyActive=false;
+function xyUpdate(x,y){
+if(!xyPad)return;
+var r=xyPad.getBoundingClientRect();
+var nx=Math.max(0,Math.min(1,(x-r.left)/r.width));
+var ny=Math.max(0,Math.min(1,1-(y-r.top)/r.height));
+if(xyDot){xyDot.style.left=(nx*100)+"%";xyDot.style.top=((1-ny)*100)+"%";}
+var info=$("xyInfo");
+if(info)info.textContent="CUT: "+Math.round(100*Math.pow(80,nx))+"Hz  RES: "+(1+ny*20).toFixed(1);
+if(device&&device.ctx&&device.autoFilter){
+device.autoFilter.frequency.setTargetAtTime(100*Math.pow(80,nx),device.ctx.currentTime,0.05);
+device.autoFilter.Q.setTargetAtTime(1+ny*20,device.ctx.currentTime,0.05);
+}
+}
+if(xyPad){
+xyPad.addEventListener("pointerdown",function(e){xyActive=true;xyPad.setPointerCapture(e.pointerId);xyUpdate(e.clientX,e.clientY);});
+xyPad.addEventListener("pointermove",function(e){if(xyActive)xyUpdate(e.clientX,e.clientY);});
+xyPad.addEventListener("pointerup",function(){xyActive=false;});
+xyPad.addEventListener("pointercancel",function(){xyActive=false;});
+}
 </script>
 </body>
 </html>
