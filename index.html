@@ -192,6 +192,14 @@ background:rgba(12,6,28,.6);color:var(--dim);font-family:var(--mono);font-size:8
 text-align:center;cursor:pointer;flex-shrink:0;transition:all .15s}
 .libChip:hover{border-color:var(--purple);color:var(--purple)}
 .libChip:active{transform:scale(.95)}
+
+/* ═══ SOUND BANK ═══ */
+.sndRow{display:flex;gap:4px;padding:4px 14px;flex-wrap:wrap}
+.sndChip{padding:5px 7px;border-radius:5px;border:1px solid var(--border);
+background:rgba(12,6,28,.6);color:var(--dim);font-family:var(--mono);font-size:8px;
+cursor:pointer;transition:all .15s}
+.sndChip.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,200,.08)}
+.sndChip:active{transform:scale(.95)}
 </style>
 </head>
 <body>
@@ -291,6 +299,14 @@ text-align:center;cursor:pointer;flex-shrink:0;transition:all .15s}
     <button class="libChip" data-pat="minimal">MINIMAL</button>
     <button class="libChip" data-pat="acid">ACID</button>
     <button class="libChip" data-pat="tribal">TRIBAL</button>
+  </div>
+  <div class="sndRow">
+    <label style="font-family:var(--mono);font-size:8px;color:var(--dim);min-width:30px">SND</label>
+    <button class="sndChip active" data-snd="classic">CLASSIC</button>
+    <button class="sndChip" data-snd="acid">ACID</button>
+    <button class="sndChip" data-snd="dark">DARK</button>
+    <button class="sndChip" data-snd="bright">BRIGHT</button>
+    <button class="sndChip" data-snd="lofi">LO-FI</button>
   </div>
   <div class="styleRow">
     <label>BASS</label>
@@ -1635,6 +1651,56 @@ function initUi(){
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
+
+/* ═══ EXPORT/IMPORT SETTINGS ═══ */
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.ctrlKey&&e.key==="s"){
+/* export settings as JSON download */
+e.preventDefault();
+try{
+var settings={
+bpm:device.bpm,
+scale:STYLE.scale,
+genre:STYLE.name,
+swing:device.swing,
+leadDensity:STYLE.leadDensity,
+glide:STYLE.glideChance,
+bassOctave:STYLE.bassOctaveChance,
+bassPassing:STYLE.bassPassingChance,
+arpMode:window._arpMode||"up",
+padMode:window._padMode||"melodic"
+};
+var blob=new Blob([JSON.stringify(settings,null,2)],{type:"application/json"});
+var url=URL.createObjectURL(blob);
+var a=document.createElement("a");
+a.href=url;
+a.download="psy6_settings.json";
+a.click();
+URL.revokeObjectURL(url);
+var st=$("status");
+if(st)st.textContent="Settings exported";
+}catch(e2){}
+}
+});
+
+/* ═══ ARP PATTERN EDITOR ═══ */
+window._arpPattern=[0,7,12,19,24,19,12,7];
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="z"||e.key==="Z"){
+/* randomize arp pattern */
+var scale=SCALE||SCALES.phrygianDominant;
+var newPat=[];
+for(var i=0;i<8;i++){
+newPat.push(scale[Math.floor(Math.random()*scale.length)]+Math.floor(Math.random()*2)*12);
+}
+window._arpPattern=newPat;
+var st=$("status");
+if(st)st.textContent="Arp pattern: ["+newPat.join(",")+"]";
+if(navigator.vibrate)navigator.vibrate([5,20,5]);
+}
+});
 
 /* ═══ CHORD PROGRESSION GENERATOR ═══ */
 document.addEventListener("keydown",function(e){
