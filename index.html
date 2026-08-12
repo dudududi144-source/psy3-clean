@@ -141,6 +141,11 @@ background:rgba(12,6,28,.6);color:var(--dim);font-family:var(--mono);font-size:9
 text-align:center;cursor:pointer;transition:all .15s}
 .fxBtn.on{border-color:var(--magenta);color:var(--magenta);background:rgba(255,46,136,.1)}
 .fxBtn:active{transform:scale(.95)}
+
+/* ═══ SPECTRUM ═══ */
+.specWrap{padding:4px 14px}
+#specCanvas{width:100%;height:60px;display:block;border-radius:8px;
+background:rgba(5,2,12,.5);border:1px solid var(--border)}
 </style>
 </head>
 <body>
@@ -228,9 +233,12 @@ iv>
     <h2>Performance Pads</h2>
     <div id="pads" class="pads-row"></div>
     <canvas id="viz" width="860" height="90"></canvas>
+  <div class="specWrap">
+    <canvas id="specCanvas" height="60"></canvas>
+  </div>
     <div id="status" class="status mono"></div>
     <div id="timeline" class="timeline"></div>
-    <div class="hint">Keys <b>A W S E D F T G</b> play pads &middot; <b>Space</b> play/stop &middot; drag knobs vertically &middot; double-click knob = reset</div>
+    <div class="hint">Keys <b>A W S E D F T G</b> pads &middot; <b>Space</b> play/stop &middot; <b>M</b> mute all &middot; <b>V</b> variate &middot; <b>N</b> next section &middot; <b>R</b> record</div>
   </section>
 </main>
 <footer class="footer mono">
@@ -1520,6 +1528,58 @@ function initUi(){
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
+
+/* ═══ KEYBOARD SHORTCUTS ═══ */
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT"||e.target.tagName==="TEXTAREA")return;
+var k=e.key.toLowerCase();
+if(k==="m"){
+/* M = toggle all mutes */
+var parts=Object.keys(device.mutes);
+var allMuted=parts.every(function(p){return device.mutes[p];});
+parts.forEach(function(p){device.mutes[p]=!allMuted;});
+device.refreshPartGains();
+if(typeof refreshSeqUi==="function")refreshSeqUi();
+if(navigator.vibrate)navigator.vibrate(10);
+}
+else if(k==="v"){
+/* V = variate */
+device.variate(false);
+if(navigator.vibrate)navigator.vibrate(10);
+}
+else if(k==="n"){
+/* N = next section */
+device.jumpSection(1);
+if(navigator.vibrate)navigator.vibrate(10);
+}
+else if(k==="r"){
+/* R = toggle recording */
+if(recBtn)recBtn.click();
+}
+});
+
+/* ═══ SPECTRUM VISUALIZER ═══ */
+var specCanvas=$("specCanvas");
+var specCtx=specCanvas?specCanvas.getContext("2d"):null;
+var specData=new Uint8Array(128);
+function renderSpectrum(){
+if(!specCtx||!device||!device.analyser)return;
+requestAnimationFrame(renderSpectrum);
+var w=specCanvas.width=specCanvas.clientWidth*devicePixelRatio;
+var h=specCanvas.height=60*devicePixelRatio;
+device.analyser.getByteFrequencyData(specData);
+specCtx.clearRect(0,0,w,h);
+var bars=64;
+var bw=w/bars;
+for(var i=0;i<bars;i++){
+var val=specData[Math.floor(i*specData.length/bars)]/255;
+var bh=Math.max(1,val*h*0.9);
+var hue=170+i*2.5;
+specCtx.fillStyle="hsla("+hue+",100%,"+(45+val*25)+"%,"+(0.4+val*0.6)+")";
+specCtx.fillRect(i*bw+1,h-bh,bw-2,bh);
+}
+}
+if(specCanvas){requestAnimationFrame(renderSpectrum);}
 
 /* ═══ RECORDING ═══ */
 var mediaRec=null,recChunks=[],recStart=0,recTimer=null;
