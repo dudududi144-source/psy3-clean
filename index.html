@@ -1665,6 +1665,32 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ GENRE DRUMS2 (Sub + HiHat + Snare) ═══ */
+var GENRE_SUB={
+"FULL-ON":{wave:"sine",freq:55,decay:.4,gain:.4},
+"DARK-PSY":{wave:"sine",freq:35,decay:.6,gain:.5},
+"PROGRESSIVE":{wave:"sine",freq:45,decay:.5,gain:.35},
+"GOA":{wave:"triangle",freq:60,decay:.35,gain:.3},
+"TECHNO":{wave:"sine",freq:40,decay:.7,gain:.45}
+};
+var GENRE_HIHAT={
+"FULL-ON":{type:"closed",decay:.04,filter:8000},
+"DARK-PSY":{type:"closed",decay:.06,filter:6000},
+"PROGRESSIVE":{type:"open",decay:.08,filter:10000},
+"GOA":{type:"closed",decay:.05,filter:7000},
+"TECHNO":{type:"closed",decay:.02,filter:9000}
+};
+var GENRE_SNARE={
+"FULL-ON":{type:"noise",decay:.15,tune:180},
+"DARK-PSY":{type:"noise",decay:.2,tune:120},
+"PROGRESSIVE":{type:"noise",decay:.12,tune:200},
+"GOA":{type:"noise",decay:.18,tune:160},
+"TECHNO":{type:"noise",decay:.1,tune:150}
+};
+function getGenreSub(){return GENRE_SUB[STYLE.name]||GENRE_SUB["FULL-ON"];}
+function getGenreHiHat(){return GENRE_HIHAT[STYLE.name]||GENRE_HIHAT["FULL-ON"];}
+function getGenreSnare(){return GENRE_SNARE[STYLE.name]||GENRE_SNARE["FULL-ON"];}
+
 /* ═══ GENRE FX2 (Risers + Impacts + Vocal) ═══ */
 var GENRE_RISER={
 "FULL-ON":{type:"sweep",startFreq:200,endFreq:2000,dur:2.0},
