@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PSY6 MAX PRO — Adaptive Psytrance Workstation</title>
+<title>PSY6 MAX — Professional Psytrance Workstation</title>
 <style>
 :root{
   --bg:#070312; --panel:rgba(18,9,36,.82); --border:rgba(150,90,255,.25);
@@ -86,21 +86,6 @@ body{
 .footer{text-align:center;padding:20px;color:var(--dim);font-size:11px}
 .footer a{color:var(--purple);text-decoration:none}
 @media(max-width:640px){ .part-label{width:38px;font-size:9px} .step{height:22px} }
-
-/* ═══ MOBILE ENHANCEMENTS ═══ */
-@media(max-width:600px){
-.device{padding:0 8px 20px;gap:10px}
-.panel{padding:12px;border-radius:10px}
-.topbar{padding:20px 12px 12px}
-.logo{font-size:28px}
-.play-btn{padding:12px 24px;font-size:14px}
-}
-.xyPad{height:120px;margin:8px 0;border-radius:12px;position:relative;cursor:crosshair;
-background:linear-gradient(135deg,rgba(0,255,200,.04),rgba(185,103,255,.08),rgba(255,46,136,.04));
-border:1px solid var(--border);touch-action:none}
-.xyDot{width:22px;height:22px;border-radius:50%;position:absolute;
-background:radial-gradient(circle,var(--cyan),rgba(0,255,200,.3));
-box-shadow:0 0 14px var(--cyan);transform:translate(-50%,-50%);pointer-events:none;left:50%;top:50%}
 </style>
 </head>
 <body>
@@ -137,8 +122,6 @@ box-shadow:0 0 14px var(--cyan);transform:translate(-50%,-50%);pointer-events:no
     <div id="pads" class="pads-row"></div>
     <canvas id="viz" width="860" height="90"></canvas>
     <div id="status" class="status mono"></div>
-<div class="xyPad" id="xyPad"><div class="xyDot" id="xyDot"></div></div>
-
     <div class="hint">Keys <b>A W S E D F T G</b> play pads &middot; <b>Space</b> play/stop &middot; drag knobs vertically &middot; double-click knob = reset</div>
   </section>
 </main>
@@ -505,42 +488,6 @@ function makeVoices(ctx,outMap,sends,noiseBuf,cfg){
 }
 
 /* ---------- Groovebox engine ---------- */
-
-/* ═══ SOUND BANK ═══ */
-var SOUND_BANK={version:"2.0",patches:{
-kick_deep:{name:"Deep Kick",type:"kick",layers:[{wave:"sine",f0:48,f1:38,ft:.06,g:.95,dec:.2},{wave:"sine",f0:160,f1:48,ft:.008,g:.6,dec:.07},{noise:1,hp:4000,g:.12,dec:.004}]},
-kick_punch:{name:"Punch Kick",type:"kick",layers:[{wave:"sine",f0:65,f1:44,ft:.05,g:.9,dec:.16},{wave:"sine",f0:220,f1:55,ft:.006,g:.65,dec:.05},{noise:1,hp:5000,g:.14,dec:.003}]},
-bass_rolling:{name:"Rolling Bass",type:"bass",wave:"sawtooth",filter:{type:"lowpass",freq:750,q:9},env:{a:.002,hold:.5,rel:.19},sub:{wave:"sine",oct:-1,g:.35}},
-bass_acid:{name:"Acid Bass",type:"bass",wave:"sawtooth",filter:{type:"lowpass",freq:650,q:14},env:{a:.002,hold:.45,rel:.15},sub:{wave:"sine",oct:-1,g:.28}},
-lead_squelch:{name:"Squelch Lead",type:"lead",wave:"sawtooth",detune:8,filter:{type:"lowpass",freq:2400,q:13},env:{a:.004,rel:.24},sends:{delay:.32,reverb:.2}},
-lead_dark:{name:"Dark Lead",type:"lead",wave:"square",detune:4,filter:{type:"lowpass",freq:1500,q:9},env:{a:.007,rel:.2},sends:{delay:.25,reverb:.3}},
-hat_tight:{name:"Tight Hat",type:"hat",noise:1,filter:{type:"highpass",freq:10000},dec:.03},
-hat_open:{name:"Open Hat",type:"hat",noise:1,filter:{type:"highpass",freq:6500},dec:.18}
-}};
-var activeBank={kick:"kick_deep",bass:"bass_rolling",lead:"lead_squelch",hat:"hat_tight"};
-
-
-/* ═══ ADAPTIVE STATE MACHINE ═══ */
-var ADAPTIVE_STATES={CALM:{energy:.2,color:"#4ecdc4"},GROOVE:{energy:.5,color:"#d4ff3f"},TENSION:{energy:.7,color:"#ff6b35"},PEAK:{energy:1,color:"#ff2e63"},RELEASE:{energy:.3,color:"#a8e6cf"}};
-var adaptiveState={current:"GROOVE",energy:.5,target:.5,bar:0,lastTrans:0,memory:[]};
-function adaptiveUpdate(){
-adaptiveState.energy+=(adaptiveState.target-adaptiveState.energy)*.05;
-adaptiveState.bar++;
-if(adaptiveState.bar%2===0){
-var states=Object.keys(ADAPTIVE_STATES);
-var r=Math.random();
-if(r<.15&&adaptiveState.bar-adaptiveState.lastTrans>=4){
-var next=states[Math.floor(Math.random()*states.length)];
-if(next!==adaptiveState.current){
-adaptiveState.memory.push(adaptiveState.current);
-if(adaptiveState.memory.length>16)adaptiveState.memory.shift();
-adaptiveState.current=next;
-adaptiveState.target=ADAPTIVE_STATES[next].energy;
-adaptiveState.lastTrans=adaptiveState.bar;
-}}
-}
-}
-
 function Groovebox(){
   this.ctx=null;
   this.master=null; this.autoFilter=null; this.djFilter=null;
@@ -690,7 +637,7 @@ Groovebox.prototype.play=function(){
     self.absStep=0; self.uiQueue=[];
     self.nextNoteTime=self.ctx.currentTime+0.06;
     var WORKER_SRC="var iv=null;self.onmessage=function(e){if(e.data.c==='s'){if(iv)clearInterval(iv);iv=setInterval(function(){self.postMessage(0)},e.data.ms)}else{if(iv)clearInterval(iv);iv=null}};";
-try{var b=new Blob([WORKER_SRC],{type:"application/javascript"});var w=new Worker(URL.createObjectURL(b));w.onmessage=function(){self.scheduler();};w.postMessage({c:"s",ms:25});self.timerId={stop:function(){w.postMessage({c:"x"});w.terminate();}};}
+try{var wb=new Blob([WORKER_SRC],{type:"application/javascript"});var ww=new Worker(URL.createObjectURL(wb));ww.onmessage=function(){self.scheduler();};ww.postMessage({c:"s",ms:25});self.timerId={stop:function(){ww.postMessage({c:"x"});ww.terminate();}};}
 catch(e){self.timerId=setInterval(function(){self.scheduler();},25);}
   });
 };
@@ -700,7 +647,7 @@ Groovebox.prototype.stop=function(){
 };
 Groovebox.prototype.scheduler=function(){
   try{
-    while(this.nextNoteTime<this.ctx.currentTime+0.14){
+    while(this.nextNoteTime<this.ctx.currentTime+0.2){
       var step=this.absStep%16;
       var t=this.nextNoteTime;
       if(step%2===1) t+=this.swing*this.stepDur()*0.5;
@@ -1037,7 +984,6 @@ function buildPads(){
   }
 }
 function hitPad(idx,el){
-if(navigator.vibrate)navigator.vibrate(10);
   device.triggerPad(PAD_DEGS[idx]);
   if(el){ el.className="pad hit"; setTimeout(function(){ el.className="pad"; },150); }
   trackEvent("pad_hit",{deg:PAD_DEGS[idx]});
