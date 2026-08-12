@@ -1665,6 +1665,32 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ GENRE SYNTH2 (Synth + Filter + Envelope) ═══ */
+var GENRE_SYNTH2={
+"FULL-ON":{wave:"sawtooth",detune:8,unison:3,spread:15},
+"DARK-PSY":{wave:"square",detune:4,unison:2,spread:10},
+"PROGRESSIVE":{wave:"triangle",detune:5,unison:4,spread:20},
+"GOA":{wave:"sawtooth",detune:12,unison:5,spread:25},
+"TECHNO":{wave:"square",detune:3,unison:1,spread:5}
+};
+var GENRE_FILTER2={
+"FULL-ON":{type:"lowpass",cutoff:2000,res:8,envAmt:500},
+"DARK-PSY":{type:"lowpass",cutoff:1200,res:12,envAmt:300},
+"PROGRESSIVE":{type:"lowpass",cutoff:1500,res:6,envAmt:800},
+"GOA":{type:"bandpass",cutoff:2500,res:10,envAmt:600},
+"TECHNO":{type:"lowpass",cutoff:800,res:15,envAmt:200}
+};
+var GENRE_ENVELOPE={
+"FULL-ON":{attack:.01,decay:.2,sustain:.6,release:.3},
+"DARK-PSY":{attack:.02,decay:.3,sustain:.5,release:.4},
+"PROGRESSIVE":{attack:.05,decay:.25,sustain:.7,release:.5},
+"GOA":{attack:.03,decay:.2,sustain:.6,release:.35},
+"TECHNO":{attack:.005,decay:.15,sustain:.4,release:.2}
+};
+function getGenreSynth2(){return GENRE_SYNTH2[STYLE.name]||GENRE_SYNTH2["FULL-ON"];}
+function getGenreFilter2(){return GENRE_FILTER2[STYLE.name]||GENRE_FILTER2["FULL-ON"];}
+function getGenreEnvelope(){return GENRE_ENVELOPE[STYLE.name]||GENRE_ENVELOPE["FULL-ON"];}
+
 /* ═══ GENRE DRUMS3 (Perc + Clap + Tom) ═══ */
 var GENRE_PERC2={
 "FULL-ON":{type:"shaker",decay:.08,tune:2000,pan:.3},
