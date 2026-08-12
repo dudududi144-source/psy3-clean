@@ -2187,6 +2187,7 @@ var g=device.ctx.createGain();
 g.gain.setValueAtTime(0.6,t);
 g.gain.exponentialRampToValueAtTime(0.001,t+0.4);
 o.connect(g);g.connect(device.master);
+o.onended=function(){o.disconnect();g.disconnect();};
 o.start(t);o.stop(t+0.5);
 }
 }
@@ -2204,6 +2205,7 @@ g2.gain.exponentialRampToValueAtTime(0.001,t2+1.5);
 var f2=device.ctx.createBiquadFilter();
 f2.type="lowpass";f2.frequency.value=3000;
 o2.connect(f2);f2.connect(g2);g2.connect(device.master);
+o2.onended=function(){o2.disconnect();f2.disconnect();g2.disconnect();};
 o2.start(t2);o2.stop(t2+1.6);
 }
 }
