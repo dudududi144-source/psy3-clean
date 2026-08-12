@@ -1527,6 +1527,97 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ FX FINE CONTROLS ═══ */
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="["||e.key==="]"){
+/* [ = decrease delay, ] = increase delay */
+var cur=device.knobs?device.knobs.delay:0.5;
+var step=e.key==="["?-0.05:0.05;
+var newVal=Math.max(0,Math.min(1,cur+step));
+device.setKnob("delay",newVal);
+if(navigator.vibrate)navigator.vibrate(3);
+}
+else if(e.key===";"||e.key==="'"){
+/* ; = decrease reverb, ' = increase reverb */
+var cur2=device.knobs?device.knobs.reverb:0.5;
+var step2=e.key===";"?-0.05:0.05;
+var newVal2=Math.max(0,Math.min(1,cur2+step2));
+device.setKnob("reverb",newVal2);
+if(navigator.vibrate)navigator.vibrate(3);
+}
+});
+
+/* ═══ MIDI SUPPORT ═══ */
+if(navigator.requestMIDIAccess){
+navigator.requestMIDIAccess().then(function(midi){
+function onMidiMsg(e){
+var data=e.data;
+if(!data||data.length<3)return;
+var cmd=data[0]&0xf0;
+var note=data[1];
+var vel=data[2];
+if(cmd===0x90&&vel>0){
+/* note on → trigger pad */
+var padIdx=note%8;
+if(typeof hitPad==="function")hitPad(padIdx);
+if(navigator.vibrate)navigator.vibrate(5);
+}
+else if(cmd===0xB0){
+/* CC → map to knobs */
+var cc=data[0]&0x0f;
+var val=data[2]/127;
+if(cc===1)device.setKnob("filter",val);
+else if(cc===2)device.setKnob("res",val);
+else if(cc===3)device.setKnob("drive",val);
+else if(cc===4)device.setKnob("delay",val);
+else if(cc===5)device.setKnob("reverb",val);
+else if(cc===6)device.setKnob("swing",val);
+}
+}
+midi.inputs.forEach(function(input){
+input.onmidimessage=onMidiMsg;
+});
+var status=$("status");
+if(status)status.textContent+="  MIDI: "+midi.inputs.size+" device(s)";
+}).catch(function(){});
+}
+
+/* ═══ WAVEFORM OVERLAY ═══ */
+var waveData=new Uint8Array(256);
+var origVizRender=null;
+function renderWaveform(){
+if(!device||!device.analyser||!device.isPlaying)return;
+var canvas=$("viz");
+if(!canvas)return;
+var ctx=canvas.getContext("2d");
+var w=canvas.width,h=canvas.height;
+device.analyser.getByteTimeDomainData(waveData);
+ctx.strokeStyle="rgba(255,46,136,0.6)";
+ctx.lineWidth=1.5;
+ctx.beginPath();
+for(var i=0;i<waveData.length;i++){
+var x=i/waveData.length*w;
+var y=h/2+(waveData[i]-128)/128*h*0.4;
+if(i===0)ctx.moveTo(x,y);
+else ctx.lineTo(x,y);
+}
+ctx.stroke();
+}
+/* hook into existing render loop */
+var _origRAF=window.requestAnimationFrame;
+var waveActive=false;
+setInterval(function(){
+if(device&&device.isPlaying&&!waveActive){
+waveActive=true;
+(function waveLoop(){
+if(!device||!device.isPlaying){waveActive=false;return;}
+renderWaveform();
+requestAnimationFrame(waveLoop);
+})();
+}
+},500);
+
 /* ═══ PRESET SAVE/LOAD ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT"||e.target.tagName==="TEXTAREA")return;
