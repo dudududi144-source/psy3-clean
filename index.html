@@ -86,6 +86,31 @@ body{
 .footer{text-align:center;padding:20px;color:var(--dim);font-size:11px}
 .footer a{color:var(--purple);text-decoration:none}
 @media(max-width:640px){ .part-label{width:38px;font-size:9px} .step{height:22px} }
+
+/* ═══ ADAPTIVE + XY + MOBILE ═══ */
+.adaptBar{display:flex;align-items:center;gap:8px;padding:6px 12px;
+background:var(--panel);border:1px solid var(--border);border-radius:10px;margin-top:8px}
+.adaptBar .label{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.1em}
+.adaptBar .bar{flex:1;height:4px;background:rgba(150,90,255,.15);border-radius:2px;overflow:hidden}
+.adaptBar .fill{height:100%;width:50%;border-radius:2px;transition:width .3s,background .3s}
+.xyPad{height:110px;margin:8px 14px;border-radius:12px;position:relative;cursor:crosshair;
+background:linear-gradient(135deg,rgba(0,255,200,.04),rgba(185,103,255,.08),rgba(255,46,136,.04));
+border:1px solid var(--border);touch-action:none}
+.xyDot{width:20px;height:20px;border-radius:50%;position:absolute;
+background:radial-gradient(circle,var(--cyan),rgba(0,255,200,.3));
+box-shadow:0 0 12px var(--cyan);transform:translate(-50%,-50%);pointer-events:none;left:50%;top:50%}
+.xyLabel{position:absolute;font-family:var(--mono);font-size:8px;color:var(--dim);pointer-events:none}
+.xyX{bottom:4px;right:8px}.xyY{top:4px;left:8px}
+@media(max-width:600px){
+.device{padding:0 8px 16px;gap:8px}
+.topbar{padding:16px 10px 10px}
+.logo{font-size:24px}
+.play-btn{padding:10px 20px;font-size:13px}
+.knob{width:50px;height:50px}
+.seq-cell{height:20px}
+.pad{height:44px;font-size:9px}
+.lcd{font-size:10px;padding:8px 10px}
+}
 </style>
 </head>
 <body>
@@ -110,9 +135,20 @@ body{
       <span>engine: <span id="engState" class="dim">idle</span></span>
     </div>
   </section>
+  <div class="adaptBar">
+    <span class="label">ENERGY</span>
+    <div class="bar"><div class="fill" id="adaptFill"></div></div>
+    <span class="label" id="adaptState">GROOVE</span>
+  </div>
   <section class="panel">
     <div id="knobs" class="knobs-row"></div>
   </section>
+  <div class="xyPad" id="xyPad">
+    <div class="xyDot" id="xyDot"></div>
+    <div class="xyLabel xyX">CUTOFF &rarr;</div>
+    <div class="xyLabel xyY">RES &uarr;</div>
+  </div>
+
   <section class="panel">
     <h2>Step Sequencer <span class="small">(click steps to edit &mdash; live) &middot; M = mute</span></h2>
     <div id="seq"></div>
@@ -984,6 +1020,7 @@ function buildPads(){
   }
 }
 function hitPad(idx,el){
+if(navigator.vibrate)navigator.vibrate(8);
   device.triggerPad(PAD_DEGS[idx]);
   if(el){ el.className="pad hit"; setTimeout(function(){ el.className="pad"; },150); }
   trackEvent("pad_hit",{deg:PAD_DEGS[idx]});
@@ -1065,7 +1102,46 @@ function initUi(){
   device.scaleExt=SCALE_EXT; device.scales=SCALES; device.styleCfg=STYLE;
   window.__psy6=device;
 }
-if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
+if(document.readyState==="loading") 
+/* ═══ XY PAD ═══ */
+var xyActive=false;
+function updateXY(x,y){
+var xp=$("xyPad");if(!xp)return;
+var r=xp.getBoundingClientRect();
+var nx=Math.max(0,Math.min(1,(x-r.left)/r.width));
+var ny=Math.max(0,Math.min(1,1-(y-r.top)/r.height));
+var dot=$("xyDot");
+if(dot){dot.style.left=(nx*100)+"%";dot.style.top=((1-ny)*100)+"%";}
+if(device&&device.autoFilter&&device.ctx){
+var freq=100*Math.pow(80,nx);
+device.autoFilter.frequency.setTargetAtTime(freq,device.ctx.currentTime,0.05);
+device.autoFilter.Q.setTargetAtTime(1+ny*20,device.ctx.currentTime,0.05);
+}
+if(device&&device.djFilter&&device.ctx){
+device.djFilter.frequency.setTargetAtTime(100*Math.pow(80,nx),device.ctx.currentTime,0.05);
+}
+}
+(function(){
+var xp=$("xyPad");
+if(xp){
+xp.addEventListener("pointerdown",function(e){xyActive=true;xp.setPointerCapture(e.pointerId);updateXY(e.clientX,e.clientY);});
+xp.addEventListener("pointermove",function(e){if(xyActive)updateXY(e.clientX,e.clientY);});
+xp.addEventListener("pointerup",function(){xyActive=false;});
+xp.addEventListener("pointercancel",function(){xyActive=false;});
+}
+})();
+/* ═══ ADAPTIVE DISPLAY ═══ */
+setInterval(function(){
+var fill=$("adaptFill");var st=$("adaptState");
+if(device&&device.arr){
+var sec=SECTIONS[device.arr.secIdx];
+var energy=sec.filtEnd;
+if(fill){fill.style.width=(energy*100)+"%";fill.style.background="hsl("+(120+energy*180)+",100%,60%)";}
+if(st){st.textContent=sec.name;st.style.color="var(--cyan)";}
+}
+},200);
+
+document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 </script>
 </body>
