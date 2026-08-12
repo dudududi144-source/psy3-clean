@@ -245,6 +245,13 @@ cursor:pointer;transition:all .15s}
     <button class="styleChip" data-bass="minimal">MINIMAL</button>
   </div>
   <div class="styleRow">
+    <label>KICK</label>
+    <button class="styleChip active" data-kick="deep">DEEP</button>
+    <button class="styleChip" data-kick="punch">PUNCH</button>
+    <button class="styleChip" data-kick="sub">SUB</button>
+    <button class="styleChip" data-kick="rumble">RUMBLE</button>
+  </div>
+  <div class="styleRow">
     <label>SWING</label>
     <button class="styleChip" data-swing="0">STRAIGHT</button>
     <button class="styleChip active" data-swing="0.15">LIGHT</button>
@@ -1566,6 +1573,62 @@ function initUi(){
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
+
+/* ═══ VISUAL PULSE ═══ */
+var pulseActive=false;
+setInterval(function(){
+if(!device||!device.isPlaying)return;
+var step=device.absStep%16;
+if(step===0||step===4||step===8||step===12){
+/* kick step - pulse */
+var panels=document.querySelectorAll(".panel");
+panels.forEach(function(p){
+p.style.boxShadow="0 0 20px rgba(255,46,136,0.3)";
+setTimeout(function(){p.style.boxShadow="";},150);
+});
+}
+},250);
+
+/* ═══ ARP DENSITY (keys 6-0) ═══ */
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var num=parseInt(e.key);
+if(num>=6&&num<=9){
+var density=(num-5)*0.25;
+if(typeof STYLE!=="undefined")STYLE.arpDensity=density;
+var st=$("status");
+if(st)st.textContent="Arp density: "+Math.round(density*100)+"%";
+if(navigator.vibrate)navigator.vibrate(5);
+}
+else if(e.key==="0"){
+if(typeof STYLE!=="undefined")STYLE.arpDensity=0;
+var st2=$("status");
+if(st2)st2.textContent="Arp: OFF";
+if(navigator.vibrate)navigator.vibrate(5);
+}
+});
+
+/* ═══ KICK STYLE SELECTOR ═══ */
+var kickStyles={
+deep:{tune:.85,decay:1.4,punch:.2},
+punch:{tune:1.15,decay:.7,punch:.9},
+sub:{tune:.7,decay:1.8,punch:.1},
+rumble:{tune:.75,decay:2.2,punch:.3}
+};
+document.querySelectorAll("[data-kick]").forEach(function(chip){
+chip.addEventListener("click",function(){
+var style=this.dataset.kick;
+var ks=kickStyles[style];
+if(ks&&device._kickParams){
+device._kickParams.tune=ks.tune;
+device._kickParams.decay=ks.decay;
+device._kickParams.punch=ks.punch;
+}
+document.querySelectorAll("[data-kick]").forEach(function(c){c.classList.remove("active");});
+this.classList.add("active");
+if(navigator.vibrate)navigator.vibrate(8);
+});
+});
 
 /* ═══ LEAD DENSITY (keys 1-5) ═══ */
 document.addEventListener("keydown",function(e){
