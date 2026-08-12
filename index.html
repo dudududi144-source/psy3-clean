@@ -369,6 +369,8 @@ cursor:pointer;transition:all .15s}
   &middot; FULL-ON modal engine v3.0 &middot; arranger: INTRO &rarr; BUILD &rarr; DROP &rarr; BREAK &rarr; RISER &rarr; DROP2 &rarr; loop w/ mutation
 </footer>
 <script>
+var adaptState={energy:0.5,target:0.5,timer:null};
+
 "use strict";
 /* PSY-6 GROOVEBOX MK.II — single-file professional workstation. */
 
@@ -2591,10 +2593,11 @@ device._softClip=softClip;
 var perfTick=0;
 var masterTimer=setInterval(function(){
 perfTick++;
+if(typeof device==='undefined'||!device)return;
 if(!device||!device.isPlaying)return;
 /* adaptive state - every 2 ticks (200ms) */
 if(perfTick%2===0){
-try{adaptUpdate();}catch(e){}
+try{if(typeof adaptState!=='undefined')adaptUpdate();}catch(e){}
 }
 /* energy meter - every 1 tick (100ms) */
 try{
@@ -2622,7 +2625,7 @@ setTimeout(function(){p.style.boxShadow="";},100);
 /* background - every 5 ticks (500ms) */
 if(perfTick%5===0){
 try{
-bgPhase+=0.1;
+if(typeof bgPhase==='undefined')bgPhase=0;bgPhase+=0.1;
 var intensity=0.02+adaptState.energy*0.03;
 var r=Math.round(120+Math.sin(bgPhase)*15*intensity);
 var g=Math.round(40+Math.sin(bgPhase*0.7)*8*intensity);
@@ -2931,7 +2934,6 @@ if(st)st.textContent="Shared: "+url.substring(0,60)+"...";
 decodePresetUrl();
 
 /* ═══ ADAPTIVE STATE MACHINE ═══ */
-var adaptState={energy:0.5,target:0.5,timer:null};
 function adaptUpdate(){
 if(!device||!device.isPlaying)return;
 var info=typeof sectionAt==="function"?sectionAt(device.song,Math.floor(device.absStep/16)):null;
