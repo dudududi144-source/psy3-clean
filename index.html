@@ -1661,6 +1661,7 @@ dnb:{kickTune:1.2,kickDecay:0.6,hatTone:0.8}
 };
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="p"&&e.ctrlKey){
 /* cycle drum kits */
 var kits=Object.keys(DRUM_KITS);
@@ -1681,6 +1682,7 @@ if(navigator.vibrate)navigator.vibrate([5,20,5]);
 /* ═══ MASTER EQ ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(!device||!device.ctx)return;
 var st=$("status");
 /* create EQ if not exists */
@@ -1726,6 +1728,7 @@ if(st)st.textContent="EQ High: "+device._eqHigh.gain.value+"dB";}
 /* ═══ EXPORT/IMPORT SETTINGS ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.ctrlKey&&e.key==="s"){
 /* export settings as JSON download */
 e.preventDefault();
@@ -1759,6 +1762,7 @@ if(st)st.textContent="Settings exported";
 window._arpPattern=[0,7,12,19,24,19,12,7];
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="z"||e.key==="Z"){
 /* randomize arp pattern */
 var scale=SCALE||SCALES.phrygianDominant;
@@ -1776,6 +1780,7 @@ if(navigator.vibrate)navigator.vibrate([5,20,5]);
 /* ═══ CHORD PROGRESSION GENERATOR ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="w"&&!e.ctrlKey){
 /* generate new chord progression */
 var rng=mulberry32(Date.now());
@@ -1797,6 +1802,7 @@ if(navigator.vibrate)navigator.vibrate([5,20,5]);
 /* ═══ DRUM PATTERN GENERATOR ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="d"&&!e.ctrlKey){
 /* generate new drum pattern */
 var rng=mulberry32(Date.now());
@@ -1825,6 +1831,7 @@ if(navigator.vibrate)navigator.vibrate([5,20,5]);
 window._melodySeed=Date.now();
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="h"||e.key==="H"){
 /* generate new melody */
 window._melodySeed=Date.now();
@@ -1857,6 +1864,7 @@ if(navigator.vibrate)navigator.vibrate([5,20,5]);
 window._autoSection=false;
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="o"||e.key==="O"){
 window._autoSection=!window._autoSection;
 var st=$("status");
@@ -1884,6 +1892,7 @@ window._loopRec=false;
 window._loopData=[];
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="u"||e.key==="U"){
 window._loopRec=!window._loopRec;
 var st=$("status");
@@ -1922,6 +1931,7 @@ window._padArp=false;
 window._padArpInterval=null;
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="k"||e.key==="K"){
 window._padArp=!window._padArp;
 var st=$("status");
@@ -1954,6 +1964,7 @@ if(navigator.vibrate)navigator.vibrate(8);
 window._strobeActive=false;
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="j"||e.key==="J"){
 window._strobeActive=!window._strobeActive;
 var st=$("status");
@@ -1976,6 +1987,7 @@ setTimeout(function(){document.body.style.filter="";},50);
 window._liveMode=false;
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="y"||e.key==="Y"){
 window._liveMode=!window._liveMode;
 var st=$("status");
@@ -2077,6 +2089,7 @@ return bytes;
 /* keyboard shortcut for MIDI export */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="m"&&!e.ctrlKey&&!e.metaKey){
 /* only if not mute */
 if(e.shiftKey){
@@ -2089,6 +2102,7 @@ exportMidi();
 window._stepEditMode=false;
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="i"||e.key==="I"){
 window._stepEditMode=!window._stepEditMode;
 var st=$("status");
@@ -2191,6 +2205,7 @@ _lastSectionIdx=info.sectionIndex;
 window._chordMode=false;
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="c"&&!e.ctrlKey){
 window._chordMode=!window._chordMode;
 var st=$("status");
@@ -2203,6 +2218,7 @@ if(navigator.vibrate)navigator.vibrate(8);
 window._arpMode="up";
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="a"&&!e.ctrlKey){
 var modes=["up","down","random","alternate"];
 var cur=modes.indexOf(window._arpMode);
@@ -2216,6 +2232,7 @@ if(navigator.vibrate)navigator.vibrate(8);
 /* ═══ BPM NUDGE ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.shiftKey&&e.key==="ArrowLeft"){
 device.setKnob("bpm",Math.max(60,device.bpm-1));
 var st=$("status");
@@ -2234,6 +2251,7 @@ if(navigator.vibrate)navigator.vibrate(3);
 window._soloTrack=null;
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 var trackMap={"1":"KICK","2":"BASS","3":"LEAD","4":"ARP","5":"PAD","6":"PERC"};
 if(e.altKey&&trackMap[e.key]){
 var track=trackMap[e.key];
@@ -2259,6 +2277,7 @@ if(navigator.vibrate)navigator.vibrate(8);
 window._delayFb=0.3;
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="0"){
 /* reset delay feedback to default */
 window._delayFb=0.3;
@@ -2274,6 +2293,7 @@ if(navigator.vibrate)navigator.vibrate(5);
 /* ═══ REVERB SEND ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="-"||e.key==="_"){
 if(device&&device.reverbIn){
 device.reverbIn.gain.value=Math.max(0,device.reverbIn.gain.value-0.05);
@@ -2295,6 +2315,7 @@ if(navigator.vibrate)navigator.vibrate(3);
 /* ═══ COMPRESSOR CONTROLS ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(!device||!device.comp)return;
 var st=$("status");
 if(e.key==="["||e.key==="{"){
@@ -2322,6 +2343,7 @@ if(navigator.vibrate)navigator.vibrate(3);
 /* ═══ RANDOMIZE ALL ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="x"||e.key==="X"){
 /* randomize everything */
 var scales=Object.keys(SCALES);
@@ -2345,6 +2367,7 @@ if(navigator.vibrate)navigator.vibrate([10,30,10,30,10]);
 window._secRepeat=false;
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="r"&&!e.ctrlKey&&!e.metaKey){
 /* only if not recording */
 if(!window._isRecording){
@@ -2360,6 +2383,7 @@ if(navigator.vibrate)navigator.vibrate(8);
 window._padMode="melodic";
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="q"||e.key==="Q"){
 var modes=["melodic","percussive","fx"];
 var cur=modes.indexOf(window._padMode);
@@ -2373,6 +2397,7 @@ if(navigator.vibrate)navigator.vibrate(8);
 /* ═══ MASTER VOLUME ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="ArrowUp"&&!e.shiftKey){
 if(device&&device.master){
 var cur=device.master.gain.value;
@@ -2395,6 +2420,7 @@ if(st)st.textContent="Volume: "+Math.round(device.master.gain.value*100)+"%";
 window._sweepActive=false;
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="f"&&!e.ctrlKey){
 window._sweepActive=!window._sweepActive;
 var st=$("status");
@@ -2442,6 +2468,7 @@ robotic:{swing:0,vel:[1,1,1,1,1,1,1,1]}
 };
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="g"||e.key==="G"){
 /* cycle through grooves */
 var names=Object.keys(GROOVES);
@@ -2461,6 +2488,7 @@ if(navigator.vibrate)navigator.vibrate([5,20,5]);
 window._filterEnv=true;
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="e"&&!e.ctrlKey){
 window._filterEnv=!window._filterEnv;
 var st=$("status");
@@ -2473,6 +2501,7 @@ if(navigator.vibrate)navigator.vibrate(8);
 window._bassSub=true;
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="b"&&!e.ctrlKey){
 window._bassSub=!window._bassSub;
 var st=$("status");
@@ -2485,6 +2514,7 @@ if(navigator.vibrate)navigator.vibrate(8);
 window._stereoWidth=0.5;
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key===","||e.key==="<"){
 window._stereoWidth=Math.max(0,window._stereoWidth-0.1);
 var st=$("status");
@@ -2513,6 +2543,7 @@ device.dR.delayTime.setTargetAtTime(delayTime,device.ctx.currentTime,0.1);
 /* ═══ STEP PROBABILITY ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="p"||e.key==="P"){
 /* toggle probability mode */
 window._probMode=!window._probMode;
@@ -2626,6 +2657,7 @@ document.body.style.background="radial-gradient(1200px 600px at 80% -10%,rgba("+
 /* ═══ SECTION LENGTH (+/- keys) ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="+"||e.key==="="){
 if(device.song&&device.song.sections){
 device.song.sections.forEach(function(s){s.bars=Math.min(32,s.bars+2);});
@@ -2688,6 +2720,7 @@ setTimeout(function(){p.style.boxShadow="";},150);
 /* ═══ ARP DENSITY (keys 6-0) ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 var num=parseInt(e.key);
 if(num>=6&&num<=9){
 var density=(num-5)*0.25;
@@ -2729,6 +2762,7 @@ if(navigator.vibrate)navigator.vibrate(8);
 /* ═══ LEAD DENSITY (keys 1-5) ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 var num=parseInt(e.key);
 if(num>=1&&num<=5){
 STYLE.leadDensity=num*0.2;
@@ -2791,6 +2825,7 @@ sunset:{bg:"#120805",cyan:"#ffaa00",purple:"#ff6633",magenta:"#ff2266"}
 };
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 var k=e.key.toLowerCase();
 if(k==="t"){
 var names=Object.keys(THEMES);
@@ -2919,6 +2954,7 @@ adaptState.timer=setInterval(adaptUpdate,200);
 /* ═══ FX FINE CONTROLS ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 if(e.key==="["||e.key==="]"){
 /* [ = decrease delay, ] = increase delay */
 var cur=device.knobs?device.knobs.delay:0.5;
