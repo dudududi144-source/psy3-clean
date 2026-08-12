@@ -1608,6 +1608,70 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ DELAY FEEDBACK ═══ */
+window._delayFb=0.3;
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="0"){
+/* reset delay feedback to default */
+window._delayFb=0.3;
+if(device&&device.dFb){
+device.dFb.gain.value=0.3;
+}
+var st=$("status");
+if(st)st.textContent="Delay feedback: 30% (reset)";
+if(navigator.vibrate)navigator.vibrate(5);
+}
+});
+
+/* ═══ REVERB SEND ═══ */
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.key==="-"||e.key==="_"){
+if(device&&device.reverbIn){
+device.reverbIn.gain.value=Math.max(0,device.reverbIn.gain.value-0.05);
+var st=$("status");
+if(st)st.textContent="Reverb send: "+Math.round(device.reverbIn.gain.value*100)+"%";
+if(navigator.vibrate)navigator.vibrate(3);
+}
+}
+else if(e.key==="="||e.key==="+"){
+if(device&&device.reverbIn){
+device.reverbIn.gain.value=Math.min(1,device.reverbIn.gain.value+0.05);
+var st=$("status");
+if(st)st.textContent="Reverb send: "+Math.round(device.reverbIn.gain.value*100)+"%";
+if(navigator.vibrate)navigator.vibrate(3);
+}
+}
+});
+
+/* ═══ COMPRESSOR CONTROLS ═══ */
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(!device||!device.comp)return;
+var st=$("status");
+if(e.key==="["||e.key==="{"){
+device.comp.threshold.value=Math.max(-60,device.comp.threshold.value-2);
+if(st)st.textContent="Comp threshold: "+device.comp.threshold.value+"dB";
+if(navigator.vibrate)navigator.vibrate(3);
+}
+else if(e.key==="]"||e.key==="}"){
+device.comp.threshold.value=Math.min(0,device.comp.threshold.value+2);
+if(st)st.textContent="Comp threshold: "+device.comp.threshold.value+"dB";
+if(navigator.vibrate)navigator.vibrate(3);
+}
+else if(e.key===";"||e.key===":"){
+device.comp.ratio.value=Math.max(1,device.comp.ratio.value-1);
+if(st)st.textContent="Comp ratio: "+device.comp.ratio.value+":1";
+if(navigator.vibrate)navigator.vibrate(3);
+}
+else if(e.key==="'"){
+device.comp.ratio.value=Math.min(20,device.comp.ratio.value+1);
+if(st)st.textContent="Comp ratio: "+device.comp.ratio.value+":1";
+if(navigator.vibrate)navigator.vibrate(3);
+}
+});
+
 /* ═══ RANDOMIZE ALL ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
