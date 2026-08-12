@@ -119,6 +119,11 @@ footer{text-align:center;padding:16px;color:var(--dim);font-size:10px;font-famil
 <div class="bankRow" id="bankBass"></div>
 <div class="bankLabel">LEAD</div>
 <div class="bankRow" id="bankLead"></div>
+<div class="bankLabel">PAD</div>
+<div class="bankRow" id="bankPad"></div>
+<div class="bankLabel">PLUCK</div>
+<div class="bankRow" id="bankPluck"></div>
+
 
 <div id="xyPad"><div id="xyDot"></div><div class="xyLabel xyX">CUTOFF &rarr;</div><div class="xyLabel xyY">RES &uarr;</div></div>
 <div id="xyInfo">cut: 1200Hz &middot; res: 6.0</div>
@@ -174,51 +179,51 @@ var PRESETS=[
 ];
 
 var SOUND_BANK={version:"2.0",compatible:["PSY","PSY2","PSY3","PSY4","PSY5","PSY6"],patches:{
-kick_deep:{name:"Deep Kick",type:"kick",layers:[
+kick_deep:{name:"Deep Kick",type:"kick",genre:"PSYTRANCE",layers:[
 {wave:"sine",f0:48,f1:36,ft:.07,g:1.0,dec:.26},
 {wave:"sine",f0:160,f1:48,ft:.008,g:.6,dec:.07},
 {wave:"sine",f0:85,f1:50,ft:.012,g:.4,dec:.1},
 {noise:1,hp:4000,g:.12,dec:.004},
 {noise:1,hp:8000,g:.08,dec:.002}]},
-kick_punch:{name:"Punch Kick",type:"kick",layers:[
+kick_punch:{name:"Punch Kick",type:"kick",genre:"PSYTRANCE",layers:[
 {wave:"sine",f0:68,f1:42,ft:.05,g:.95,dec:.2},
 {wave:"sine",f0:220,f1:55,ft:.006,g:.65,dec:.05},
 {wave:"sine",f0:100,f1:60,ft:.01,g:.45,dec:.08},
 {noise:1,hp:5000,g:.14,dec:.003}]},
-kick_sub:{name:"Sub Kick",type:"kick",layers:[
+kick_sub:{name:"Sub Kick",type:"kick",genre:"DARK-PSY",layers:[
 {wave:"sine",f0:40,f1:34,ft:.08,g:1.0,dec:.3},
 {wave:"sine",f0:130,f1:42,ft:.009,g:.35,dec:.09},
 {wave:"sine",f0:75,f1:45,ft:.014,g:.3,dec:.12},
 {noise:1,hp:3000,g:.08,dec:.005}]},
-bass_rolling:{name:"Rolling Bass",type:"bass",wave:"sawtooth",
+bass_rolling:{name:"Rolling Bass",type:"bass",genre:"PSYTRANCE",wave:"sawtooth",
 filter:{type:"lowpass",freq:800,q:11},
 env:{a:.002,hold:.55,rel:.19},
 sub:{wave:"sine",oct:-1,g:.4}},
-bass_acid:{name:"Acid Bass",type:"bass",wave:"sawtooth",
+bass_acid:{name:"Acid Bass",type:"bass",genre:"PSYTRANCE",wave:"sawtooth",
 filter:{type:"lowpass",freq:700,q:16},
 env:{a:.002,hold:.45,rel:.15},
 sub:{wave:"sine",oct:-1,g:.33}},
-bass_dark:{name:"Dark Bass",type:"bass",wave:"square",
+bass_dark:{name:"Dark Bass",type:"bass",genre:"DARK-PSY",wave:"square",
 filter:{type:"lowpass",freq:600,q:12},
 env:{a:.003,hold:.65,rel:.22},
 sub:{wave:"sine",oct:-1,g:.42}},
-bass_funky:{name:"Funky Bass",type:"bass",wave:"sawtooth",
+bass_funky:{name:"Funky Bass",type:"bass",genre:"GOA",wave:"sawtooth",
 filter:{type:"lowpass",freq:950,q:14},
 env:{a:.002,hold:.5,rel:.17},
 sub:{wave:"sine",oct:-1,g:.35}},
-lead_squelch:{name:"Squelch Lead",type:"lead",wave:"sawtooth",detune:10,
+lead_squelch:{name:"Squelch Lead",type:"lead",genre:"PSYTRANCE",wave:"sawtooth",detune:10,
 filter:{type:"lowpass",freq:2600,q:14},
 env:{a:.004,rel:.26},
 sends:{delay:.32,reverb:.2}},
-lead_dark:{name:"Dark Lead",type:"lead",wave:"square",detune:6,
+lead_dark:{name:"Dark Lead",type:"lead",genre:"DARK-PSY",wave:"square",detune:6,
 filter:{type:"lowpass",freq:1600,q:11},
 env:{a:.007,rel:.22},
 sends:{delay:.24,reverb:.3}},
-lead_hitech:{name:"Hi-Tech Lead",type:"lead",wave:"sawtooth",detune:12,
+lead_hitech:{name:"Hi-Tech Lead",type:"lead",genre:"PSYTRANCE",wave:"sawtooth",detune:12,
 filter:{type:"lowpass",freq:3600,q:16},
 env:{a:.003,rel:.14},
 sends:{delay:.35,reverb:.14}},
-lead_organic:{name:"Organic Lead",type:"lead",wave:"triangle",detune:7,
+lead_organic:{name:"Organic Lead",type:"lead",genre:"GOA",wave:"triangle",detune:7,
 filter:{type:"lowpass",freq:2000,q:8},
 env:{a:.012,rel:.3},
 sends:{delay:.26,reverb:.35}},
@@ -228,8 +233,38 @@ hat_bright:{name:"Bright Hat",type:"hat",noise:1,
 filter:{type:"highpass",freq:9000},dec:.04},
 hat_open:{name:"Open Hat",type:"hat",noise:1,
 filter:{type:"highpass",freq:7000},dec:.22}
+,
+pad_atmo:{name:"Atmosphere",type:"pad",genre:"PROGRESSIVE",wave:"sawtooth",detune:7,
+filter:{type:"lowpass",freq:1200,q:2},
+env:{a:.5,hold:1,rel:2},
+sends:{delay:.3,reverb:.4}},
+pad_warm:{name:"Warm Pad",type:"pad",genre:"PROGRESSIVE",wave:"triangle",detune:5,
+filter:{type:"lowpass",freq:900,q:1},
+env:{a:.8,hold:1,rel:3},
+sends:{delay:.2,reverb:.5}},
+pluck_psy:{name:"Psy Pluck",type:"pluck",genre:"PSYTRANCE",wave:"sawtooth",detune:3,
+filter:{type:"lowpass",freq:2800,q:8},
+env:{a:.001,hold:.2,rel:.1},
+sends:{delay:.25,reverb:.1}},
+pluck_dark:{name:"Dark Pluck",type:"pluck",genre:"DARK-PSY",wave:"square",detune:2,
+filter:{type:"lowpass",freq:1600,q:6},
+env:{a:.002,hold:.15,rel:.12},
+sends:{delay:.2,reverb:.15}},
+arp_acid:{name:"Acid Arp",type:"arp",genre:"PSYTRANCE",wave:"sawtooth",detune:4,
+filter:{type:"lowpass",freq:2400,q:12},
+env:{a:.002,hold:.1,rel:.08},
+sends:{delay:.3,reverb:.08}},
+arp_dream:{name:"Dream Arp",type:"arp",genre:"PROGRESSIVE",wave:"triangle",detune:6,
+filter:{type:"lowpass",freq:1800,q:5},
+env:{a:.005,hold:.15,rel:.1},
+sends:{delay:.35,reverb:.2}},
+fx_riser:{name:"Riser",type:"fx",genre:"ANY",noise:1,
+filter:{type:"bandpass",f0:150,f1:9000,q:4},dur:2},
+fx_impact:{name:"Impact",type:"fx",genre:"ANY",wave:"sine",f0:85,f1:25,dur:.5},
+fx_down:{name:"Downlifter",type:"fx",genre:"ANY",noise:1,
+filter:{type:"bandpass",f0:6000,f1:150,q:2},dur:1.5}
 }};
-var activeBank={kick:"kick_deep",bass:"bass_rolling",lead:"lead_squelch",hat:"hat_tight"};
+var activeBank={kick:"kick_deep",bass:"bass_rolling",lead:"lead_squelch",hat:"hat_tight",pad:"pad_atmo",pluck:"pluck_psy",arp:"arp_acid"};
 
 var STATES={CALM:{energy:.2,density:.3,complexity:.2,color:"#4ecdc4"},GROOVE:{energy:.5,density:.6,complexity:.5,color:"#d4ff3f"},TENSION:{energy:.7,density:.7,complexity:.7,color:"#ff6b35"},PEAK:{energy:1,density:1,complexity:1,color:"#ff2e63"},RELEASE:{energy:.3,density:.4,complexity:.3,color:"#a8e6cf"}};
 var TRANS={CALM:{CALM:.2,GROOVE:.5,TENSION:.2,PEAK:0,RELEASE:.1},GROOVE:{CALM:.1,GROOVE:.3,TENSION:.4,PEAK:.1,RELEASE:.1},TENSION:{CALM:0,GROOVE:.2,TENSION:.2,PEAK:.5,RELEASE:.1},PEAK:{CALM:0,GROOVE:.1,TENSION:.1,PEAK:.3,RELEASE:.5},RELEASE:{CALM:.5,GROOVE:.3,TENSION:.1,PEAK:0,RELEASE:.1}};
@@ -431,6 +466,7 @@ if(step%2===0&&Math.random()<st.complexity+.2){var an=getArpNote(p.root+24);play
 }else{
 if(l!==null&&l!==undefined&&Math.random()<st.complexity)playBankLead(t,mtof(p.root+24+l),step%4===0);
 }
+if(st.energy>.6&&step===0&&mind.bar%4===0){playBankPad(t,mtof(p.root+12),4*(60/(bpmOverride||p.bpm)));}
 if(b===null&&step%4===2&&Math.random()<.15*st.density){var nb=lp.bass[(step+2)%16];if(nb!==null&&nb!==undefined)playBankBass(t,mtof(p.root+nb));}
 stepQueue.push({step:step,time:t});
 if(stepQueue.length>32)stepQueue.splice(0,stepQueue.length-32);
@@ -604,8 +640,51 @@ s.connect(f);f.connect(g);g.connect(masterGain);s.start(t);s.stop(t+patch.dec+.0
 s.onended=function(){s.disconnect();f.disconnect();g.disconnect();_activeVoices--;};}
 
 
+
+function playBankPad(t,freq,dur){
+var patch=SOUND_BANK.patches[activeBank.pad];
+if(!patch||trackMute.lead||_activeVoices>=MAX_VOICES)return;
+_activeVoices+=2;var c=audioCtx;dur=dur||1;
+var o=c.createOscillator();o.type=patch.wave;o.frequency.value=freq;
+var o2=c.createOscillator();o2.type=patch.wave;o2.frequency.value=freq;o2.detune.value=patch.detune||5;
+var f=c.createBiquadFilter();f.type=patch.filter.type;f.Q.value=patch.filter.q;
+f.frequency.setValueAtTime(patch.filter.freq,t);
+var g=c.createGain();
+g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.25,t+patch.env.a);
+g.gain.setValueAtTime(.25,t+patch.env.a+patch.env.hold);
+g.gain.exponentialRampToValueAtTime(.001,t+dur);
+o.connect(f);o2.connect(f);f.connect(g);
+if(patch.sends){if(patch.sends.delay&&ppIn)g.connect(ppIn);if(patch.sends.reverb&&window._revIn)g.connect(window._revIn);}
+g.connect(masterGain);
+o.start(t);o2.start(t);o.stop(t+dur+.05);o2.stop(t+dur+.05);
+o.onended=function(){o.disconnect();o2.disconnect();f.disconnect();g.disconnect();_activeVoices-=2;};}
+function playBankPluck(t,freq){
+var patch=SOUND_BANK.patches[activeBank.pluck];
+if(!patch||trackMute.lead||_activeVoices>=MAX_VOICES)return;
+_activeVoices++;var c=audioCtx;
+var o=c.createOscillator();o.type=patch.wave;o.frequency.value=freq;
+var f=c.createBiquadFilter();f.type=patch.filter.type;f.Q.value=patch.filter.q;
+f.frequency.setValueAtTime(patch.filter.freq*1.5,t);
+f.frequency.exponentialRampToValueAtTime(patch.filter.freq*.3,t+patch.env.hold);
+var g=c.createGain();
+g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.4,t+patch.env.a);
+g.gain.exponentialRampToValueAtTime(.001,t+patch.env.a+patch.env.hold+patch.env.rel);
+o.connect(f);f.connect(g);g.connect(masterGain);
+if(patch.sends){if(patch.sends.delay&&ppIn)g.connect(ppIn);if(patch.sends.reverb&&window._revIn)g.connect(window._revIn);}
+o.start(t);o.stop(t+patch.env.a+patch.env.hold+patch.env.rel+.05);
+o.onended=function(){o.disconnect();f.disconnect();g.disconnect();_activeVoices--;};}
+
+
+function autoSelectBank(){
+var p=activePreset();var bpm=p.bpm;
+if(bpm>=160){activeBank.kick="kick_punch";activeBank.bass="bass_dark";activeBank.lead="lead_hitech";activeBank.hat="hat_tight";}
+else if(bpm>=150){activeBank.kick="kick_deep";activeBank.bass="bass_acid";activeBank.lead="lead_squelch";activeBank.hat="hat_bright";}
+else if(bpm>=145){activeBank.kick="kick_deep";activeBank.bass="bass_funky";activeBank.lead="lead_squelch";activeBank.hat="hat_tight";}
+else{activeBank.kick="kick_sub";activeBank.bass="bass_dark";activeBank.lead="lead_organic";activeBank.hat="hat_open";}
+buildBankUI();}
+
 function buildBankUI(){
-var types=[["bankKick","kick"],["bankBass","bass"],["bankLead","lead"]];
+var types=[["bankKick","kick"],["bankBass","bass"],["bankLead","lead"],["bankPad","pad"],["bankPluck","pluck"]];
 types.forEach(function(pair){var el=$(pair[0]);if(!el)return;el.innerHTML="";
 Object.keys(SOUND_BANK.patches).forEach(function(k){var patch=SOUND_BANK.patches[k];
 if(patch.type!==pair[1])return;
