@@ -3061,6 +3061,7 @@ requestAnimationFrame(waveLoop);
 /* ═══ PRESET SAVE/LOAD ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT"||e.target.tagName==="TEXTAREA")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 var k=e.key.toLowerCase();
 if(k==="s"&&!e.ctrlKey&&!e.metaKey){
 try{
@@ -3106,6 +3107,7 @@ ed.style.boxShadow="0 0 "+(4+e*20)+"px hsl("+hue+",100%,60%)";
 /* ═══ KEYBOARD SHORTCUTS ═══ */
 document.addEventListener("keydown",function(e){
 if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT"||e.target.tagName==="TEXTAREA")return;
+var k=(e.key||"").toLowerCase();if(typeof KEYMAP!=="undefined"&&k in KEYMAP)return;
 var k=e.key.toLowerCase();
 if(k==="m"){
 /* M = toggle all mutes */
