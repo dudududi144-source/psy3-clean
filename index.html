@@ -178,6 +178,12 @@ cursor:pointer;transition:all .15s}
 .bpmRow label{font-family:var(--mono);font-size:9px;color:var(--dim);min-width:30px}
 .bpmRow input{flex:1;accent-color:var(--cyan);height:20px}
 .bpmRow b{font-family:var(--mono);font-size:10px;color:var(--cyan);min-width:35px;text-align:right}
+
+/* ═══ BEAT INDICATOR ═══ */
+.beatDots{display:flex;gap:6px;justify-content:center;padding:6px 14px}
+.beatDot{width:12px;height:12px;border-radius:50%;background:rgba(150,90,255,.15);transition:all .08s}
+.beatDot.on{background:var(--cyan);box-shadow:0 0 10px var(--cyan);transform:scale(1.3)}
+.beatDot.kick{background:var(--magenta);box-shadow:0 0 10px var(--magenta)}
 </style>
 </head>
 <body>
@@ -207,6 +213,12 @@ cursor:pointer;transition:all .15s}
     <span class="name" id="secName">INTRO</span>
     <div class="track"><div class="fill" id="secFill"></div></div>
     <span class="name" id="secBar">1/8</span>
+  <div class="beatDots">
+    <div class="beatDot" id="bd0"></div>
+    <div class="beatDot" id="bd1"></div>
+    <div class="beatDot" id="bd2"></div>
+    <div class="beatDot" id="bd3"></div>
+  </div>
   <div class="jumpRow">
     <button class="jumpBtn" data-sec="0">INTRO</button>
     <button class="jumpBtn" data-sec="1">BUILD</button>
@@ -1607,6 +1619,48 @@ function initUi(){
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
+
+/* ═══ BPM NUDGE ═══ */
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+if(e.shiftKey&&e.key==="ArrowLeft"){
+device.setKnob("bpm",Math.max(60,device.bpm-1));
+var st=$("status");
+if(st)st.textContent="BPM: "+Math.round(device.bpm);
+if(navigator.vibrate)navigator.vibrate(3);
+}
+else if(e.shiftKey&&e.key==="ArrowRight"){
+device.setKnob("bpm",Math.min(200,device.bpm+1));
+var st=$("status");
+if(st)st.textContent="BPM: "+Math.round(device.bpm);
+if(navigator.vibrate)navigator.vibrate(3);
+}
+});
+
+/* ═══ TRACK SOLO ═══ */
+window._soloTrack=null;
+document.addEventListener("keydown",function(e){
+if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+var trackMap={"1":"KICK","2":"BASS","3":"LEAD","4":"ARP","5":"PAD","6":"PERC"};
+if(e.altKey&&trackMap[e.key]){
+var track=trackMap[e.key];
+if(window._soloTrack===track){
+window._soloTrack=null;
+/* unmute all */
+Object.keys(device.mutes).forEach(function(k){device.mutes[k]=false;});
+}else{
+window._soloTrack=track;
+/* mute all except solo */
+Object.keys(device.mutes).forEach(function(k){
+device.mutes[k]=(k!==track);
+});
+}
+device.refreshPartGains();
+var st=$("status");
+if(st)st.textContent="Solo: "+(window._soloTrack||"OFF");
+if(navigator.vibrate)navigator.vibrate(8);
+}
+});
 
 /* ═══ DELAY FEEDBACK ═══ */
 window._delayFb=0.3;
