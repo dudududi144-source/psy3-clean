@@ -810,6 +810,9 @@ button{
   &middot; FULL-ON modal engine v3.0 &middot; arranger: INTRO &rarr; BUILD &rarr; DROP &rarr; BREAK &rarr; RISER &rarr; DROP2 &rarr; loop w/ mutation
 </footer>
 <script>
+/* midiToFreq - convert MIDI note to frequency */
+function midiToFreq(midi){return 440*Math.pow(2,(midi-69)/12);}
+
 
 /* ═══ POOLED ENGINE CONSTANTS ═══ */
 const SYNTH_VOICES=20;
@@ -860,6 +863,8 @@ class SynthVoice{
       const self=this;
       setTimeout(()=>{self.active=false},(gateDur+rel)*1000+50);
     }catch(e){}
+  }
+}(e){}
   }
   panic(){
     try{this.vca.gain.cancelScheduledValues(0);this.vca.gain.setValueAtTime(0,this.ctx.currentTime)}catch(e){}
