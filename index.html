@@ -2111,6 +2111,114 @@ if(document.readyState==="loading") document.addEventListener("DOMContentLoaded"
 else initUi();
 
 /* ═══ GRAMMAR SYSTEM ═══ */
+=================================
+// GRAMMAR SYSTEM — Statistical Learning (from PSY4)
+// ============================================================
+const grammars = {
+  bass: {
+    // 12x12 interval transition matrix (probability)
+    transitions: Array.from({length:12},()=>Array(12).fill(0)),
+    total: 0,
+    lastPc: null
+  },
+  rhythm: {
+    // 16-step kick onset probability
+    kickOnset: Array(16).fill(0),
+    kickCount: Array(16).fill(0),
+    hatDensity: 0,
+    hatCount: 0
+  },
+  melodic: {
+    // Interval histogram (-12 to +12)
+    intervals: Array(25).fill(0),
+    total: 0,
+    lastMidi: null,
+    contourDir: 0
+  }
+};
+
+function decayGrammars(){
+  // Gentle decay: multiply all weights by 0.95
+  // This allows the system to adapt to new styles without forgetting everything
+  const decay=0.95;
+  for(let i=0;i<12;i++){
+    for(let j=0;j<12;j++){
+      grammars.bass.transitions[i][j]*=decay;
+    }
+  }
+  for(let i=0;i<25;i++){
+    grammars.melodic.intervals[i]*=decay;
+  }
+  for(let i=0;i<16;i++){
+    grammars.rhythm.kickOnset[i]*=decay;
+    grammars.rhythm.kickCount[i]*=decay;
+  }
+  grammars.bass.total*=decay;
+  grammars.melodic.total*=decay;
+}
+
+function updateGrammars(trackName, step, midi){
+  if(trackName==='bass'){
+    const pc = midi % 12;
+    if(grammars.bass.lastPc !== null){
+      grammars.bass.transitions[grammars.bass.lastPc][pc]++;
+      grammars.bass.total++;
+      // Decay every 50 entries to allow style adaptation
+      if(Math.round(grammars.bass.total)%50===0)decayGrammars();
+    }
+    grammars.bass.lastPc = pc;
+  } else if(trackName==='kick'){
+    if(step>=0&&step<16){
+      grammars.rhythm.kickOnset[step]++;
+      grammars.rhythm.kickCount[step]++;
+    }
+  } else if(trackName==='lead' || trackName==='arp'){
+    if(grammars.melodic.lastMidi !== null){
+      const interval = clamp(midi - grammars.melodic.lastMidi, -12, 12);
+      grammars.melodic.intervals[interval + 12]++;
+      grammars.melodic.total++;
+      grammars.melodic.contourDir = interval > 0 ? 1 : (interval < 0 ? -1 : 0);
+      // Decay every 50 entries
+      if(Math.round(grammars.melodic.total)%50===0)decayGrammars();
+    }
+    grammars.melodic.lastMidi = midi;
+  }
+}
+
+function sampleBassFromGrammar(rootPc){
+  if(grammars.bass.total < 4) return rootPc; // not enough data
+  const lastPc = grammars.bass.lastPc || rootPc;
+  const row = grammars.bass.transitions[lastPc];
+  const total = row.reduce((a,b)=>a+b, 0);
+  if(total === 0) return rootPc;
+  // Weighted random selection
+  let r = rand() * total;
+  for(let pc=0; pc<12; pc++){
+    r -= row[pc];
+    if(r <= 0) return (rootPc + pc) % 12 + 36; // bass register
+  }
+  return rootPc + 36;
+}
+
+function sampleMelodicInterval(){
+  if(grammars.melodic.total < 4) return pick([-2,-1,1,2,3]); // not enough data
+  const total = grammars.melodic.intervals.reduce((a,b)=>a+b, 0);
+  if(total === 0) return 0;
+  let r = rand() * total;
+  for(let i=0; i<25; i++){
+    r -= grammars.melodic.intervals[i];
+    if(r <= 0) return i - 12;
+  }
+  return 0;
+}
+function grammarConfidence(){
+  const bassConf = Math.min(grammars.bass.total / 20, 1);
+  const melConf = Math.min(grammars.melodic.total / 20, 1);
+  return (bassConf + melConf) / 2;
+}
+
+
+/* ═══ GRAMMAR SYSTEM ═══ */
 
 
 /* ═══ GENRE SOUND CONFIG ═══ */
