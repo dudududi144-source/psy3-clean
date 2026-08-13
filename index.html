@@ -862,7 +862,7 @@ function makeVoices(ctx,outMap,sends,noiseBuf,cfg){
     var o=ctx.createOscillator(),g=ctx.createGain();
     o.type="sine";
     o.frequency.setValueAtTime(cfg.kickStart||150,t);
-    o.frequency.exponentialRampToValueAtTime(cfg.kickEnd,t+0.04);
+    o.frequency.exponentialRampToValueAtTime(cfg.kickEnd||55,t+0.04);
     g.gain.setValueAtTime(1.0,t);
     g.gain.exponentialRampToValueAtTime(0.001,t+0.10);
     o.connect(g); g.connect(outMap.KICK);
@@ -1950,6 +1950,9 @@ function initUi(){
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
+
+/* PART_NAMES */
+var PART_NAMES=["KICK","PERC","BASS","LEAD","ARP","PAD"];
 
 /* makeNoiseBuffer - create noise buffer for percussion */
 function makeNoiseBuffer(ctx){
