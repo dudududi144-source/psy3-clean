@@ -847,6 +847,15 @@ class DrumVoice{
     this.noise.start();this.osc.start();
     this.active=false;
   }
+  panic(){
+    try{
+      this.noiseGain.gain.cancelScheduledValues(0);
+      this.oscGain.gain.cancelScheduledValues(0);
+      this.noiseGain.gain.value=0;
+      this.oscGain.gain.value=0;
+      this.active=false;
+    }catch(e){}
+  }
   connect(bus){
     if(this.bus!==bus){this.out.disconnect();this.out.connect(bus);this.bus=bus}
   }
