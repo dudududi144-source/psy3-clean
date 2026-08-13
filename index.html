@@ -639,136 +639,176 @@ button{
 </style>
 </head>
 <body>
-<div class="psy-container">
-  <!-- HEADER -->
-  <header class="psy-header">
-    <div class="psy-logo">
-      <span class="psy-logo-text">PSY<sup>6</sup></span>
-      <span class="psy-logo-sub">ULTIMATE</span>
+<header class="topbar">
+  <div class="logo">PSY-6<span>GROOVEBOX MK.II</span></div>
+  <div class="subtitle">full-on psytrance workstation &middot; phrygian dominant modal engine &middot; arranger &middot; fx chain</div>
+</header>
+<main class="device">
+  <section class="panel top-row">
+    <div class="lcd">
+      <div class="lcd-line big" id="lcd1">INTRO &middot; BAR 1/8</div>
+      <div class="lcd-line" id="lcd2">BPM 145 &middot; VAR 1 &middot; CYCLE 0</div>
+      <div class="lcd-line" id="nowPlaying"></div>
+      <div class="lcd-steps" id="lcdSteps"></div>
     </div>
-    <div class="psy-status" id="status">READY</div>
-  </header>
-
-  <!-- LCD DISPLAY -->
-  <div class="psy-lcd">
-    <div class="psy-lcd-main">
-      <div class="psy-lcd-section" id="secName">INTRO</div>
-      <div class="psy-lcd-info">
-        <span id="lcd1">--</span>
-        <span id="lcd2">--</span>
-      </div>
-      <div class="psy-lcd-steps" id="lcdSteps"></div>
+    <div class="transport">
+      <button id="playBtn" class="play-btn">&#9654; PLAY</button>
+      <button id="variateBtn" class="util-btn">VARIATE</button>
+      <button id="nextSecBtn" class="util-btn">NEXT SEC &#9656;</button>
     </div>
-    <div class="psy-lcd-scan"></div>
-  </div>
-
-  <!-- SECTION PROGRESS -->
-  <div class="psy-progress">
-    <div class="psy-progress-bar" id="secFill"></div>
-    <div class="psy-progress-bar2" id="secBar"></div>
-  </div>
-
-  <!-- BEAT DOTS + ENERGY -->
-  <div class="psy-beats">
-    <div class="psy-beat-dot" id="bd0"></div>
-    <div class="psy-beat-dot" id="bd1"></div>
-    <div class="psy-beat-dot" id="bd2"></div>
-    <div class="psy-beat-dot" id="bd3"></div>
-    <div class="psy-energy" id="energyDot"></div>
-  </div>
-
-  <!-- TRANSPORT -->
-  <div class="psy-transport">
-    <button id="playBtn" class="play-btn">&#9654;</button>
-    <button id="variateBtn" class="util-btn">V</button>
-    <button id="nextSecBtn" class="util-btn">&#9656;</button>
-    <button id="tapBtn" class="util-btn">TAP</button>
-    <button id="recBtn" class="util-btn rec">&#9679;</button>
-  </div>
-
-  <!-- BPM SLIDER -->
-  <div class="psy-bpm">
-    <input type="range" id="bpmSlider" min="100" max="200" value="145">
-    <span class="psy-bpm-val" id="bpmVal">145</span>
-  </div>
-
-  <!-- XY PAD -->
-  <div class="psy-xy">
-    <div class="psy-xy-pad" id="xyPad">
-      <div class="psy-xy-dot" id="xyDot"></div>
-      <div class="psy-xy-crosshair-x"></div>
-      <div class="psy-xy-crosshair-y"></div>
+    <div class="transport macro-row">
+      <button id="macroSpaceBtn" class="macro-btn" onclick="triggerMacroBurst('SPACE')">&#127754; SPACE</button>
+      <button id="macroEnergyBtn" class="macro-btn" onclick="triggerMacroBurst('ENERGY')">&#9889; ENERGY</button>
+      <button id="macroTensionBtn" class="macro-btn" onclick="triggerMacroBurst('TENSION')">&#128296; TENSION</button>
     </div>
-    <div class="psy-xy-info" id="xyInfo">FILTER XY</div>
+    <div class="diag mono">
+      <span>self-test: <span id="selfTest" class="dim">running&hellip;</span></span>
+      <span>engine: <span id="engState" class="dim">idle</span></span>
+    </div>
+  </section>
+  <div class="secProg">
+    <span class="name" id="secName">INTRO</span>
+    <div class="track"><div class="fill" id="secFill"></div></div>
+    <span class="name" id="secBar">1/8</span>
+  <div class="beatDots">
+    <div class="beatDot" id="bd0"></div>
+    <div class="beatDot" id="bd1"></div>
+    <div class="beatDot" id="bd2"></div>
+    <div class="beatDot" id="bd3"></div>
   </div>
-
-  <!-- KNOBS -->
-  <div class="psy-knobs" id="knobs"></div>
-
-  <!-- GENRE + SCALE -->
-  <div class="psy-selects">
-    <select id="genreSelect" class="sel">
-      <option value="FULL-ON">FULL-ON</option>
-      <option value="DARK-PSY">DARK-PSY</option>
-      <option value="PROGRESSIVE">PROGRESSIVE</option>
-      <option value="GOA">GOA</option>
-      <option value="TECHNO">TECHNO</option>
-    </select>
-    <select id="scaleSelect" class="sel">
-      <option value="phrygianDominant">Phrygian Dom</option>
-      <option value="harmonicMinor">Harmonic Min</option>
-      <option value="naturalMinor">Natural Min</option>
-      <option value="doubleHarmonic">Double Harm</option>
-      <option value="phrygian">Phrygian</option>
-      <option value="dorian">Dorian</option>
-    </select>
+  <div class="jumpRow">
+    <button class="jumpBtn" data-sec="0">INTRO</button>
+    <button class="jumpBtn" data-sec="1">BUILD</button>
+    <button class="jumpBtn" data-sec="2">DROP</button>
+    <button class="jumpBtn" data-sec="3">BREAK</button>
+    <button class="jumpBtn" data-sec="4">RISER</button>
+    <button class="jumpBtn" data-sec="5">DROP2</button>
   </div>
-
-  <!-- MACRO BUTTONS -->
-  <div class="psy-macros">
-    <button class="macro-btn" onclick="triggerMacroBurst('SPACE')">&#127754;</button>
-    <button class="macro-btn" onclick="triggerMacroBurst('ENERGY')">&#9889;</button>
-    <button class="macro-btn" onclick="triggerMacroBurst('TENSION')">&#128296;</button>
+    <span class="energyDot" id="energyDot"></span>
+  <div class="bpmRow">
+    <label>BPM</label>
+    <input type="range" id="bpmSlider" min="100" max="200" value="145" step="1">
+    <b id="bpmVal">145</b>
   </div>
-
-  <!-- FX ROW -->
-  <div class="psy-fx">
-    <button id="fxCrush" class="fxBtn">CRUSH</button>
-    <button id="fxGate" class="fxBtn">GATE</button>
-    <button id="fxWah" class="fxBtn">WAH</button>
-    <button id="fxTape" class="fxBtn">TAPE</button>
   </div>
+  <section class="panel">
+    <div id="knobs" class="knobs-row"></div>
 
-  <!-- SEQUENCER -->
-  <div class="psy-seq" id="seq"></div>
-
-  <!-- PERFORMANCE PADS -->
-  <div class="psy-pads" id="pads"></div>
-
-  <!-- VISUALIZATION -->
-  <div class="psy-viz">
-    <canvas id="viz" width="400" height="80"></canvas>
-    <canvas id="specCanvas" width="400" height="60"></canvas>
+  <section class="panel xyWrap">
+    <div class="xyPad" id="xyPad"><div class="xyDot" id="xyDot"></div></div>
+    <div class="xyInfo" id="xyInfo">FILTER XY &middot; drag to control cutoff + resonance</div>
+  </section>
+  <div class="ctrlRow">
+    <div class="ctrlGroup">
+      <label>SCALE</label>
+      <select id="scaleSelect">
+        <option value="phrygianDominant" selected>Phrygian Dominant</option>
+        <option value="harmonicMinor">Harmonic Minor</option>
+        <option value="naturalMinor">Natural Minor</option>
+        <option value="phrygian">Phrygian</option>
+        <option value="doubleHarmonic">Double Harmonic</option>
+        <option value="minorPentatonic">Minor Pentatonic</option>
+      </select>
+    </div>
+    <div class="ctrlGroup">
+      <label>GENRE</label>
+      <select id="genreSelect">
+        <option value="FULL-ON" selected>Full-On</option>
+        <option value="DARK-PSY">Dark Psy</option>
+        <option value="PROGRESSIVE">Progressive</option>
+        <option value="GOA">Goa</option>
+        <option value="TECHNO">Techno</option>
+      </select>
+    </div>
+    <div class="ctrlGroup">
+      <label>BPM</label>
+      <button class="tapBtn" id="tapBtn">TAP</button>
+    </div>
+  <div class="bankRow">
+    <button class="bankChip" data-preset="fullon">FULL-ON</button>
+    <button class="bankChip" data-preset="darkpsy">DARK PSY</button>
+    <button class="bankChip" data-preset="prog">PROG</button>
+    <button class="bankChip" data-preset="goa">GOA</button>
+    <button class="bankChip" data-preset="techno">TECHNO</button>
+    <button class="bankChip" data-preset="forest">FOREST</button>
+    <button class="bankChip" data-preset="hitech">HI-TECH</button>
   </div>
-
-  <!-- TIMELINE -->
-  <div class="psy-timeline" id="timeline"></div>
-
-  <!-- RECORDING -->
-  <div class="psy-rec-info">
-    <span id="recTime">00:00</span>
-    <button id="dlBtn" class="util-btn">DL</button>
+  <div class="libRow">
+    <button class="libChip" data-pat="rolling">ROLLING</button>
+    <button class="libChip" data-pat="gallop">GALLOP</button>
+    <button class="libChip" data-pat="offbeat">OFFBEAT</button>
+    <button class="libChip" data-pat="minimal">MINIMAL</button>
+    <button class="libChip" data-pat="acid">ACID</button>
+    <button class="libChip" data-pat="tribal">TRIBAL</button>
   </div>
-
-  <!-- DIAGNOSTICS -->
-  <div class="psy-diag">
-    <span>engine: <span id="engState" class="dim">--</span></span>
-    <span>self-test: <span id="selfTest" class="dim">--</span></span>
-    <span id="nowPlaying" class="dim"></span>
+  <div class="sndRow">
+    <label style="font-family:var(--mono);font-size:8px;color:var(--dim);min-width:30px">SND</label>
+    <button class="sndChip active" data-snd="classic">CLASSIC</button>
+    <button class="sndChip" data-snd="acid">ACID</button>
+    <button class="sndChip" data-snd="dark">DARK</button>
+    <button class="sndChip" data-snd="bright">BRIGHT</button>
+    <button class="sndChip" data-snd="lofi">LO-FI</button>
   </div>
-</div>
-</body>
-
+  <div class="styleRow">
+    <label>BASS</label>
+    <button class="styleChip active" data-bass="rolling">ROLLING</button>
+    <button class="styleChip" data-bass="offbeat">OFFBEAT</button>
+    <button class="styleChip" data-bass="gallop">GALLOP</button>
+    <button class="styleChip" data-bass="minimal">MINIMAL</button>
+  </div>
+  <div class="styleRow">
+    <label>KICK</label>
+    <button class="styleChip active" data-kick="deep">DEEP</button>
+    <button class="styleChip" data-kick="punch">PUNCH</button>
+    <button class="styleChip" data-kick="sub">SUB</button>
+    <button class="styleChip" data-kick="rumble">RUMBLE</button>
+  </div>
+  <div class="styleRow">
+    <label>LEAD</label>
+    <button class="styleChip active" data-lead="squelch">SQUELCH</button>
+    <button class="styleChip" data-lead="dark">DARK</button>
+    <button class="styleChip" data-lead="hitech">HI-TECH</button>
+    <button class="styleChip" data-lead="organic">ORGANIC</button>
+  </div>
+  <div class="styleRow">
+    <label>SWING</label>
+    <button class="styleChip" data-swing="0">STRAIGHT</button>
+    <button class="styleChip active" data-swing="0.15">LIGHT</button>
+    <button class="styleChip" data-swing="0.35">HEAVY</button>
+  </div>
+  </div>
+  <div class="ctrlRow">
+    <button class="recBtn" id="recBtn">&#9679; REC</button>
+    <button class="recBtn" id="dlBtn" style="display:none">&#8615; SAVE</button>
+    <span class="label" id="recTime" style="font-family:var(--mono);font-size:9px;color:var(--dim)"></span>
+  </div>
+  <div class="fxRow">
+    <button class="fxBtn" id="fxCrush">CRUSH</button>
+    <button class="fxBtn" id="fxGate">GATE</button>
+    <button class="fxBtn" id="fxWah">WAH</button>
+    <button class="fxBtn" id="fxTape">TAPE</button>
+  </div>
+  </section>
+  <section class="panel">
+    <h2>Arp Pattern <span class="small">(click steps to edit &mdash; live)</span></h2>
+    <div id="seq"></div>
+  </section>
+  <section class="panel">
+    <h2>Performance Pads</h2>
+    <div id="pads" class="pads-row"></div>
+    <canvas id="viz" width="860" height="90"></canvas>
+  <div class="specWrap">
+    <canvas id="specCanvas" height="60"></canvas>
+  </div>
+    <div id="status" class="status mono"></div>
+    <div id="timeline" class="timeline"></div>
+    <div class="hint">Keys <b>A W S E D F T G</b> pads &middot; <b>P</b> probability &middot; <b>Space</b> play/stop &middot; <b>M</b> mute all &middot; <b>V</b> variate &middot; <b>N</b> next section &middot; <b>R</b> record</div>
+  </section>
+</main>
+<footer class="footer mono">
+  <a href="https://github.com/dudududi144-source/psy" target="_blank" rel="noopener">source</a>
+  &middot; FULL-ON modal engine v3.0 &middot; arranger: INTRO &rarr; BUILD &rarr; DROP &rarr; BREAK &rarr; RISER &rarr; DROP2 &rarr; loop w/ mutation
+</footer>
 <script>
 
 /* ═══ POOLED ENGINE CONSTANTS ═══ */
@@ -846,15 +886,6 @@ class DrumVoice{
     this.noiseGain.connect(this.out);this.oscGain.connect(this.out);
     this.noise.start();this.osc.start();
     this.active=false;
-  }
-  panic(){
-    try{
-      this.noiseGain.gain.cancelScheduledValues(0);
-      this.oscGain.gain.cancelScheduledValues(0);
-      this.noiseGain.gain.value=0;
-      this.oscGain.gain.value=0;
-      this.active=false;
-    }catch(e){}
   }
   connect(bus){
     if(this.bus!==bus){this.out.disconnect();this.out.connect(bus);this.bus=bus}
@@ -968,8 +999,7 @@ class PooledEngine{
     this.reverb.connect(this.reverbMix);
     this.reverbMix.connect(this.comp);
     this.comp.connect(this.analyser);
-  /* PooledEngine disabled for now */
-  this.engine=null;
+  try{this.engine=new PooledEngine(ctx);this.engine.setMasterGain(0.85);}catch(e){this.engine=null;}
     this.analyser.connect(ctx.destination);
     // Recording destination (for live capture)
     this.recDest=ctx.createMediaStreamDestination();
@@ -4971,4 +5001,5 @@ xyPad.addEventListener("pointerup",function(){xyActive=false;});
 xyPad.addEventListener("pointercancel",function(){xyActive=false;});
 }
 </script>
+</body>
 </html>
