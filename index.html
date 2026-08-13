@@ -2627,7 +2627,6 @@ var st=$("status");
 if(st)st.textContent=g+": "+p.bpm+"BPM "+p.scale+" "+p.bassPattern+" bass";
 if(typeof applyGenreTheme==="function")applyGenreTheme(g);
 if(typeof GENRE_SOUND_CONFIG!=="undefined"&&GENRE_SOUND_CONFIG[g])window._genreSound=GENRE_SOUND_CONFIG[g];
-if(typeof applyGenreFx==="function")
 if(navigator.vibrate)navigator.vibrate([5,20,5]);
 /* Restart if was playing */
 if(wasPlaying){
