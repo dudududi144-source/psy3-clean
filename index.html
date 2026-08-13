@@ -2110,6 +2110,59 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ MACRO CONTROLS ═══ */
+const MACROS={
+  'SPACE':{ // Creates spatial depth
+    label:'SPACE',
+    params:[
+      {knob:'reverb',min:0,max:100},
+      {knob:'delay',min:0,max:100},
+      {knob:'filter',min:2000,max:18000}
+    ]
+  },
+  'ENERGY':{ // Creates intensity
+    label:'ENERGY',
+    params:[
+      {knob:'drive',min:0,max:100},
+      {knob:'volume',min:50,max:100},
+      {knob:'filter',min:500,max:18000}
+    ]
+  },
+  'TENSION':{ // Creates build-up tension
+    label:'TENSION',
+    params:[
+      {knob:'filter',min:200,max:18000},
+      {knob:'reso',min:0,max:25},
+      {knob:'swing',min:0,max:60}
+    ]
+  }
+};
+
+function applyMacro(name,value){
+  const macro=MACROS[name];
+  if(!macro)return;
+  macro.params.forEach(p=>{
+    const k=KNOBS.find(k=>k.id===p.knob);
+    if(!k)return;
+    const v=p.min+value*(p.max-p.min);
+    knobValues[p.knob]=clamp(v,k.min,k.max);
+    updateKnob(k);
+  });
+  // Update brain energy state for TENSION/ENERGY macros
+  if(name==='ENERGY')musicalState.energy=clamp(0.5+value*0.5,0,1);
+  if(name==='TENSION')musicalState.energy=clamp(0.3+value*0.7,0,1);
+  updateBrainStatus();
+}
+
+function triggerMacroBurst(name){
+  // Quick macro burst for live performance (ramp up then down)
+  if(!audioCtx)initAudio();
+  applyMacro(name,1.0);
+  setTimeout(()=>applyMacro(name,0.3),2000);
+  toast('MACRO BURST: '+name);
+}
+
+
 /* ═══ GRAMMAR SYSTEM ═══ */
 =================================
 // GRAMMAR SYSTEM — Statistical Learning (from PSY4)
