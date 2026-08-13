@@ -679,11 +679,11 @@ button{
 
   <!-- TRANSPORT -->
   <div class="psy-transport">
-    <button id="playBtn" class="psy-btn-play">&#9654;</button>
-    <button id="variateBtn" class="psy-btn-util">V</button>
-    <button id="nextSecBtn" class="psy-btn-util">&#9656;</button>
-    <button id="tapBtn" class="psy-btn-util">TAP</button>
-    <button id="recBtn" class="psy-btn-util rec">&#9679;</button>
+    <button id="playBtn" class="play-btn">&#9654;</button>
+    <button id="variateBtn" class="util-btn">V</button>
+    <button id="nextSecBtn" class="util-btn">&#9656;</button>
+    <button id="tapBtn" class="util-btn">TAP</button>
+    <button id="recBtn" class="util-btn rec">&#9679;</button>
   </div>
 
   <!-- BPM SLIDER -->
@@ -707,14 +707,14 @@ button{
 
   <!-- GENRE + SCALE -->
   <div class="psy-selects">
-    <select id="genreSelect" class="psy-select">
+    <select id="genreSelect" class="sel">
       <option value="FULL-ON">FULL-ON</option>
       <option value="DARK-PSY">DARK-PSY</option>
       <option value="PROGRESSIVE">PROGRESSIVE</option>
       <option value="GOA">GOA</option>
       <option value="TECHNO">TECHNO</option>
     </select>
-    <select id="scaleSelect" class="psy-select">
+    <select id="scaleSelect" class="sel">
       <option value="phrygianDominant">Phrygian Dom</option>
       <option value="harmonicMinor">Harmonic Min</option>
       <option value="naturalMinor">Natural Min</option>
@@ -726,17 +726,17 @@ button{
 
   <!-- MACRO BUTTONS -->
   <div class="psy-macros">
-    <button class="psy-macro space" onclick="triggerMacroBurst('SPACE')">&#127754;</button>
-    <button class="psy-macro energy" onclick="triggerMacroBurst('ENERGY')">&#9889;</button>
-    <button class="psy-macro tension" onclick="triggerMacroBurst('TENSION')">&#128296;</button>
+    <button class="macro-btn" onclick="triggerMacroBurst('SPACE')">&#127754;</button>
+    <button class="macro-btn" onclick="triggerMacroBurst('ENERGY')">&#9889;</button>
+    <button class="macro-btn" onclick="triggerMacroBurst('TENSION')">&#128296;</button>
   </div>
 
   <!-- FX ROW -->
   <div class="psy-fx">
-    <button id="fxCrush" class="psy-fx-btn">CRUSH</button>
-    <button id="fxGate" class="psy-fx-btn">GATE</button>
-    <button id="fxWah" class="psy-fx-btn">WAH</button>
-    <button id="fxTape" class="psy-fx-btn">TAPE</button>
+    <button id="fxCrush" class="fxBtn">CRUSH</button>
+    <button id="fxGate" class="fxBtn">GATE</button>
+    <button id="fxWah" class="fxBtn">WAH</button>
+    <button id="fxTape" class="fxBtn">TAPE</button>
   </div>
 
   <!-- SEQUENCER -->
@@ -757,7 +757,7 @@ button{
   <!-- RECORDING -->
   <div class="psy-rec-info">
     <span id="recTime">00:00</span>
-    <button id="dlBtn" class="psy-btn-util">DL</button>
+    <button id="dlBtn" class="util-btn">DL</button>
   </div>
 
   <!-- DIAGNOSTICS -->
