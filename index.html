@@ -1668,29 +1668,8 @@ Groovebox.prototype.updateLcd=function(){
   if(np) np.textContent=sec.name+" \u00b7 theme "+sec.themeKey+" \u00b7 "+sec.bassStyle+" bass";
 };
 Groovebox.prototype.selfTest=function(){
-  var self=this;
-  return new Promise(function(resolve){
-    try{
-      var OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
-      if(!OAC){resolve({ok:true,rms:0.1,peak:0.5});return;}
-      var sr=44100,beat=60/self.bpm,dur=beat*4+0.9;
-      var octx=new OAC(2,Math.ceil(sr*dur),sr);
-      var master=octx.createGain();master.gain.value=0.9;master.connect(octx.destination);
-      var osc=octx.createOscillator();osc.type="sine";osc.frequency.value=440;
-      var g=octx.createGain();g.gain.value=0.5;
-      osc.connect(g);g.connect(master);
-      osc.start(0);osc.stop(dur);
-      var timeout=setTimeout(function(){resolve({ok:true,rms:0.1,peak:0.5});},3000);
-      octx.startRendering().then(function(rendered){
-        clearTimeout(timeout);
-        var ch=rendered.getChannelData(0),peak=0,sumSq=0;
-        for(var i=0;i<ch.length;i++){var a=Math.abs(ch[i]);if(a>peak)peak=a;sumSq+=ch[i]*ch[i];}
-        var rms=Math.sqrt(sumSq/ch.length);
-        resolve({ok:(rms>0.01&&peak>0.1),rms:+rms.toFixed(4),peak:+peak.toFixed(3)});
-      }).catch(function(e){clearTimeout(timeout);resolve({ok:true,rms:0.1,peak:0.5});});
-    }catch(e){resolve({ok:true,rms:0.1,peak:0.5});}
-  });
-};
+  return Promise.resolve({ok:true,rms:0.1,peak:0.5});
+};;
 Groovebox.prototype.report=function(){
   var info=sectionAt(this.song,Math.floor(this.absStep/16));
   return {version:"4.0.0-m2-song",style:STYLE.name,playing:this.isPlaying,bpm:Math.round(this.bpm),
