@@ -1669,6 +1669,7 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
 
   if(KICK_STEPS.indexOf(step)!==-1&&!gated&&!m.KICK){
     v.kick(t);
+    if(typeof updateGrammars==="function")updateGrammars("kick",step,0);
     if(this.duck){
       this.duck.gain.cancelScheduledValues(t);
       this.duck.gain.setValueAtTime(1,t);
@@ -1686,6 +1687,7 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
   if(bassEvent&&!gated&&!m.BASS){
     var dur=bassEvent.sustain?bassEvent.sustain*sd:sd*0.8;
     v.bassNote(t,bassEvent.midi,dur);
+    if(typeof updateGrammars==="function")updateGrammars("bass",step,bassEvent.midi);
   }
   if(section.name!=="BREAK"&&!m.PERC){
     if(!gated){
