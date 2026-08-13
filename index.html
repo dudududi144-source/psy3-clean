@@ -1299,17 +1299,18 @@ function automationFromEnergy(e){
   return {filterCutoffHz:300+e*7200,noteDensityMul:0.4+e*0.8,velocityMul:0.6+e*0.4,delaySend:0.35-e*0.2,reverbSend:0.3-e*0.15};
 }
 var SECTION_PARTS={
+  INTRO:["pad"],BUILD:["pad","bass"],DROP:["bass","lead","arp","pad"],
+  BREAK:["lead","pad"],RISER:["bass"],DROP2:["bass","lead","arp","pad"],OUTRO:["pad","bass"]
+};
 
 /* ═══ STYLE ═══ */
+var STYLE={
 name:"FULL-ON",
 leadDensity:0.6,
 glideChance:0.3,
 bassOctaveChance:0.3,
 bassPassingChance:0.18,
 scale:"phrygianDominant"
-};
-  INTRO:["pad"],BUILD:["pad","bass"],DROP:["bass","lead","arp","pad"],
-  BREAK:["lead","pad"],RISER:["bass"],DROP2:["bass","lead","arp","pad"],OUTRO:["pad","bass"]
 };
 function sectionHasPart(section,part){
   var parts=SECTION_PARTS[section.name]||[];
