@@ -858,8 +858,7 @@ function makeVoices(ctx,outMap,sends,noiseBuf,cfg){
   function kick(t){
     var o=ctx.createOscillator(),g=ctx.createGain();
     o.type="sine";
-    var cfg=this.cfg();
-    o.frequency.setValueAtTime(cfg.kickStart,t);
+    o.frequency.setValueAtTime(cfg.kickStart||150,t);
     o.frequency.exponentialRampToValueAtTime(cfg.kickEnd,t+0.04);
     g.gain.setValueAtTime(1.0,t);
     g.gain.exponentialRampToValueAtTime(0.001,t+0.10);
@@ -1948,6 +1947,15 @@ function initUi(){
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
+
+/* makeNoiseBuffer - create noise buffer for percussion */
+function makeNoiseBuffer(ctx){
+var bufLen=ctx.sampleRate*2;
+var buf=ctx.createBuffer(1,bufLen,ctx.sampleRate);
+var data=buf.getChannelData(0);
+for(var i=0;i<bufLen;i++)data[i]=Math.random()*2-1;
+return buf;
+}
 
 /* ═══ MISSING FUNCTIONS FIX ═══ */
 function clamp(v,min,max){return v<min?min:(v>max?max:v);}
