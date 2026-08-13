@@ -4193,7 +4193,23 @@ if(navigator.requestMIDIAccess){
 navigator.requestMIDIAccess().then(function(midi){
 function onMidiMsg(e){
 var data=e.data;
-if(!data||data.length<3)return;
+if(!data||data.length<1)return;
+/* MIDI Clock (0xF8) - single byte message */
+if(data[0]===0xF8){
+if(typeof handleMidiClock==="function")handleMidiClock(0xF8,0,0);
+return;
+}
+/* MIDI Start (0xFA) */
+if(data[0]===0xFA){
+if(device&&!device.isPlaying)togglePlay();
+return;
+}
+/* MIDI Stop (0xFC) */
+if(data[0]===0xFC){
+if(device&&device.isPlaying)togglePlay();
+return;
+}
+if(data.length<3)return;
 var cmd=data[0]&0xf0;
 var note=data[1];
 var vel=data[2];
