@@ -813,6 +813,9 @@ button{
 /* midiToFreq - convert MIDI note to frequency */
 function midiToFreq(midi){return 440*Math.pow(2,(midi-69)/12);}
 
+/* mtof - alias for midiToFreq */
+function mtof(midi){return midiToFreq(midi);}
+
 
 /* ═══ POOLED ENGINE CONSTANTS ═══ */
 
