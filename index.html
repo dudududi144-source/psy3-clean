@@ -200,6 +200,14 @@ background:rgba(12,6,28,.6);color:var(--dim);font-family:var(--mono);font-size:8
 cursor:pointer;transition:all .15s}
 .sndChip.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,255,200,.08)}
 .sndChip:active{transform:scale(.95)}
+
+/* ═══ MACRO BUTTONS ═══ */
+.macro-row{margin-top:8px}
+.macro-btn{flex:1;padding:12px 8px;font-size:11px;font-weight:bold;border-radius:6px;cursor:pointer;transition:all .15s}
+.macro-btn:active{transform:scale(0.95)}
+#macroSpaceBtn{background:rgba(0,170,255,.15);border-color:#00aaff;color:#00aaff}
+#macroEnergyBtn{background:rgba(255,102,0,.15);border-color:#ff6600;color:#ff6600}
+#macroTensionBtn{background:rgba(255,46,136,.15);border-color:#ff2e88;color:#ff2e88}
 </style>
 </head>
 <body>
@@ -219,6 +227,11 @@ cursor:pointer;transition:all .15s}
       <button id="playBtn" class="play-btn">&#9654; PLAY</button>
       <button id="variateBtn" class="util-btn">VARIATE</button>
       <button id="nextSecBtn" class="util-btn">NEXT SEC &#9656;</button>
+    </div>
+    <div class="transport macro-row">
+      <button id="macroSpaceBtn" class="macro-btn" onclick="triggerMacroBurst('SPACE')">&#127754; SPACE</button>
+      <button id="macroEnergyBtn" class="macro-btn" onclick="triggerMacroBurst('ENERGY')">&#9889; ENERGY</button>
+      <button id="macroTensionBtn" class="macro-btn" onclick="triggerMacroBurst('TENSION')">&#128296; TENSION</button>
     </div>
     <div class="diag mono">
       <span>self-test: <span id="selfTest" class="dim">running&hellip;</span></span>
