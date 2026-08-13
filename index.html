@@ -1181,11 +1181,12 @@ function Groovebox(){
   this._timeBuf=new Uint8Array(512);
 }
 Groovebox.prototype.cfg=function(){
+  var gs=window._genreSound||GENRE_SOUND_CONFIG["FULL-ON"];
   return {
-    bassWave:"sawtooth", bassCut:620, bassRes:8, bassLvl:0.8,
-    leadCut:2600, leadRes:11, leadLvl:0.5,
-    arpCut:2300, arpRes:6, arpLvl:0.30,
-    padLvl:0.26, padCut:950
+    bassWave:gs.bassWave, bassCut:gs.bassCut, bassRes:gs.bassRes, bassLvl:gs.bassLvl,
+    leadCut:gs.leadCut, leadRes:gs.leadRes, leadLvl:gs.leadLvl,
+    arpCut:gs.arpCut, arpRes:gs.arpRes, arpLvl:gs.arpLvl,
+    padLvl:gs.padLvl, padCut:gs.padCut
   };
 };
 Groovebox.prototype.stepDur=function(){ return 60/this.bpm/4; };
@@ -1831,6 +1832,16 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ GENRE SOUND CONFIG ═══ */
+var GENRE_SOUND_CONFIG={
+"FULL-ON":{bassWave:"sawtooth",bassCut:620,bassRes:8,bassLvl:.8,leadCut:2600,leadRes:11,leadLvl:.5,arpCut:2300,arpRes:6,arpLvl:.3,padLvl:.26,padCut:950},
+"DARK-PSY":{bassWave:"sawtooth",bassCut:450,bassRes:12,bassLvl:.9,leadCut:1800,leadRes:14,leadLvl:.4,arpCut:1500,arpRes:10,arpLvl:.25,padLvl:.2,padCut:700},
+"PROGRESSIVE":{bassWave:"triangle",bassCut:500,bassRes:6,bassLvl:.7,leadCut:2200,leadRes:8,leadLvl:.45,arpCut:2000,arpRes:5,arpLvl:.28,padLvl:.3,padCut:1100},
+"GOA":{bassWave:"sawtooth",bassCut:700,bassRes:9,bassLvl:.85,leadCut:3000,leadRes:10,leadLvl:.55,arpCut:2600,arpRes:8,arpLvl:.35,padLvl:.28,padCut:1200},
+"TECHNO":{bassWave:"square",bassCut:350,bassRes:15,bassLvl:.95,leadCut:1500,leadRes:18,leadLvl:.35,arpCut:1200,arpRes:12,arpLvl:.2,padLvl:.15,padCut:600}
+};
+window._genreSound=GENRE_SOUND_CONFIG["FULL-ON"];
+
 /* ═══ GENRE SEQUENCE ═══ */
 var GENRE_SEQUENCE={
 "FULL-ON":{steps:16,noteLen:.5,gateTime:.7,velocity:.8},
@@ -2248,6 +2259,7 @@ device.variate(false);
 var st=$("status");
 if(st)st.textContent=g+": "+p.bpm+"BPM "+p.scale+" "+p.bassPattern+" bass";
 if(typeof applyGenreTheme==="function")applyGenreTheme(g);
+if(typeof GENRE_SOUND_CONFIG!=="undefined"&&GENRE_SOUND_CONFIG[g])window._genreSound=GENRE_SOUND_CONFIG[g];
 if(typeof applyGenreFx==="function")applyGenreFx();
 if(navigator.vibrate)navigator.vibrate([5,20,5]);
 /* Restart if was playing */
