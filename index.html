@@ -2928,16 +2928,7 @@ var GENRE_FX={
 };
 
 
-function applyGenreFx(){
-var fx=getGenreFx();
-var c=$("fxCrush"),g=$("fxGate"),w=$("fxWah");
-if(c)c.classList.toggle("on",fx.crush);
-if(g)g.classList.toggle("on",fx.gate);
-if(w)w.classList.toggle("on",fx.wah);
-if(typeof fxState!=="undefined"){
-fxState.crush=fx.crush;fxState.gate=fx.gate;fxState.wah=fx.wah;
-}
-}
+
 
 /* ═══ GENRE SYNTHESIS ═══ */
 var GENRE_BASS={
@@ -3031,7 +3022,7 @@ var st=$("status");
 if(st)st.textContent=g+": "+p.bpm+"BPM "+p.scale+" "+p.bassPattern+" bass";
 if(typeof applyGenreTheme==="function")applyGenreTheme(g);
 if(typeof GENRE_SOUND_CONFIG!=="undefined"&&GENRE_SOUND_CONFIG[g])window._genreSound=GENRE_SOUND_CONFIG[g];
-if(typeof applyGenreFx==="function")applyGenreFx();
+if(typeof applyGenreFx==="function")
 if(navigator.vibrate)navigator.vibrate([5,20,5]);
 /* Restart if was playing */
 if(wasPlaying){
