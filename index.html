@@ -558,6 +558,7 @@ class PooledEngine{
     this.reverb.connect(this.reverbMix);
     this.reverbMix.connect(this.comp);
     this.comp.connect(this.analyser);
+  try{this.engine=new PooledEngine(ctx);this.engine.setMasterGain(0.85);}catch(e){this.engine=null;}
     this.analyser.connect(ctx.destination);
     // Recording destination (for live capture)
     this.recDest=ctx.createMediaStreamDestination();
