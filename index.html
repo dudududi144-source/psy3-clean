@@ -1025,8 +1025,9 @@ function makeVoices(ctx,outMap,sends,noiseBuf,cfg){
   function kick(t){
     var o=ctx.createOscillator(),g=ctx.createGain();
     o.type="sine";
-    o.frequency.setValueAtTime(150,t);
-    o.frequency.exponentialRampToValueAtTime(55,t+0.04);
+    var cfg=this.cfg();
+    o.frequency.setValueAtTime(cfg.kickStart,t);
+    o.frequency.exponentialRampToValueAtTime(cfg.kickEnd,t+0.04);
     g.gain.setValueAtTime(1.0,t);
     g.gain.exponentialRampToValueAtTime(0.001,t+0.10);
     o.connect(g); g.connect(outMap.KICK);
@@ -1464,7 +1465,10 @@ Groovebox.prototype.cfg=function(){
     bassWave:gs.bassWave, bassCut:gs.bassCut, bassRes:gs.bassRes, bassLvl:gs.bassLvl,
     leadCut:gs.leadCut, leadRes:gs.leadRes, leadLvl:gs.leadLvl,
     arpCut:gs.arpCut, arpRes:gs.arpRes, arpLvl:gs.arpLvl,
-    padLvl:gs.padLvl, padCut:gs.padCut
+    padLvl:gs.padLvl, padCut:gs.padCut,
+    kickStart:gs.kickStart||150, kickEnd:gs.kickEnd||55, kickDecay:gs.kickDecay||.10, kickPunch:gs.kickPunch||.35,
+    hatFreq:gs.hatFreq||8000, hatDecay:gs.hatDecay||.04,
+    percTune:gs.percTune||1.0, percDecay:gs.percDecay||.4
   };
 };
 Groovebox.prototype.stepDur=function(){ return 60/this.bpm/4; };
@@ -2324,11 +2328,11 @@ function grammarConfidence(){
 
 /* ═══ GENRE SOUND CONFIG ═══ */
 var GENRE_SOUND_CONFIG={
-"FULL-ON":{bassWave:"sawtooth",bassCut:620,bassRes:8,bassLvl:.8,leadCut:2600,leadRes:11,leadLvl:.5,arpCut:2300,arpRes:6,arpLvl:.3,padLvl:.26,padCut:950},
-"DARK-PSY":{bassWave:"sawtooth",bassCut:450,bassRes:12,bassLvl:.9,leadCut:1800,leadRes:14,leadLvl:.4,arpCut:1500,arpRes:10,arpLvl:.25,padLvl:.2,padCut:700},
-"PROGRESSIVE":{bassWave:"triangle",bassCut:500,bassRes:6,bassLvl:.7,leadCut:2200,leadRes:8,leadLvl:.45,arpCut:2000,arpRes:5,arpLvl:.28,padLvl:.3,padCut:1100},
-"GOA":{bassWave:"sawtooth",bassCut:700,bassRes:9,bassLvl:.85,leadCut:3000,leadRes:10,leadLvl:.55,arpCut:2600,arpRes:8,arpLvl:.35,padLvl:.28,padCut:1200},
-"TECHNO":{bassWave:"square",bassCut:350,bassRes:15,bassLvl:.95,leadCut:1500,leadRes:18,leadLvl:.35,arpCut:1200,arpRes:12,arpLvl:.2,padLvl:.15,padCut:600}
+"FULL-ON":{bassWave:"sawtooth",bassCut:620,bassRes:8,bassLvl:.8,leadCut:2600,leadRes:11,leadLvl:.5,arpCut:2300,arpRes:6,arpLvl:.3,padLvl:.26,padCut:950,kickStart:150,kickEnd:55,kickDecay:.10,kickPunch:.35,hatFreq:8000,hatDecay:.04,percTune:1.0,percDecay:.4},
+"DARK-PSY":{bassWave:"sawtooth",bassCut:450,bassRes:12,bassLvl:.9,leadCut:1800,leadRes:14,leadLvl:.4,arpCut:1500,arpRes:10,arpLvl:.25,padLvl:.2,padCut:700,kickStart:80,kickEnd:30,kickDecay:.35,kickPunch:.1,hatFreq:6000,hatDecay:.06,percTune:.8,percDecay:.6},
+"PROGRESSIVE":{bassWave:"triangle",bassCut:500,bassRes:6,bassLvl:.7,leadCut:2200,leadRes:8,leadLvl:.45,arpCut:2000,arpRes:5,arpLvl:.28,padLvl:.3,padCut:1100,kickStart:120,kickEnd:50,kickDecay:.15,kickPunch:.5,hatFreq:10000,hatDecay:.03,percTune:1.2,percDecay:.3},
+"GOA":{bassWave:"sawtooth",bassCut:700,bassRes:9,bassLvl:.85,leadCut:3000,leadRes:10,leadLvl:.55,arpCut:2600,arpRes:8,arpLvl:.35,padLvl:.28,padCut:1200,kickStart:180,kickEnd:60,kickDecay:.18,kickPunch:.4,hatFreq:7000,hatDecay:.05,percTune:1.1,percDecay:.5},
+"TECHNO":{bassWave:"square",bassCut:350,bassRes:15,bassLvl:.95,leadCut:1500,leadRes:18,leadLvl:.35,arpCut:1200,arpRes:12,arpLvl:.2,padLvl:.15,padCut:600,kickStart:100,kickEnd:40,kickDecay:.4,kickPunch:.2,hatFreq:9000,hatDecay:.02,percTune:.9,percDecay:.2}
 };
 window._genreSound=GENRE_SOUND_CONFIG["FULL-ON"];
 
