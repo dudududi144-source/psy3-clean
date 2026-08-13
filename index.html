@@ -1971,20 +1971,20 @@ else initUi();
 
 /* ═══ MISSING FUNCTIONS FIX 2 ═══ */
 function rnd(){return Math.random();}
-function makeArpPhrase(rootMidi,scaleIntervals,barIndex,rng){
+function makeArpPhrase(rnd){
 var out=[];
 for(var s=0;s<16;s++){
-var idx=s%scaleIntervals.length;
-out.push({deg:idx,on:s%2===0});
+var deg=s%7;
+out.push({deg:deg,on:s%2===0});
 }
 return out;
 }
-function makeLeadMotif(rootMidi,scaleIntervals,barIndex,rng){
+function makeLeadMotif(rnd){
 var out=[];
 for(var s=0;s<16;s++){
-if(s%4===0||rng()<0.4){
-var idx=Math.floor(rng()*scaleIntervals.length);
-out.push({midi:rootMidi+12+scaleIntervals[idx],dur:1,accent:rng(),rest:false});
+if(s%4===0||rnd()<0.4){
+var deg=Math.floor(rnd()*7);
+out.push({deg:deg,dur:1,accent:rnd(),rest:false});
 }else{
 out.push({rest:true,dur:1});
 }
