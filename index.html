@@ -2194,27 +2194,36 @@ const MACROS={
 };
 
 function applyMacro(name,value){
-  const macro=MACROS[name];
+  if(!device)return;
+  var macro=MACROS[name];
   if(!macro)return;
-  macro.params.forEach(p=>{
-    const k=KNOBS.find(k=>k.id===p.knob);
-    if(!k)return;
-    const v=p.min+value*(p.max-p.min);
-    knobValues[p.knob]=clamp(v,k.min,k.max);
-    updateKnob(k);
-  });
-  // Update brain energy state for TENSION/ENERGY macros
-  if(name==='ENERGY')musicalState.energy=clamp(0.5+value*0.5,0,1);
-  if(name==='TENSION')musicalState.energy=clamp(0.3+value*0.7,0,1);
-  updateBrainStatus();
+  /* Map macro knob names to psy3 knob names */
+  var knobMap={
+    'reverb':'reverb','delay':'delay','filter':'filter',
+    'drive':'drive','volume':'volume','reso':'res','swing':'swing'
+  };
+  for(var i=0;i<macro.params.length;i++){
+    var p=macro.params[i];
+    var knobName=knobMap[p.knob]||p.knob;
+    var v=p.min+value*(p.max-p.min);
+    /* Normalize to 0-1 for setKnob */
+    var normalized=v/100;
+    if(knobName==='filter')normalized=v/18000;
+    if(knobName==='res')normalized=v/25;
+    if(knobName==='swing')normalized=v/100;
+    try{device.setKnob(knobName,normalized);}catch(e){}
+  }
+  var st=$("status");
+  if(st)st.textContent="MACRO: "+name+" "+Math.round(value*100)+"%";
 }
 
 function triggerMacroBurst(name){
-  // Quick macro burst for live performance (ramp up then down)
-  if(!audioCtx)initAudio();
+  if(!device)return;
   applyMacro(name,1.0);
-  setTimeout(()=>applyMacro(name,0.3),2000);
-  toast('MACRO BURST: '+name);
+  setTimeout(function(){applyMacro(name,0.3);},2000);
+  var st=$("status");
+  if(st)st.textContent="MACRO BURST: "+name;
+  if(navigator.vibrate)navigator.vibrate([5,20,5]);
 }
 
 
