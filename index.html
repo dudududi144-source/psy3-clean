@@ -2110,6 +2110,54 @@ function initUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
 else initUi();
 
+/* ═══ MIDI CLOCK SYNC ═══ */
+var midiClockEnabled=false;
+var midiClockCount=0;
+var midiClockLastTime=0;
+var midiClockIntervals=[];
+var midiClockDetectedBpm=0;
+
+function toggleMidiClock(){
+midiClockEnabled=!midiClockEnabled;
+midiClockIntervals=[];
+midiClockLastTime=0;
+midiClockCount=0;
+var st=$("status");
+if(st)st.textContent="MIDI CLOCK: "+(midiClockEnabled?"ON":"OFF");
+if(navigator.vibrate)navigator.vibrate([5,20,5]);
+}
+
+function handleMidiClock(status,data1,data2){
+if(status===0xF8){
+if(!midiClockEnabled)return;
+var now=performance.now();
+if(midiClockLastTime>0){
+var interval=now-midiClockLastTime;
+if(interval>0&&interval<500){
+midiClockIntervals.push(interval);
+if(midiClockIntervals.length>24)midiClockIntervals.shift();
+if(midiClockIntervals.length>=6){
+var avg=0;
+for(var i=0;i<midiClockIntervals.length;i++)avg+=midiClockIntervals[i];
+avg/=midiClockIntervals.length;
+var bpm=60000/(avg*24);
+midiClockDetectedBpm=Math.max(60,Math.min(200,Math.round(bpm)));
+if(Math.abs(midiClockDetectedBpm-device.bpm)>=1){
+var newBpm=device.bpm*0.7+midiClockDetectedBpm*0.3;
+device.setKnob("bpm",Math.round(newBpm));
+var st=$("status");
+if(st)st.textContent="MIDI CLOCK: "+Math.round(newBpm)+" BPM";
+}
+}
+}
+}
+midiClockLastTime=now;
+midiClockCount++;
+return true;
+}
+return false;
+}
+
 /* ═══ MACRO CONTROLS ═══ */
 const MACROS={
   'SPACE':{ // Creates spatial depth
