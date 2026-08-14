@@ -1965,8 +1965,17 @@ function initUi(){
   device.renderTimeline=function(){ renderTimelineFor(device); };
   window.__psy6=device;
 }
-if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initUi);
-else initUi();
+function safeInitUi(){
+  try{ initUi(); }
+  catch(e){
+    var st=document.getElementById("status");
+    if(st){ st.textContent="INIT ERROR: "+e.message; st.className="status err"; }
+    var st2=document.getElementById("selfTest");
+    if(st2){ st2.textContent="ERR: "+e.message; st2.className="err"; }
+  }
+}
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",safeInitUi);
+else safeInitUi();
 
 /* ═══ MISSING FUNCTIONS FIX 2 ═══ */
 
