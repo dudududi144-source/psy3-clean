@@ -1512,7 +1512,9 @@ if(navigator.vibrate)navigator.vibrate(15);
     return;
   }
   device.absStep=0; device._barCacheKey=-1; device._lastSecIdx=-1;
+  alert("PLAY clicked - starting...");
   device.play().then(function(){
+    alert("PLAY success!");
     btn.textContent="\u25A0 STOP"; btn.className="play-btn playing";
     if(eng){ eng.textContent="running"; eng.className="ok"; }
     var info0=sectionAt(device.song,0);
@@ -1605,7 +1607,7 @@ function safeInitUi(){
   try{ initUi(); }
   catch(e){
     var st=document.getElementById("status");
-    if(st){ st.textContent="INIT ERROR: "+e.message; st.className="status err"; }
+    if(st){ st.textContent="INIT ERROR: "+e.message; alert("INIT ERROR: "+e.message); st.className="status err"; }
     var st2=document.getElementById("selfTest");
     if(st2){ st2.textContent="ERR: "+e.message; st2.className="err"; }
   }
