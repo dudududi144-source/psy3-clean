@@ -448,10 +448,6 @@ body{
 <script>
 /* $ function - get element by ID */
 function $(id){return document.getElementById(id);}
-
-
-alert("SCRIPT LOADED!");
-
 var ROOT=33;
 
 /* ═══ SCALES DEFINITION ═══ */
@@ -1513,8 +1509,6 @@ if(navigator.vibrate)navigator.vibrate(8);
   trackEvent("pad_hit",{deg:PAD_DEGS[idx]});
 }
 function togglePlay(){
-  alert("TOGGLEPLAY CALLED");
-
 if(navigator.vibrate)navigator.vibrate(15);
   var btn=$("playBtn");
   var eng=$("engState");
@@ -1528,10 +1522,8 @@ if(navigator.vibrate)navigator.vibrate(15);
     return;
   }
   device.absStep=0; device._barCacheKey=-1; device._lastSecIdx=-1;
-  alert("PLAY clicked - starting...");
-  device.play().then(function(){
-    alert("PLAY success!");
-    btn.textContent="\u25A0 STOP"; btn.className="play-btn playing";
+device.play().then(function(){
+btn.textContent="\u25A0 STOP"; btn.className="play-btn playing";
     if(eng){ eng.textContent="running"; eng.className="ok"; }
     var info0=sectionAt(device.song,0);
     setStatus("arranger running \u2014 "+info0.section.name,"ok");
