@@ -1322,7 +1322,15 @@ Groovebox.prototype.report=function(){
 };
 
 /* ---------- device + UI ---------- */
-var device=new Groovebox();
+var device;
+try{
+  device=new Groovebox();
+}catch(e){
+  document.addEventListener("DOMContentLoaded",function(){
+    var st=document.getElementById("status");
+    if(st){st.textContent="DEVICE ERROR: "+e.message;st.style.color="#ff0044";st.style.fontSize="14px";}
+  });
+}
 device.makePatterns=makePatterns;
 function trackEvent(name,detail){
   try{
