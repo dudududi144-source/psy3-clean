@@ -1233,6 +1233,10 @@ var PART_COLORS={
   PAD:"#a8e6cf"
 };
 
+/* ═══ PART NAMES ═══ */
+var PART_NAMES=["KICK","BASS","PERC","LEAD","ARP","PAD"];
+
+
 var KNOB_DEFS=[
   {name:"bpm",label:"BPM",fmt:function(v){ return String(Math.round(120+v*45)); }},
   {name:"filter",label:"FILTER",fmt:pctFmt},
