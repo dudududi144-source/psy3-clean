@@ -4636,9 +4636,14 @@ function initTransport() {
   
   if (playBtn) {
     playBtn.addEventListener('click', function() {
+      if (!device) {
+        initDevice();
+      }
       if (device) {
         device.play();
         this.classList.add('active');
+        var lcd1 = document.getElementById('lcd1');
+        if (lcd1) lcd1.textContent = 'PLAYING';
       }
     });
   }
@@ -4649,6 +4654,8 @@ function initTransport() {
         device.stop();
         var playBtn = document.getElementById('playBtn');
         if (playBtn) playBtn.classList.remove('active');
+        var lcd1 = document.getElementById('lcd1');
+        if (lcd1) lcd1.textContent = 'STOPPED';
       }
     });
   }
@@ -5449,6 +5456,58 @@ if (document.readyState === 'loading') {
 } else {
   initPanels();
 }
+
+/* ══════════════════════════════════════════════════════════
+   DEVICE INITIALIZATION (v7.0)
+   ══════════════════════════════════════════════════════════ */
+
+var device = null;
+
+function initDevice() {
+  try {
+    device = new Groovebox();
+    console.log('Device created successfully');
+    
+    // Initialize device
+    if (device.init) {
+      device.init();
+      console.log('Device initialized');
+    }
+    
+    // Update display
+    var lcd1 = document.getElementById('lcd1');
+    var lcd2 = document.getElementById('lcd2');
+    if (lcd1) lcd1.textContent = 'READY';
+    if (lcd2) lcd2.textContent = 'PSY3 PRO — DEVICE INITIALIZED';
+    
+    return true;
+  } catch (e) {
+    console.error('Device creation failed:', e);
+    var lcd1 = document.getElementById('lcd1');
+    if (lcd1) lcd1.textContent = 'ERROR: ' + e.message;
+    return false;
+  }
+}
+
+// Initialize device on first user interaction (required by browsers)
+function setupDeviceOnGesture() {
+  var initialized = false;
+  
+  function onFirstGesture() {
+    if (!initialized) {
+      initialized = true;
+      initDevice();
+      document.removeEventListener('pointerdown', onFirstGesture);
+      document.removeEventListener('keydown', onFirstGesture);
+    }
+  }
+  
+  document.addEventListener('pointerdown', onFirstGesture);
+  document.addEventListener('keydown', onFirstGesture);
+}
+
+// Setup device initialization
+setupDeviceOnGesture();
 </script>
 </body>
 </html>
