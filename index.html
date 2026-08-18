@@ -4784,7 +4784,163 @@ function initAutomation() {
   var envValue = document.getElementById('envValue');
   
   if (lfoRateSlider && lfoRateValue) {
-    lfoRateSlider.addEventListener('input', function() {
+    lfoRateSlider.addEventListener('input', 
+// ============================================================
+// UNDO/REDO SYSTEM
+// ============================================================
+var UndoRedo = {
+  history: [],
+  pointer: -1,
+  maxSize: 50,
+  
+  push: function(state) {
+    // Remove any states after current pointer
+    this.history = this.history.slice(0, this.pointer + 1);
+    // Add new state
+    this.history.push(JSON.parse(JSON.stringify(state)));
+    // Limit history size
+    if (this.history.length > this.maxSize) {
+      this.history.shift();
+    } else {
+      this.pointer++;
+    }
+  },
+  
+  undo: function() {
+    if (this.pointer > 0) {
+      this.pointer--;
+      return this.history[this.pointer];
+    }
+    return null;
+  },
+  
+  redo: function() {
+    if (this.pointer < this.history.length - 1) {
+      this.pointer++;
+      return this.history[this.pointer];
+    }
+    return null;
+  },
+  
+  canUndo: function() {
+    return this.pointer > 0;
+  },
+  
+  canRedo: function() {
+    return this.pointer < this.history.length - 1;
+  }
+};
+
+// Get current sequencer state
+function getSequencerState() {
+  var steps = document.querySelectorAll('.seq-step');
+  var state = [];
+  steps.forEach(function(step) {
+    state.push(step.classList.contains('active'));
+  });
+  return state;
+}
+
+// Apply sequencer state
+function applySequencerState(state) {
+  var steps = document.querySelectorAll('.seq-step');
+  steps.forEach(function(step, idx) {
+    step.classList.toggle('active', state[idx] || false);
+  });
+}
+
+// Initialize Undo/Redo
+function initUndoRedo() {
+  // Add keyboard shortcuts
+  document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+      e.preventDefault();
+      if (e.shiftKey) {
+        // Redo
+        var state = UndoRedo.redo();
+        if (state) {
+          applySequencerState(state);
+          console.log('Redo');
+        }
+      } else {
+        // Undo
+        var state = UndoRedo.undo();
+        if (state) {
+          applySequencerState(state);
+          console.log('Undo');
+        }
+      }
+    }
+  });
+  
+  // Push initial state
+  UndoRedo.push(getSequencerState());
+  
+  // Push state on step change
+  var steps = document.querySelectorAll('.seq-step');
+  steps.forEach(function(step) {
+    step.addEventListener('click', function() {
+      setTimeout(function() {
+        UndoRedo.push(getSequencerState());
+      }, 10);
+    });
+  });
+}
+
+// ============================================================
+// MIXER CHANNEL CONNECTIONS
+// ============================================================
+function initMixer() {
+  var mixerSliders = document.querySelectorAll('.panel:nth-child(4) input[type="range"]');
+  var channelNames = ['KICK', 'BASS', 'LEAD', 'ARP', 'PAD', 'PERC'];
+  
+  mixerSliders.forEach(function(slider, idx) {
+    slider.addEventListener('input', function() {
+      var value = this.value / 100;
+      console.log(channelNames[idx] + ' volume: ' + value);
+      // Apply to device if available
+      if (device && device.trackBuses && device.trackBuses[idx]) {
+        device.trackBuses[idx].gain.setTargetAtTime(value, device.ctx.currentTime, 0.01);
+      }
+    });
+  });
+}
+
+// ============================================================
+// FX KNOB CONNECTIONS
+// ============================================================
+function initFxKnobs() {
+  var knobs = document.querySelectorAll('.knob');
+  var fxNames = ['FILTER', 'DELAY', 'REVERB', 'DRIVE'];
+  
+  knobs.forEach(function(knob, idx) {
+    var isDragging = false;
+    var startY = 0;
+    var startValue = 0.5;
+    
+    knob.addEventListener('pointerdown', function(e) {
+      isDragging = true;
+      startY = e.clientY;
+      knob.setPointerCapture(e.pointerId);
+    });
+    
+    knob.addEventListener('pointermove', function(e) {
+      if (!isDragging) return;
+      var deltaY = startY - e.clientY;
+      var newValue = Math.max(0, Math.min(1, startValue + deltaY / 200));
+      // Rotate knob indicator
+      var rotation = -135 + newValue * 270;
+      knob.style.transform = 'rotate(' + rotation + 'deg)';
+      console.log(fxNames[idx] + ' value: ' + newValue);
+    });
+    
+    knob.addEventListener('pointerup', function() {
+      isDragging = false;
+    });
+  });
+}
+
+function() {
       lfoRateValue.textContent = (this.value / 10).toFixed(1) + ' Hz';
     });
   }
@@ -4811,6 +4967,9 @@ function initPanels() {
   initPresetBrowser();
   initPatternEditor();
   initAutomation();
+  initUndoRedo();
+  initMixer();
+  initFxKnobs();
 }
 
 // Run initialization when DOM is ready
