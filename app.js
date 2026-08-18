@@ -4343,7 +4343,30 @@ function initAutomation() {
   var envValue = document.getElementById('envValue');
   
   if (lfoRateSlider && lfoRateValue) {
-    lfoRateSlider.addEventListener('input', 
+    lfoRateSlider.addEventListener('input', function() {
+      var rate = this.value / 10;
+      lfoRateValue.textContent = rate.toFixed(1) + ' Hz';
+      Automation.setLfoRate(rate);
+    });
+  }
+  
+  if (lfoDepthSlider && lfoDepthValue) {
+    lfoDepthSlider.addEventListener('input', function() {
+      var depth = this.value / 100;
+      lfoDepthValue.textContent = this.value + '%';
+      Automation.setLfoDepth(depth);
+    });
+  }
+  
+  if (envSlider && envValue) {
+    envSlider.addEventListener('input', function() {
+      var env = this.value / 100;
+      envValue.textContent = this.value + '%';
+      Automation.setEnvelope(env);
+    });
+  }
+}
+
 // ============================================================
 // UNDO/REDO SYSTEM
 // ============================================================
@@ -4561,7 +4584,7 @@ function(knob, idx) {
     knob.addEventListener('pointerup', function() {
       isDragging = false;
     });
-  });
+  };
 }
 
 function() {
