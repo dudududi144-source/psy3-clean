@@ -5720,6 +5720,149 @@ function connectPatternEditor() {
   if (doubleBtn) doubleBtn.addEventListener('click', patternDouble);
   if (halfBtn) halfBtn.addEventListener('click', patternHalf);
 }
+
+/* ══════════════════════════════════════════════════════════
+   AUTOMATION FUNCTIONALITY (v9.0)
+   ══════════════════════════════════════════════════════════ */
+
+var Automation = {
+  lfoRate: 5.0,
+  lfoDepth: 0.5,
+  envelope: 0.5,
+  lfoPhase: 0,
+  isRunning: false,
+  
+  start: function() {
+    if (this.isRunning) return;
+    this.isRunning = true;
+    
+    var self = this;
+    function tick() {
+      if (!self.isRunning) return;
+      
+      self.lfoPhase += self.lfoRate / 60; // Update at 60fps
+      
+      // Apply LFO to filter
+      if (device && device.autoFilter) {
+        var lfoValue = Math.sin(self.lfoPhase * Math.PI * 2) * self.lfoDepth;
+        var baseFreq = 8000;
+        var modFreq = baseFreq * (1 + lfoValue);
+        device.autoFilter.frequency.setTargetAtTime(modFreq, device.ctx.currentTime, 0.01);
+      }
+      
+      requestAnimationFrame(tick);
+    }
+    tick();
+  },
+  
+  stop: function() {
+    this.isRunning = false;
+  },
+  
+  setLfoRate: function(rate) {
+    this.lfoRate = rate;
+  },
+  
+  setLfoDepth: function(depth) {
+    this.lfoDepth = depth;
+  },
+  
+  setEnvelope: function(env) {
+    this.envelope = env;
+  }
+};
+
+// Connect automation sliders
+function connectAutomation() {
+  var lfoRateSlider = document.getElementById('lfoRateSlider');
+  var lfoRateValue = document.getElementById('lfoRateValue');
+  var lfoDepthSlider = document.getElementById('lfoDepthSlider');
+  var lfoDepthValue = document.getElementById('lfoDepthValue');
+  var envSlider = document.getElementById('envSlider');
+  var envValue = document.getElementById('envValue');
+  
+  if (lfoRateSlider && lfoRateValue) {
+    lfoRateSlider.addEventListener('input', function() {
+      var rate = this.value / 10;
+      lfoRateValue.textContent = rate.toFixed(1) + ' Hz';
+      Automation.setLfoRate(rate);
+    });
+  }
+  
+  if (lfoDepthSlider && lfoDepthValue) {
+    lfoDepthSlider.addEventListener('input', function() {
+      var depth = this.value / 100;
+      lfoDepthValue.textContent = this.value + '%';
+      Automation.setLfoDepth(depth);
+    });
+  }
+  
+  if (envSlider && envValue) {
+    envSlider.addEventListener('input', function() {
+      var env = this.value / 100;
+      envValue.textContent = this.value + '%';
+      Automation.setEnvelope(env);
+    });
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   MIDI OUTPUT (v9.0)
+   ══════════════════════════════════════════════════════════ */
+
+var MIDIOutput = {
+  access: null,
+  output: null,
+  
+  init: function() {
+    var self = this;
+    
+    if (!navigator.requestMIDIAccess) {
+      console.log('Web MIDI API not supported');
+      return;
+    }
+    
+    navigator.requestMIDIAccess({ sysex: false }).then(function(access) {
+      self.access = access;
+      
+      // Get first output
+      var outputs = access.outputs.values();
+      var firstOutput = outputs.next().value;
+      if (firstOutput) {
+        self.output = firstOutput;
+        console.log('MIDI output connected:', firstOutput.name);
+      }
+    }).catch(function(err) {
+      console.log('MIDI access failed:', err);
+    });
+  },
+  
+  sendNoteOn: function(note, velocity, channel) {
+    if (!this.output) return;
+    channel = channel || 0;
+    var status = 0x90 | channel;
+    this.output.send([status, note, velocity]);
+  },
+  
+  sendNoteOff: function(note, channel) {
+    if (!this.output) return;
+    channel = channel || 0;
+    var status = 0x80 | channel;
+    this.output.send([status, note, 0]);
+  },
+  
+  sendCC: function(cc, value, channel) {
+    if (!this.output) return;
+    channel = channel || 0;
+    var status = 0xB0 | channel;
+    this.output.send([status, cc, value]);
+  }
+};
+
+// Initialize MIDI output
+function initMIDIOutput() {
+  MIDIOutput.init();
+}
 function initPanels() {
   initSequencer();
   initBpmSlider();
@@ -5734,6 +5877,8 @@ function initPanels() {
   initFxKnobs();
   connectSequencerPlayback();
   connectPatternEditor();
+  connectAutomation();
+  initMIDIOutput();
 }
 
 // Run initialization when DOM is ready
