@@ -532,6 +532,11 @@ input[type="range"]::-moz-range-thumb {
         <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">TRANCE PAD 01</div>
         <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">TECHNO STAB 01</div>
         <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">PROGRESSIVE ARP 01</div>
+        <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">DARK PSY BASS 01</div>
+        <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">GOA LEAD 01</div>
+        <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">FULL ON STAB 01</div>
+        <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">AMBIENT PAD 01</div>
+        <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">PERC LOOP 01</div>
       </div>
     </section>
     
@@ -5262,6 +5267,71 @@ var PRESETS = [
     release: 0.4,
     delayMix: 0.35,
     reverbMix: 0.25
+  },
+  {
+    name: 'DARK PSY BASS 01',
+    osc1: 'sawtooth',
+    osc2: 'square',
+    filterCutoff: 1500,
+    filterRes: 12,
+    attack: 0.002,
+    decay: 0.3,
+    sustain: 0.4,
+    release: 0.15,
+    delayMix: 0.15,
+    reverbMix: 0.1
+  },
+  {
+    name: 'GOA LEAD 01',
+    osc1: 'sawtooth',
+    osc2: 'sawtooth',
+    filterCutoff: 9000,
+    filterRes: 6,
+    attack: 0.02,
+    decay: 0.15,
+    sustain: 0.65,
+    release: 0.35,
+    delayMix: 0.4,
+    reverbMix: 0.3
+  },
+  {
+    name: 'FULL ON STAB 01',
+    osc1: 'square',
+    osc2: 'square',
+    filterCutoff: 6000,
+    filterRes: 10,
+    attack: 0.001,
+    decay: 0.1,
+    sustain: 0.25,
+    release: 0.1,
+    delayMix: 0.25,
+    reverbMix: 0.2
+  },
+  {
+    name: 'AMBIENT PAD 01',
+    osc1: 'sine',
+    osc2: 'sine',
+    filterCutoff: 15000,
+    filterRes: 1,
+    attack: 1.0,
+    decay: 0.5,
+    sustain: 0.9,
+    release: 2.0,
+    delayMix: 0.5,
+    reverbMix: 0.6
+  },
+  {
+    name: 'PERC LOOP 01',
+    osc1: 'triangle',
+    osc2: 'square',
+    filterCutoff: 4000,
+    filterRes: 4,
+    attack: 0.001,
+    decay: 0.05,
+    sustain: 0.1,
+    release: 0.05,
+    delayMix: 0.1,
+    reverbMix: 0.05
   }
 ];
 
@@ -5289,6 +5359,75 @@ function applyPreset(presetIdx) {
   
   console.log('Preset applied:', preset.name);
 }
+
+/* ══════════════════════════════════════════════════════════
+   SEQUENCER PLAYBACK (v6.0)
+   ══════════════════════════════════════════════════════════ */
+
+var SequencerPlayback = {
+  isPlaying: false,
+  currentStep: 0,
+  intervalId: null,
+  
+  start: function() {
+    if (this.isPlaying) return;
+    this.isPlaying = true;
+    this.currentStep = 0;
+    
+    var self = this;
+    var bpm = (device && device.bpm) ? device.bpm : 145;
+    var stepDuration = (60 / bpm) / 4; // 16th notes
+    
+    this.intervalId = setInterval(function() {
+      self.playStep(self.currentStep);
+      self.currentStep = (self.currentStep + 1) % 16;
+    }, stepDuration * 1000);
+  },
+  
+  stop: function() {
+    this.isPlaying = false;
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
+    this.currentStep = 0;
+  },
+  
+  playStep: function(stepIdx) {
+    var steps = document.querySelectorAll('.seq-step');
+    if (!steps[stepIdx]) return;
+    
+    // Highlight current step
+    steps.forEach(function(step, idx) {
+      step.style.borderColor = (idx === stepIdx) ? 'var(--accent-cyan)' : 'var(--border-dark)';
+    });
+    
+    // Play sound if step is active
+    if (steps[stepIdx].classList.contains('active')) {
+      if (device && device.previewStep) {
+        device.previewStep(stepIdx);
+      }
+    }
+  }
+};
+
+// Connect sequencer playback to transport
+function connectSequencerPlayback() {
+  var playBtn = document.getElementById('playBtn');
+  var stopBtn = document.getElementById('stopBtn');
+  
+  if (playBtn) {
+    playBtn.addEventListener('click', function() {
+      SequencerPlayback.start();
+    });
+  }
+  
+  if (stopBtn) {
+    stopBtn.addEventListener('click', function() {
+      SequencerPlayback.stop();
+    });
+  }
+}
 function initPanels() {
   initSequencer();
   initBpmSlider();
@@ -5301,6 +5440,7 @@ function initPanels() {
   initUndoRedo();
   initMixer();
   initFxKnobs();
+  connectSequencerPlayback();
 }
 
 // Run initialization when DOM is ready
