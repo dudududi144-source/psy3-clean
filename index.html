@@ -3,12 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.github.com; media-src 'self' blob:;">
 <title>PSY3 PRO — Hyperspace Psytrance Workstation</title>
 <style>
 /* ══════════════════════════════════════════════════════════
    PSY3 PRO — Professional Design System
-   Inspired by: Ableton, Elektron, Teenage Engineering
    ══════════════════════════════════════════════════════════ */
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -147,38 +145,32 @@ body {
   color: var(--text-secondary);
 }
 
-/* ══════════ PANELS ══════════ */
-.panel {
-  background: linear-gradient(180deg, #1e222c 0%, var(--panel-secondary) 100%);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-dark);
-  padding: var(--space-md);
-  box-shadow:
-    0 6px 16px rgba(0,0,0,0.5),
-    0 0 0 1px rgba(255,255,255,0.04) inset;
-  margin-bottom: var(--space-md);
-}
-
-.panel-title {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
-  color: var(--accent-orange);
-  margin-bottom: var(--space-md);
-  padding-bottom: var(--space-sm);
-  border-bottom: 1px solid var(--border-light);
-}
-
-/* ══════════ BUTTONS ══════════ */
-.btn {
+/* ══════════ STATUS ══════════ */
+.status {
   font-family: var(--font-mono);
   font-size: 10px;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-md);
+}
+
+.status.err {
+  color: var(--accent-red);
+}
+
+/* ══════════ TRANSPORT ══════════ */
+.transport {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.play-btn {
+  font-family: var(--font-mono);
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  padding: 10px 18px;
+  padding: 12px 24px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-dark);
   background: linear-gradient(180deg, #2e3340, #1e222c);
@@ -188,38 +180,13 @@ body {
   box-shadow: 0 3px 8px rgba(0,0,0,0.5);
 }
 
-.btn:hover {
+.play-btn:hover {
   background: linear-gradient(180deg, #3a4050, #2e3340);
   transform: translateY(-1px);
-  box-shadow: 0 5px 12px rgba(0,0,0,0.6);
 }
 
-.btn:active {
+.play-btn:active {
   transform: translateY(1px);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.5);
-}
-
-.btn.active {
-  background: linear-gradient(180deg, var(--accent-orange), #cc8a3c);
-  color: var(--border-dark);
-  box-shadow: 0 0 16px rgba(255,180,84,0.5);
-}
-
-/* ══════════ MIDI PANEL ══════════ */
-.midi-panel {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-sm);
-  padding: var(--space-md);
-  background: linear-gradient(180deg, #1e222c 0%, var(--panel-secondary) 100%);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-dark);
-  margin-bottom: var(--space-md);
-}
-
-.midi-panel .btn {
-  font-size: 9px;
-  padding: 8px 12px;
 }
 
 /* ══════════ DISPLAY ══════════ */
@@ -233,36 +200,48 @@ body {
   box-shadow:
     0 0 24px rgba(184,224,90,0.12) inset,
     0 6px 16px rgba(0,0,0,0.6);
+  margin-bottom: var(--space-md);
 }
 
-/* ══════════ LEDS ══════════ */
-.led {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+.lcd-line {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.lcd-steps {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.lcd-steps .ls {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
   background: #333;
-  box-shadow: 0 0 3px rgba(0,0,0,0.6) inset;
-  transition: all 0.1s;
 }
 
-.led.on { background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); }
-.led.orange { background: var(--accent-orange); box-shadow: 0 0 10px var(--accent-orange); }
-.led.cyan { background: var(--accent-cyan); box-shadow: 0 0 10px var(--accent-cyan); }
-.led.red { background: var(--accent-red); box-shadow: 0 0 10px var(--accent-red); }
-
-/* ══════════ RESPONSIVE ══════════ */
-@media (max-width: 768px) {
-  body { padding: 16px 8px; }
-  .chassis { padding: 18px 28px; }
-  .cheek { display: none; }
-}
-
-@media (max-width: 480px) {
-  .chassis { padding: 14px 18px; }
+.lcd-steps .ls.on {
+  background: var(--accent-green);
+  box-shadow: 0 0 6px var(--accent-green);
 }
 
 /* ══════════ KNOBS ══════════ */
+.knobs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
 .knob {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.knob-dial {
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -275,19 +254,9 @@ body {
     0 0 0 1px rgba(255,255,255,0.05) inset;
   position: relative;
   cursor: pointer;
-  transition: transform 0.1s;
 }
 
-.knob:hover {
-  transform: scale(1.05);
-}
-
-.knob:active {
-  transform: scale(0.98);
-}
-
-.knob::after {
-  content: '';
+.knob-ind {
   position: absolute;
   top: 4px;
   left: 50%;
@@ -299,86 +268,138 @@ body {
   box-shadow: 0 0 6px var(--accent-orange);
 }
 
+.knob-name {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.knob-val {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent-cyan);
+}
+
+/* ══════════ SEQUENCER ══════════ */
+.seq {
+  margin-bottom: var(--space-md);
+}
+
+.seq-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xs);
+}
+
+.mute {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-dark);
+  background: linear-gradient(180deg, #2e3340, #1e222c);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.mute.muted {
+  background: var(--accent-red);
+  color: var(--border-dark);
+}
+
+.seq-step {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, #2a2e36, #1a1d22);
+  border: 1px solid var(--border-dark);
+  cursor: pointer;
+}
+
+.seq-step.on {
+  background: var(--accent-orange);
+  box-shadow: 0 0 6px var(--accent-orange);
+}
+
 /* ══════════ PADS ══════════ */
+.pads {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
 .pad {
+  aspect-ratio: 1;
   border-radius: var(--radius-md);
   background: linear-gradient(180deg, #2a2e36, #1a1d22);
   border: 1px solid var(--border-dark);
   cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--text-primary);
   transition: all 0.1s;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
 }
 
-.pad:active {
-  transform: scale(0.95);
-  background: linear-gradient(180deg, var(--accent-purple), #8a5cc0);
+.pad.hit {
+  background: var(--accent-purple);
   box-shadow: 0 0 16px rgba(192,132,252,0.5);
 }
 
-/* ══════════ SEQUENCER STEPS ══════════ */
-.seq-step {
-  aspect-ratio: 1;
+/* ══════════ TIMELINE ══════════ */
+.timeline {
+  display: flex;
+  gap: 2px;
+  margin-bottom: var(--space-md);
+}
+
+.tl-sec {
+  height: 24px;
   border-radius: var(--radius-sm);
   background: linear-gradient(180deg, #2a2e36, #1a1d22);
   border: 1px solid var(--border-dark);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: all 0.1s;
 }
 
-.seq-step.active {
-  background: linear-gradient(180deg, var(--accent-orange), #cc8a3c);
-  box-shadow: 0 0 8px rgba(255,180,84,0.5);
+/* ══════════ VIZ ══════════ */
+.viz {
+  width: 100%;
+  height: 60px;
+  background: linear-gradient(180deg, #0a0c12, #06080c);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-dark);
+  margin-bottom: var(--space-md);
 }
 
-.seq-step:hover {
-  transform: scale(1.05);
+/* ══════════ SELF TEST ══════════ */
+.self-test {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary);
 }
 
-/* ══════════ SLIDERS ══════════ */
-input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-  background: linear-gradient(180deg, #2a2e36, #1a1d22);
-  border-radius: var(--radius-sm);
-  outline: none;
+.self-test.err {
+  color: var(--accent-red);
 }
 
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--accent-cyan);
-  cursor: pointer;
-  box-shadow: 0 0 6px var(--accent-cyan);
+/* ══════════ RESPONSIVE ══════════ */
+@media (max-width: 768px) {
+  body { padding: 16px 8px; }
+  .chassis { padding: 18px 28px; }
+  .cheek { display: none; }
 }
 
-input[type="range"]::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--accent-cyan);
-  cursor: pointer;
-  box-shadow: 0 0 6px var(--accent-cyan);
-}
-
-/* ══════════ PRESET ITEMS ══════════ */
-.preset-item:hover {
-  background: var(--panel-secondary);
-}
-
-.preset-item.active {
-  background: var(--accent-orange);
-  color: var(--border-dark);
-}
-
-/* ══════════ VERTICAL SLIDERS ══════════ */
-.mixer-slider {
-  writing-mode: vertical-lr;
-  direction: rtl;
-  width: 20px;
-  height: 80px;
+@media (max-width: 480px) {
+  .chassis { padding: 14px 18px; }
 }
 </style>
 </head>
@@ -396,217 +417,33 @@ input[type="range"]::-moz-range-thumb {
     <div class="subtitle">Hyperspace Psytrance Workstation</div>
   </header>
   
-  <div class="midi-panel">
-    <button class="btn btn midi-learn-btn">MIDI: FILTER</button>
-    <button class="btn btn midi-learn-btn">MIDI: RESO</button>
-    <button class="btn btn midi-learn-btn">MIDI: DELAY</button>
-    <button class="btn btn midi-learn-btn">MIDI: REVERB</button>
-    <button class="btn btn midi-learn-btn">MIDI: DRIVE</button>
-    <button class="btn btn midi-learn-btn">MIDI: VOL</button>
-    <button class="btn btn midi-clear-btn">MIDI: CLEAR</button>
+  <div id="status" class="status">READY</div>
+  
+  <div class="transport">
+    <button id="playBtn" class="play-btn">PLAY</button>
+    <button id="variateBtn" class="play-btn">VARIATE</button>
+    <button id="nextSecBtn" class="play-btn">NEXT SEC</button>
+    <span id="engState" class="status">stopped</span>
   </div>
   
-  <!-- Main content area -->
-  <main class="device">
-    <!-- TRANSPORT -->
-    <section class="panel">
-      <div class="panel-title">TRANSPORT</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <button class="btn" id="playBtn">PLAY</button>
-        <button class="btn" id="stopBtn">STOP</button>
-        <button class="btn" id="recBtn">REC</button>
-        <button class="btn" id="variateBtn">VARIATE</button>
-        <button class="btn" id="undoBtn">UNDO</button>
-        <button class="btn" id="redoBtn">REDO</button>
-        <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
-          <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary)">BPM</span>
-          <input type="range" id="bpmSlider" min="60" max="200" value="145" style="width:100px">
-          <span id="bpmValue" style="font-family:var(--font-mono);font-size:12px;color:var(--accent-cyan)">145</span>
-        </div>
-      </div>
-    </section>
-    
-    <!-- DISPLAY -->
-    <section class="panel">
-      <div class="panel-title">DISPLAY</div>
-      <div class="display">
-        <div id="lcd1" style="font-size:16px;margin-bottom:4px">READY</div>
-        <div id="lcd2" style="font-size:12px;color:var(--text-secondary)">PSY3 PRO — HYPERSPACE WORKSTATION</div>
-      </div>
-    </section>
-    
-    <!-- SEQUENCER -->
-    <section class="panel">
-      <div class="panel-title">STEP SEQUENCER</div>
-      <div id="sequencer" style="display:grid;grid-template-columns:repeat(16,1fr);gap:4px">
-        <!-- 16 steps will be generated by JS -->
-      </div>
-    </section>
-    
-    <!-- MIXER -->
-    <section class="panel">
-      <div class="panel-title">MIXER</div>
-      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px">
-        <div style="text-align:center">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);margin-bottom:4px">KICK</div>
-          <input type="range" class="mixer-slider" orient="vertical" style="width:20px;height:80px" value="80">
-        </div>
-        <div style="text-align:center">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);margin-bottom:4px">BASS</div>
-          <input type="range" class="mixer-slider" orient="vertical" style="width:20px;height:80px" value="80">
-        </div>
-        <div style="text-align:center">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);margin-bottom:4px">LEAD</div>
-          <input type="range" class="mixer-slider" orient="vertical" style="width:20px;height:80px" value="80">
-        </div>
-        <div style="text-align:center">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);margin-bottom:4px">ARP</div>
-          <input type="range" class="mixer-slider" orient="vertical" style="width:20px;height:80px" value="80">
-        </div>
-        <div style="text-align:center">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);margin-bottom:4px">PAD</div>
-          <input type="range" class="mixer-slider" orient="vertical" style="width:20px;height:80px" value="80">
-        </div>
-        <div style="text-align:center">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);margin-bottom:4px">PERC</div>
-          <input type="range" class="mixer-slider" orient="vertical" style="width:20px;height:80px" value="80">
-        </div>
-      </div>
-    </section>
-    
-    <!-- FX CHAIN -->
-    <section class="panel">
-      <div class="panel-title">FX CHAIN</div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
-        <div style="text-align:center">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-orange);margin-bottom:8px">FILTER</div>
-          <div class="knob fx-knob" style="width:48px;height:48px;margin:0 auto"></div>
-          <div style="font-family:var(--font-mono);font-size:8px;color:var(--text-secondary);margin-top:4px">CUTOFF</div>
-        </div>
-        <div style="text-align:center">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-cyan);margin-bottom:8px">DELAY</div>
-          <div class="knob fx-knob" style="width:48px;height:48px;margin:0 auto"></div>
-          <div style="font-family:var(--font-mono);font-size:8px;color:var(--text-secondary);margin-top:4px">MIX</div>
-        </div>
-        <div style="text-align:center">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-purple);margin-bottom:8px">REVERB</div>
-          <div class="knob fx-knob" style="width:48px;height:48px;margin:0 auto"></div>
-          <div style="font-family:var(--font-mono);font-size:8px;color:var(--text-secondary);margin-top:4px">MIX</div>
-        </div>
-        <div style="text-align:center">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-red);margin-bottom:8px">DRIVE</div>
-          <div class="knob fx-knob" style="width:48px;height:48px;margin:0 auto"></div>
-          <div style="font-family:var(--font-mono);font-size:8px;color:var(--text-secondary);margin-top:4px">AMOUNT</div>
-        </div>
-      </div>
-    </section>
-    
-    <!-- PERFORMANCE PADS -->
-    <section class="panel">
-      <div class="panel-title">PERFORMANCE PADS</div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
-        <div class="pad" style="height:60px"></div>
-        <div class="pad" style="height:60px"></div>
-        <div class="pad" style="height:60px"></div>
-        <div class="pad" style="height:60px"></div>
-        <div class="pad" style="height:60px"></div>
-        <div class="pad" style="height:60px"></div>
-        <div class="pad" style="height:60px"></div>
-        <div class="pad" style="height:60px"></div>
-      </div>
-    </section>
-    
-    <!-- XY PAD -->
-    <section class="panel">
-      <div class="panel-title">XY PAD — FILTER CONTROL</div>
-      <div id="xyPad" style="width:100%;height:120px;background:linear-gradient(180deg,#0a0c12,#06080c);border-radius:var(--radius-md);border:1px solid var(--border-dark);position:relative;cursor:crosshair">
-        <div id="xyDot" style="position:absolute;width:12px;height:12px;border-radius:50%;background:var(--accent-cyan);box-shadow:0 0 10px var(--accent-cyan);top:50%;left:50%;transform:translate(-50%,-50%)"></div>
-      </div>
-    </section>
-    
-    <!-- PRESET BROWSER -->
-    <section class="panel">
-      <div class="panel-title">PRESET BROWSER</div>
-      <div style="display:flex;gap:8px;margin-bottom:12px">
-        <button class="btn" id="presetPrev">PREV</button>
-        <button class="btn" id="presetNext">NEXT</button>
-        <button class="btn" id="presetSave">SAVE</button>
-        <button class="btn" id="presetLoad">LOAD</button>
-        <input type="text" id="presetSearch" placeholder="SEARCH PRESETS..." style="flex:1;background:var(--panel-tertiary);border:1px solid var(--border-dark);border-radius:var(--radius-sm);padding:8px 12px;color:var(--text-primary);font-family:var(--font-mono);font-size:10px">
-      </div>
-      <div id="presetList" style="max-height:120px;overflow-y:auto;background:var(--panel-tertiary);border-radius:var(--radius-sm);padding:8px">
-        <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);padding:4px">FACTORY PRESETS</div>
-        <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">PSYTRANCE LEAD 01</div>
-        <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">ACID BASS 01</div>
-        <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">TRANCE PAD 01</div>
-        <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">TECHNO STAB 01</div>
-        <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">PROGRESSIVE ARP 01</div>
-        <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">DARK PSY BASS 01</div>
-        <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">GOA LEAD 01</div>
-        <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">FULL ON STAB 01</div>
-        <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">AMBIENT PAD 01</div>
-        <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">PERC LOOP 01</div>
-      </div>
-    </section>
-    
-    <!-- PATTERN EDITOR -->
-    <section class="panel">
-      <div class="panel-title">PATTERN EDITOR</div>
-      <div style="display:flex;gap:8px;margin-bottom:12px">
-        <button class="btn" id="patternClear">CLEAR</button>
-        <button class="btn" id="patternRandom">RANDOM</button>
-        <button class="btn" id="patternReverse">REVERSE</button>
-        <button class="btn" id="patternShift">SHIFT</button>
-        <button class="btn" id="patternDouble">DOUBLE</button>
-        <button class="btn" id="patternHalf">HALF</button>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
-        <div style="text-align:center">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-orange);margin-bottom:4px">PROBABILITY</div>
-          <input type="range" id="probSlider" min="0" max="100" value="100" style="width:100%">
-          <div id="probValue" style="font-family:var(--font-mono);font-size:10px;color:var(--accent-cyan)">100%</div>
-        </div>
-        <div style="text-align:center">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-cyan);margin-bottom:4px">REPEAT</div>
-          <input type="range" id="repeatSlider" min="1" max="4" value="1" style="width:100%">
-          <div id="repeatValue" style="font-family:var(--font-mono);font-size:10px;color:var(--accent-cyan)">1x</div>
-        </div>
-        <div style="text-align:center">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-purple);margin-bottom:4px">VELOCITY</div>
-          <input type="range" id="velSlider" min="0" max="127" value="100" style="width:100%">
-          <div id="velValue" style="font-family:var(--font-mono);font-size:10px;color:var(--accent-cyan)">100</div>
-        </div>
-        <div style="text-align:center">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-green);margin-bottom:4px">SWING</div>
-          <input type="range" id="swingSlider" min="0" max="50" value="0" style="width:100%">
-          <div id="swingValue" style="font-family:var(--font-mono);font-size:10px;color:var(--accent-cyan)">0%</div>
-        </div>
-      </div>
-    </section>
-    
-    <!-- AUTOMATION -->
-    <section class="panel">
-      <div class="panel-title">AUTOMATION</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
-        <div style="text-align:center">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-orange);margin-bottom:4px">LFO RATE</div>
-          <input type="range" id="lfoRateSlider" min="0" max="20" value="5" style="width:100%">
-          <div id="lfoRateValue" style="font-family:var(--font-mono);font-size:10px;color:var(--accent-cyan)">5.0 Hz</div>
-        </div>
-        <div style="text-align:center">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-cyan);margin-bottom:4px">LFO DEPTH</div>
-          <input type="range" id="lfoDepthSlider" min="0" max="100" value="50" style="width:100%">
-          <div id="lfoDepthValue" style="font-family:var(--font-mono);font-size:10px;color:var(--accent-cyan)">50%</div>
-        </div>
-        <div style="text-align:center">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-purple);margin-bottom:4px">ENVELOPE</div>
-          <input type="range" id="envSlider" min="0" max="100" value="50" style="width:100%">
-          <div id="envValue" style="font-family:var(--font-mono);font-size:10px;color:var(--accent-cyan)">50%</div>
-        </div>
-      </div>
-    </section>
-  </main>
+  <div class="display">
+    <div id="lcd1" class="lcd-line">READY</div>
+    <div id="lcd2" class="lcd-line">PSY3 PRO</div>
+    <div id="nowPlaying" class="lcd-line"></div>
+    <div id="lcdSteps" class="lcd-steps"></div>
+  </div>
   
+  <div id="knobs" class="knobs"></div>
+  
+  <div id="seq" class="seq"></div>
+  
+  <div id="pads" class="pads"></div>
+  
+  <div id="timeline" class="timeline"></div>
+  
+  <canvas id="viz" class="viz"></canvas>
+  
+  <div id="selfTest" class="self-test">SELF TEST: PENDING</div>
 </div>
 
 <script src="app.js"></script>
