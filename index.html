@@ -5435,6 +5435,291 @@ function connectSequencerPlayback() {
     });
   }
 }
+
+/* ══════════════════════════════════════════════════════════
+   ACTUAL SYNTHESIS (v8.0)
+   ══════════════════════════════════════════════════════════ */
+
+// Play a note with actual synthesis
+function playNote(midiNote, duration, presetIdx) {
+  if (!device || !device.ctx) return;
+  
+  var preset = PRESETS[presetIdx || 0];
+  var ctx = device.ctx;
+  var t = ctx.currentTime;
+  
+  // Convert MIDI note to frequency
+  var freq = 440 * Math.pow(2, (midiNote - 69) / 12);
+  
+  // Create oscillators
+  var osc1 = ctx.createOscillator();
+  var osc2 = ctx.createOscillator();
+  osc1.type = preset.osc1 || 'sawtooth';
+  osc2.type = preset.osc2 || 'square';
+  osc1.frequency.value = freq;
+  osc2.frequency.value = freq * 1.005; // Slight detune
+  
+  // Create filter
+  var filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = preset.filterCutoff || 8000;
+  filter.Q.value = preset.filterRes || 5;
+  
+  // Create envelope
+  var env = ctx.createGain();
+  env.gain.setValueAtTime(0, t);
+  env.gain.linearRampToValueAtTime(0.3, t + (preset.attack || 0.01));
+  env.gain.linearRampToValueAtTime(0.2, t + (preset.attack || 0.01) + (preset.decay || 0.1));
+  env.gain.setValueAtTime(0.2 * (preset.sustain || 0.7), t + duration - (preset.release || 0.3));
+  env.gain.linearRampToValueAtTime(0, t + duration);
+  
+  // Connect: osc -> filter -> env -> master
+  osc1.connect(filter);
+  osc2.connect(filter);
+  filter.connect(env);
+  env.connect(device.master);
+  
+  // Start and stop
+  osc1.start(t);
+  osc2.start(t);
+  osc1.stop(t + duration);
+  osc2.stop(t + duration);
+}
+
+// Play a chord
+function playChord(midiNotes, duration, presetIdx) {
+  midiNotes.forEach(function(note) {
+    playNote(note, duration, presetIdx);
+  });
+}
+
+// Play a bass note
+function playBass(midiNote, duration) {
+  if (!device || !device.ctx) return;
+  
+  var ctx = device.ctx;
+  var t = ctx.currentTime;
+  var freq = 440 * Math.pow(2, (midiNote - 69) / 12);
+  
+  var osc = ctx.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.value = freq;
+  
+  var filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 500;
+  filter.Q.value = 8;
+  
+  var env = ctx.createGain();
+  env.gain.setValueAtTime(0.4, t);
+  env.gain.exponentialRampToValueAtTime(0.001, t + duration);
+  
+  osc.connect(filter);
+  filter.connect(env);
+  env.connect(device.master);
+  
+  osc.start(t);
+  osc.stop(t + duration);
+}
+
+// Play a kick drum
+function playKick() {
+  if (!device || !device.ctx) return;
+  
+  var ctx = device.ctx;
+  var t = ctx.currentTime;
+  
+  var osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(150, t);
+  osc.frequency.exponentialRampToValueAtTime(50, t + 0.1);
+  
+  var env = ctx.createGain();
+  env.gain.setValueAtTime(0.8, t);
+  env.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+  
+  osc.connect(env);
+  env.connect(device.master);
+  
+  osc.start(t);
+  osc.stop(t + 0.3);
+}
+
+// Play a hi-hat
+function playHiHat() {
+  if (!device || !device.ctx) return;
+  
+  var ctx = device.ctx;
+  var t = ctx.currentTime;
+  
+  // Create noise buffer
+  var bufferSize = ctx.sampleRate * 0.05;
+  var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  var data = buffer.getChannelData(0);
+  for (var i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1;
+  }
+  
+  var noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+  
+  var filter = ctx.createBiquadFilter();
+  filter.type = 'highpass';
+  filter.frequency.value = 8000;
+  
+  var env = ctx.createGain();
+  env.gain.setValueAtTime(0.3, t);
+  env.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+  
+  noise.connect(filter);
+  filter.connect(env);
+  env.connect(device.master);
+  
+  noise.start(t);
+}
+
+// Play a snare
+function playSnare() {
+  if (!device || !device.ctx) return;
+  
+  var ctx = device.ctx;
+  var t = ctx.currentTime;
+  
+  // Noise component
+  var bufferSize = ctx.sampleRate * 0.1;
+  var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  var data = buffer.getChannelData(0);
+  for (var i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1;
+  }
+  
+  var noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+  
+  var noiseFilter = ctx.createBiquadFilter();
+  noiseFilter.type = 'bandpass';
+  noiseFilter.frequency.value = 3000;
+  
+  var noiseEnv = ctx.createGain();
+  noiseEnv.gain.setValueAtTime(0.5, t);
+  noiseEnv.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+  
+  noise.connect(noiseFilter);
+  noiseFilter.connect(noiseEnv);
+  noiseEnv.connect(device.master);
+  
+  // Tone component
+  var osc = ctx.createOscillator();
+  osc.type = 'triangle';
+  osc.frequency.value = 200;
+  
+  var oscEnv = ctx.createGain();
+  oscEnv.gain.setValueAtTime(0.3, t);
+  oscEnv.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+  
+  osc.connect(oscEnv);
+  oscEnv.connect(device.master);
+  
+  noise.start(t);
+  osc.start(t);
+  osc.stop(t + 0.1);
+}
+
+// Update previewStep to use actual synthesis
+Groovebox.prototype.previewStep = function(stepIdx) {
+  if (!this.ctx) return;
+  
+  // Play different sounds based on step position
+  if (stepIdx % 4 === 0) {
+    playKick();
+  } else if (stepIdx % 4 === 2) {
+    playSnare();
+  } else {
+    playHiHat();
+  }
+};
+
+/* ══════════════════════════════════════════════════════════
+   PATTERN EDITOR FUNCTIONALITY (v8.0)
+   ══════════════════════════════════════════════════════════ */
+
+// Pattern editor operations
+function patternClear() {
+  var steps = document.querySelectorAll('.seq-step');
+  steps.forEach(function(step) {
+    step.classList.remove('active');
+  });
+  UndoRedo.push(getSequencerState());
+}
+
+function patternRandom() {
+  var steps = document.querySelectorAll('.seq-step');
+  steps.forEach(function(step) {
+    if (Math.random() > 0.5) {
+      step.classList.add('active');
+    } else {
+      step.classList.remove('active');
+    }
+  });
+  UndoRedo.push(getSequencerState());
+}
+
+function patternReverse() {
+  var steps = document.querySelectorAll('.seq-step');
+  var states = Array.from(steps).map(function(s) { return s.classList.contains('active'); });
+  states.reverse();
+  steps.forEach(function(step, idx) {
+    step.classList.toggle('active', states[idx]);
+  });
+  UndoRedo.push(getSequencerState());
+}
+
+function patternShift() {
+  var steps = document.querySelectorAll('.seq-step');
+  var states = Array.from(steps).map(function(s) { return s.classList.contains('active'); });
+  states.push(states.shift()); // Shift right
+  steps.forEach(function(step, idx) {
+    step.classList.toggle('active', states[idx]);
+  });
+  UndoRedo.push(getSequencerState());
+}
+
+function patternDouble() {
+  var steps = document.querySelectorAll('.seq-step');
+  var states = Array.from(steps).map(function(s) { return s.classList.contains('active'); });
+  // Double the pattern (repeat first 8 steps)
+  for (var i = 0; i < 8; i++) {
+    steps[i + 8].classList.toggle('active', states[i]);
+  }
+  UndoRedo.push(getSequencerState());
+}
+
+function patternHalf() {
+  var steps = document.querySelectorAll('.seq-step');
+  var states = Array.from(steps).map(function(s) { return s.classList.contains('active'); });
+  // Half the pattern (clear second 8 steps)
+  for (var i = 8; i < 16; i++) {
+    steps[i].classList.remove('active');
+  }
+  UndoRedo.push(getSequencerState());
+}
+
+// Connect pattern editor buttons
+function connectPatternEditor() {
+  var clearBtn = document.getElementById('patternClear');
+  var randomBtn = document.getElementById('patternRandom');
+  var reverseBtn = document.getElementById('patternReverse');
+  var shiftBtn = document.getElementById('patternShift');
+  var doubleBtn = document.getElementById('patternDouble');
+  var halfBtn = document.getElementById('patternHalf');
+  
+  if (clearBtn) clearBtn.addEventListener('click', patternClear);
+  if (randomBtn) randomBtn.addEventListener('click', patternRandom);
+  if (reverseBtn) reverseBtn.addEventListener('click', patternReverse);
+  if (shiftBtn) shiftBtn.addEventListener('click', patternShift);
+  if (doubleBtn) doubleBtn.addEventListener('click', patternDouble);
+  if (halfBtn) halfBtn.addEventListener('click', patternHalf);
+}
 function initPanels() {
   initSequencer();
   initBpmSlider();
@@ -5448,6 +5733,7 @@ function initPanels() {
   initMixer();
   initFxKnobs();
   connectSequencerPlayback();
+  connectPatternEditor();
 }
 
 // Run initialization when DOM is ready
