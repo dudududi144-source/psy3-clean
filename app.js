@@ -4102,71 +4102,9 @@ function initXyPad() {
   
   var xyActive = false;
   
-  function updateXy(x, y) {
-    var rect = xyPad.getBoundingClientRect();
-    var nx = Math.max(0, Math.min(1, (x - rect.left) / rect.width));
-    var ny = Math.max(0, Math.min(1, (y - rect.top) / rect.height));
-    xyDot.style.left = (nx * 100) + '%';
-    xyDot.style.top = (ny * 100) + '%';
-    
-    // Apply to filter
-    if (device && device.autoFilter) {
-      device.autoFilter.frequency.setTargetAtTime(100 + nx * 17900, device.ctx.currentTime, 0.05);
-      device.autoFilter.Q.setTargetAtTime(0.5 + ny * 19.5, device.ctx.currentTime, 0.05);
-    }
-  }
   
-  xyPad.addEventListener('pointerdown', function(e) {
-    xyActive = true;
-    xyPad.setPointerCapture(e.pointerId);
-    updateXy(e.clientX, e.clientY);
-  });
-  
-  xyPad.addEventListener('pointermove', function(e) {
-    if (xyActive) updateXy(e.clientX, e.clientY);
-  });
-  
-  xyPad.addEventListener('pointerup', function() {
-    xyActive = false;
-  });
-  
-  xyPad.addEventListener('pointercancel', function() {
-    xyActive = false;
-  });
-}
 
-function updateXy(x, y) {
-    var rect = xyPad.getBoundingClientRect();
-    var nx = Math.max(0, Math.min(1, (x - rect.left) / rect.width));
-    var ny = Math.max(0, Math.min(1, (y - rect.top) / rect.height));
-    xyDot.style.left = (nx * 100) + '%';
-    xyDot.style.top = (ny * 100) + '%';
-    
-    // Apply to filter
-    if (device && device.autoFilter) {
-      device.autoFilter.frequency.setTargetAtTime(100 + nx * 17900, device.ctx.currentTime, 0.05);
-      device.autoFilter.Q.setTargetAtTime(0.5 + ny * 19.5, device.ctx.currentTime, 0.05);
-    }
-  }
-  
-  xyPad.addEventListener('pointerdown', function(e) {
-    xyActive = true;
-    xyPad.setPointerCapture(e.pointerId);
-    updateXy(e.clientX, e.clientY);
-  });
-  
-  xyPad.addEventListener('pointermove', function(e) {
-    if (xyActive) updateXy(e.clientX, e.clientY);
-  });
-  
-  xyPad.addEventListener('pointerup', function() {
-    xyActive = false;
-  });
-  
-  xyPad.addEventListener('pointercancel', function() {
-    xyActive = false;
-  });
-}
+
 
 // Initialize all panels
 
