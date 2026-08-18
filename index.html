@@ -963,6 +963,7 @@ function Groovebox(){
   this.delayIn=null; this.dL=null; this.dR=null; this.reverbIn=null;
   this.partGains={}; this.duck=null;
   this.noiseBuf=null; this.voices=null;
+  this.pendingSeekBar=null;
   this.isPlaying=false; this.absStep=0; this.nextNoteTime=0; this.timerId=null;
   this.uiQueue=[];
   this.bpm=145; this.swing=0.12;
@@ -1132,6 +1133,13 @@ Groovebox.prototype.scheduler=function(){
       this.uiQueue.push({step:step,time:this.nextNoteTime});
       this.nextNoteTime+=this.stepDur();
       this.absStep++;
+    // Check if there's a pending seek
+    if(this.pendingSeekBar!==null && this.absStep%16===0){
+      var pendingBar=this.pendingSeekBar;
+      this.pendingSeekBar=null;
+      this._doSeekToBar(pendingBar);
+      return;
+    }
     }
   }catch(e){ }
 };
@@ -1146,6 +1154,19 @@ Groovebox.prototype.jumpSection=function(){
   this.seekToBar(this.song.sectionStarts[nextIdx]);
 };
 Groovebox.prototype.seekToBar=function(bar){
+  // Quantize: wait for end of current bar before seeking
+  var currentBar=Math.floor(this.absStep/16);
+  var barInCurrentBar=this.absStep%16;
+  if(barInCurrentBar>0 && this.isPlaying){
+    // We're in the middle of a bar, queue the seek
+    this.pendingSeekBar=bar;
+    this.updateLcd();
+    return;
+  }
+  // We're at the start of a bar, seek immediately
+  this._doSeekToBar(bar);
+};
+Groovebox.prototype._doSeekToBar=function(bar){
   this._barCacheKey=-1;
   this.uiQueue.length=0;
   this.absStep=bar*16;
