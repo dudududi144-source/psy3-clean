@@ -371,6 +371,14 @@ input[type="range"]::-moz-range-thumb {
   background: var(--accent-orange);
   color: var(--border-dark);
 }
+
+/* ══════════ VERTICAL SLIDERS ══════════ */
+.mixer-slider {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 20px;
+  height: 80px;
+}
 </style>
 </head>
 <body>
@@ -388,13 +396,13 @@ input[type="range"]::-moz-range-thumb {
   </header>
   
   <div class="midi-panel">
-    <button class="btn" onclick="MIDILearn.start('filter')">MIDI: FILTER</button>
-    <button class="btn" onclick="MIDILearn.start('resonance')">MIDI: RESO</button>
-    <button class="btn" onclick="MIDILearn.start('delay')">MIDI: DELAY</button>
-    <button class="btn" onclick="MIDILearn.start('reverb')">MIDI: REVERB</button>
-    <button class="btn" onclick="MIDILearn.start('drive')">MIDI: DRIVE</button>
-    <button class="btn" onclick="MIDILearn.start('volume')">MIDI: VOL</button>
-    <button class="btn" onclick="MIDILearn.clear()">MIDI: CLEAR</button>
+    <button class="btn btn midi-learn-btn">MIDI: FILTER</button>
+    <button class="btn btn midi-learn-btn">MIDI: RESO</button>
+    <button class="btn btn midi-learn-btn">MIDI: DELAY</button>
+    <button class="btn btn midi-learn-btn">MIDI: REVERB</button>
+    <button class="btn btn midi-learn-btn">MIDI: DRIVE</button>
+    <button class="btn btn midi-learn-btn">MIDI: VOL</button>
+    <button class="btn btn midi-clear-btn">MIDI: CLEAR</button>
   </div>
   
   <!-- Main content area -->
@@ -440,27 +448,27 @@ input[type="range"]::-moz-range-thumb {
       <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px">
         <div style="text-align:center">
           <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);margin-bottom:4px">KICK</div>
-          <input type="range" class="mixer-slider" orient="vertical" style="writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:20px;height:80px" value="80">
+          <input type="range" class="mixer-slider" orient="vertical" style="width:20px;height:80px" value="80">
         </div>
         <div style="text-align:center">
           <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);margin-bottom:4px">BASS</div>
-          <input type="range" class="mixer-slider" orient="vertical" style="writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:20px;height:80px" value="80">
+          <input type="range" class="mixer-slider" orient="vertical" style="width:20px;height:80px" value="80">
         </div>
         <div style="text-align:center">
           <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);margin-bottom:4px">LEAD</div>
-          <input type="range" class="mixer-slider" orient="vertical" style="writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:20px;height:80px" value="80">
+          <input type="range" class="mixer-slider" orient="vertical" style="width:20px;height:80px" value="80">
         </div>
         <div style="text-align:center">
           <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);margin-bottom:4px">ARP</div>
-          <input type="range" class="mixer-slider" orient="vertical" style="writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:20px;height:80px" value="80">
+          <input type="range" class="mixer-slider" orient="vertical" style="width:20px;height:80px" value="80">
         </div>
         <div style="text-align:center">
           <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);margin-bottom:4px">PAD</div>
-          <input type="range" class="mixer-slider" orient="vertical" style="writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:20px;height:80px" value="80">
+          <input type="range" class="mixer-slider" orient="vertical" style="width:20px;height:80px" value="80">
         </div>
         <div style="text-align:center">
           <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);margin-bottom:4px">PERC</div>
-          <input type="range" class="mixer-slider" orient="vertical" style="writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:20px;height:80px" value="80">
+          <input type="range" class="mixer-slider" orient="vertical" style="width:20px;height:80px" value="80">
         </div>
       </div>
     </section>
@@ -6122,6 +6130,29 @@ var MIDIOutput = {
 // Initialize MIDI output
 function initMIDIOutput() {
   MIDIOutput.init();
+}
+
+// Initialize MIDI buttons
+function initMidiButtons() {
+  var midiLearnBtns = document.querySelectorAll('.midi-learn-btn');
+  var midiClearBtn = document.querySelector('.midi-clear-btn');
+  
+  midiLearnBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var param = this.dataset.param;
+      if (MIDILearn && MIDILearn.start) {
+        MIDILearn.start(param);
+      }
+    });
+  });
+  
+  if (midiClearBtn) {
+    midiClearBtn.addEventListener('click', function() {
+      if (MIDILearn && MIDILearn.clear) {
+        MIDILearn.clear();
+      }
+    });
+  }
 }
 function initPanels() {
   initSequencer();
