@@ -847,6 +847,17 @@ Groovebox.prototype.cfg=function(){
   };
 };
 Groovebox.prototype.stepDur=function(){ return 60/this.bpm/4; };
+var PART_COLORS={
+  KICK:"#ff2e88",
+  BASS:"#ff8a3c",
+  PERC:"#ffd166",
+  LEAD:"#06d6a0",
+  ARP:"#118ab2",
+  PAD:"#a8e6cf"
+};
+
+var PART_NAMES=["KICK","BASS","PERC","LEAD","ARP","PAD"];
+
 Groovebox.prototype.init=function(){
   if(this.ctx){
     if(this.ctx.state==="suspended") return this.ctx.resume();
@@ -1235,17 +1246,10 @@ function setStatus(msg,kind){
   statusTimer=setTimeout(function(){ s.textContent=""; },6000);
 }
 /* ═══ PART COLORS ═══ */
-var PART_COLORS={
-  KICK:"#ff2e88",
-  BASS:"#ff8a3c",
-  PERC:"#ffd166",
-  LEAD:"#06d6a0",
-  ARP:"#118ab2",
-  PAD:"#a8e6cf"
-};
+
 
 /* ═══ PART NAMES ═══ */
-var PART_NAMES=["KICK","BASS","PERC","LEAD","ARP","PAD"];
+
 
 
 var KNOB_DEFS=[
