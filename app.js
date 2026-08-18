@@ -375,6 +375,17 @@ function makePatterns(seed){
 }
 
 /* ---------- synth voices ---------- */
+/* ═══ MAKE NOISE BUFFER ═══ */
+function makeNoiseBuffer(ctx){
+  var bufferSize=ctx.sampleRate*2;
+  var buffer=ctx.createBuffer(1,bufferSize,ctx.sampleRate);
+  var data=buffer.getChannelData(0);
+  for(var i=0;i<bufferSize;i++){
+    data[i]=Math.random()*2-1;
+  }
+  return buffer;
+}
+
 function makeVoices(ctx,outMap,sends,noiseBuf,cfg){
   function kick(t){
     var o=ctx.createOscillator(),g=ctx.createGain();
