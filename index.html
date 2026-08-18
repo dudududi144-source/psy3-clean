@@ -1767,6 +1767,23 @@ Groovebox.prototype.updateLcd=debounce(function(){
   var np=$("nowPlaying");
   if(np) np.textContent=sec.name+" \u00b7 theme "+sec.themeKey+" \u00b7 "+sec.bassStyle+" bass";
 }, 16);
+
+// Preview a sequencer step
+Groovebox.prototype.previewStep=function(stepIdx){
+  if(!this.ctx)return;
+  var t=this.ctx.currentTime+0.01;
+  // Play a short preview sound
+  var o=this.ctx.createOscillator();
+  var g=this.ctx.createGain();
+  o.type='sine';
+  o.frequency.value=440+stepIdx*50;
+  g.gain.setValueAtTime(0.3,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+0.1);
+  o.connect(g);
+  g.connect(this.master);
+  o.start(t);
+  o.stop(t+0.1);
+};
 Groovebox.prototype.selfTest=function(){
   return Promise.resolve({ok:true,rms:0.1,peak:0.5});
 };;
@@ -4579,6 +4596,14 @@ function initSequencer() {
     step.dataset.step = i;
     step.addEventListener('click', function() {
       this.classList.toggle('active');
+      // Trigger sound preview
+      if (device && this.classList.contains('active')) {
+        var stepIdx = parseInt(this.dataset.step);
+        // Preview the step sound
+        if (device.previewStep) {
+          device.previewStep(stepIdx);
+        }
+      }
     });
     seq.appendChild(step);
   }
@@ -4775,6 +4800,16 @@ function initPresetBrowser() {
       });
     });
   }
+  
+  // Add click handlers to preset items
+  var presetItems = presetList.querySelectorAll('.preset-item');
+  presetItems.forEach(function(item, idx) {
+    item.addEventListener('click', function() {
+      currentPresetIdx = idx;
+      updatePresetDisplay();
+      applyPreset(idx);
+    });
+  });
   
   updatePresetDisplay();
 }
@@ -5082,6 +5117,9 @@ function initMixer() {
       // Apply to device if available
       if (device && device.trackGains && device.trackGains[idx]) {
         device.trackGains[idx].gain.setTargetAtTime(value, device.ctx.currentTime, 0.01);
+      } else if (device && device.trackBuses && device.trackBuses[idx]) {
+        // Fallback: use trackBuses
+        device.trackBuses[idx].gain.setTargetAtTime(value, device.ctx.currentTime, 0.01);
       }
     });
   });
