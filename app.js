@@ -1223,6 +1223,16 @@ function setStatus(msg,kind){
   if(statusTimer)clearTimeout(statusTimer);
   statusTimer=setTimeout(function(){ s.textContent=""; },6000);
 }
+/* ═══ PART COLORS ═══ */
+var PART_COLORS={
+  KICK:"#ff2e88",
+  BASS:"#ff8a3c",
+  PERC:"#ffd166",
+  LEAD:"#06d6a0",
+  ARP:"#118ab2",
+  PAD:"#a8e6cf"
+};
+
 var KNOB_DEFS=[
   {name:"bpm",label:"BPM",fmt:function(v){ return String(Math.round(120+v*45)); }},
   {name:"filter",label:"FILTER",fmt:pctFmt},
