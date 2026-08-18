@@ -507,6 +507,78 @@ body {
 </main>
 <footer class="footer mono">PSY6 DMT VISION &middot; hyperspace edition</footer>
 <script>
+/* ══════════════════════════════════════════════════════════
+   PERFORMANCE UTILITIES (v2.0)
+   ══════════════════════════════════════════════════════════ */
+
+// Debounce utility
+function debounce(fn, delay) {
+  var timer = null;
+  return function() {
+    var ctx = this, args = arguments;
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(function() {
+      fn.apply(ctx, args);
+      timer = null;
+    }, delay);
+  };
+}
+
+// Throttle utility
+function throttle(fn, limit) {
+  var lastCall = 0;
+  return function() {
+    var now = Date.now();
+    if (now - lastCall >= limit) {
+      lastCall = now;
+      fn.apply(this, arguments);
+    }
+  };
+}
+
+// Pre-allocated buffer pool
+var BufferPool = {
+  buffers: [],
+  maxSize: 8,
+  get: function(size) {
+    for (var i = 0; i < this.buffers.length; i++) {
+      if (this.buffers[i].length >= size) {
+        return this.buffers[i];
+      }
+    }
+    var buf = new Float32Array(size);
+    if (this.buffers.length < this.maxSize) {
+      this.buffers.push(buf);
+    }
+    return buf;
+  },
+  clear: function() {
+    this.buffers = [];
+  }
+};
+
+// Object pool for voices
+var VoicePool = {
+  pool: [],
+  active: [],
+  maxSize: 32,
+  get: function() {
+    if (this.pool.length > 0) {
+      return this.pool.pop();
+    }
+    return {};
+  },
+  release: function(voice) {
+    if (this.pool.length < this.maxSize) {
+      this.pool.push(voice);
+    }
+  },
+  clear: function() {
+    this.pool = [];
+    this.active = [];
+  }
+};
+
 /* $ function - get element by ID */
 function $(id){return document.getElementById(id);}
 var ROOT=33;
@@ -1378,7 +1450,7 @@ Groovebox.prototype.getEnergy=function(){
   for(var i=0;i<this._timeBuf.length;i++){ var x=(this._timeBuf[i]-128)/128; sum+=x*x; }
   return Math.sqrt(sum/this._timeBuf.length);
 };
-Groovebox.prototype.updateLcd=function(){
+Groovebox.prototype.updateLcd=debounce(function(){
   var info=sectionAt(this.song,Math.floor(this.absStep/16));
   var sec=info.section;
   var l1=$("lcd1"),l2=$("lcd2");
@@ -1386,7 +1458,7 @@ Groovebox.prototype.updateLcd=function(){
   if(l2) l2.textContent=STYLE.name+"  BPM "+Math.round(this.bpm)+"  VAR "+this.variation+"  CYCLE "+this.arr.cycle;
   var np=$("nowPlaying");
   if(np) np.textContent=sec.name+" \u00b7 theme "+sec.themeKey+" \u00b7 "+sec.bassStyle+" bass";
-};
+}, 16);
 Groovebox.prototype.selfTest=function(){
   return Promise.resolve({ok:true,rms:0.1,peak:0.5});
 };;
