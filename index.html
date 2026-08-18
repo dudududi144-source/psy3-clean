@@ -10,8 +10,9 @@
    PSY3 PRO — Design System (PsySynthPro inspired)
    ══════════════════════════════════════════════════════════ */
 
-@import url('https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.8/index.css');
-@import url('https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.8/index.css');
+/* Fonts: using system fonts for reliability */
+/* @import url('https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.8/index.css'); */
+/* @import url('https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.8/index.css'); */
 
 :root {
   /* Color palette */
@@ -34,8 +35,8 @@
   --border-light: rgba(255,255,255,0.04);
   
   /* Typography */
-  --font-ui: 'Inter', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-ui: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'SF Mono', 'Consolas', 'Monaco', monospace;
   
   /* Spacing */
   --space-xs: 4px;
