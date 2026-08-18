@@ -361,6 +361,16 @@ input[type="range"]::-moz-range-thumb {
   cursor: pointer;
   box-shadow: 0 0 6px var(--accent-cyan);
 }
+
+/* ══════════ PRESET ITEMS ══════════ */
+.preset-item:hover {
+  background: var(--panel-secondary);
+}
+
+.preset-item.active {
+  background: var(--accent-orange);
+  color: var(--border-dark);
+}
 </style>
 </head>
 <body>
@@ -500,6 +510,83 @@ input[type="range"]::-moz-range-thumb {
       <div class="panel-title">XY PAD — FILTER CONTROL</div>
       <div id="xyPad" style="width:100%;height:120px;background:linear-gradient(180deg,#0a0c12,#06080c);border-radius:var(--radius-md);border:1px solid var(--border-dark);position:relative;cursor:crosshair">
         <div id="xyDot" style="position:absolute;width:12px;height:12px;border-radius:50%;background:var(--accent-cyan);box-shadow:0 0 10px var(--accent-cyan);top:50%;left:50%;transform:translate(-50%,-50%)"></div>
+      </div>
+    </section>
+    
+    <!-- PRESET BROWSER -->
+    <section class="panel">
+      <div class="panel-title">PRESET BROWSER</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="btn" id="presetPrev">PREV</button>
+        <button class="btn" id="presetNext">NEXT</button>
+        <button class="btn" id="presetSave">SAVE</button>
+        <button class="btn" id="presetLoad">LOAD</button>
+        <input type="text" id="presetSearch" placeholder="SEARCH PRESETS..." style="flex:1;background:var(--panel-tertiary);border:1px solid var(--border-dark);border-radius:var(--radius-sm);padding:8px 12px;color:var(--text-primary);font-family:var(--font-mono);font-size:10px">
+      </div>
+      <div id="presetList" style="max-height:120px;overflow-y:auto;background:var(--panel-tertiary);border-radius:var(--radius-sm);padding:8px">
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);padding:4px">FACTORY PRESETS</div>
+        <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">PSYTRANCE LEAD 01</div>
+        <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">ACID BASS 01</div>
+        <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">TRANCE PAD 01</div>
+        <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">TECHNO STAB 01</div>
+        <div class="preset-item" style="font-family:var(--font-mono);font-size:10px;color:var(--text-primary);padding:6px 8px;cursor:pointer;border-radius:var(--radius-sm)">PROGRESSIVE ARP 01</div>
+      </div>
+    </section>
+    
+    <!-- PATTERN EDITOR -->
+    <section class="panel">
+      <div class="panel-title">PATTERN EDITOR</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="btn" id="patternClear">CLEAR</button>
+        <button class="btn" id="patternRandom">RANDOM</button>
+        <button class="btn" id="patternReverse">REVERSE</button>
+        <button class="btn" id="patternShift">SHIFT</button>
+        <button class="btn" id="patternDouble">DOUBLE</button>
+        <button class="btn" id="patternHalf">HALF</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+        <div style="text-align:center">
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-orange);margin-bottom:4px">PROBABILITY</div>
+          <input type="range" id="probSlider" min="0" max="100" value="100" style="width:100%">
+          <div id="probValue" style="font-family:var(--font-mono);font-size:10px;color:var(--accent-cyan)">100%</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-cyan);margin-bottom:4px">REPEAT</div>
+          <input type="range" id="repeatSlider" min="1" max="4" value="1" style="width:100%">
+          <div id="repeatValue" style="font-family:var(--font-mono);font-size:10px;color:var(--accent-cyan)">1x</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-purple);margin-bottom:4px">VELOCITY</div>
+          <input type="range" id="velSlider" min="0" max="127" value="100" style="width:100%">
+          <div id="velValue" style="font-family:var(--font-mono);font-size:10px;color:var(--accent-cyan)">100</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-green);margin-bottom:4px">SWING</div>
+          <input type="range" id="swingSlider" min="0" max="50" value="0" style="width:100%">
+          <div id="swingValue" style="font-family:var(--font-mono);font-size:10px;color:var(--accent-cyan)">0%</div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- AUTOMATION -->
+    <section class="panel">
+      <div class="panel-title">AUTOMATION</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+        <div style="text-align:center">
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-orange);margin-bottom:4px">LFO RATE</div>
+          <input type="range" id="lfoRateSlider" min="0" max="20" value="5" style="width:100%">
+          <div id="lfoRateValue" style="font-family:var(--font-mono);font-size:10px;color:var(--accent-cyan)">5.0 Hz</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-cyan);margin-bottom:4px">LFO DEPTH</div>
+          <input type="range" id="lfoDepthSlider" min="0" max="100" value="50" style="width:100%">
+          <div id="lfoDepthValue" style="font-family:var(--font-mono);font-size:10px;color:var(--accent-cyan)">50%</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-purple);margin-bottom:4px">ENVELOPE</div>
+          <input type="range" id="envSlider" min="0" max="100" value="50" style="width:100%">
+          <div id="envValue" style="font-family:var(--font-mono);font-size:10px;color:var(--accent-cyan)">50%</div>
+        </div>
       </div>
     </section>
   </main>
