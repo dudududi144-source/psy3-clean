@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PSY6 DMT VISION</title>
 
+<style>
 /* ══════════════════════════════════════════════════════════
    PSY3 PRO — Design System (PsySynthPro inspired)
    ══════════════════════════════════════════════════════════ */
@@ -354,6 +355,15 @@ body {
   <div class="logo">PSY6<span>DMT VISION</span></div>
   <div class="subtitle">hyperspace psytrance workstation</div>
 </header>
+<div class="midi-panel">
+  <button class="btn" onclick="MIDILearn.start('filter')" title="Learn filter CC">MIDI: FILTER</button>
+  <button class="btn" onclick="MIDILearn.start('resonance')" title="Learn resonance CC">MIDI: RESO</button>
+  <button class="btn" onclick="MIDILearn.start('delay')" title="Learn delay CC">MIDI: DELAY</button>
+  <button class="btn" onclick="MIDILearn.start('reverb')" title="Learn reverb CC">MIDI: REVERB</button>
+  <button class="btn" onclick="MIDILearn.start('drive')" title="Learn drive CC">MIDI: DRIVE</button>
+  <button class="btn" onclick="MIDILearn.start('volume')" title="Learn volume CC">MIDI: VOL</button>
+  <button class="btn" onclick="MIDILearn.clear()" title="Clear all MIDI mappings">MIDI: CLEAR</button>
+</div>
 <main class="device">
   <section class="panel">
     <div class="top-row">
@@ -506,6 +516,30 @@ body {
   <div id="status" class="status dim"></div>
 </main>
 <footer class="footer mono">PSY6 DMT VISION &middot; hyperspace edition</footer>
+
+
+/* ══════════ MIDI PANEL ══════════ */
+.midi-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: linear-gradient(180deg, #1a1d24 0%, var(--panel-secondary) 100%);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-dark);
+  margin-bottom: var(--space-md);
+}
+
+.midi-panel .btn {
+  font-size: 9px;
+  padding: 6px 10px;
+}
+
+.midi-panel .btn.active {
+  background: linear-gradient(180deg, var(--accent-cyan), #2a7a8c);
+  box-shadow: 0 0 12px rgba(63,169,188,0.4);
+}
+</style>
 <script>
 /* ══════════════════════════════════════════════════════════
    PERFORMANCE UTILITIES (v2.0)
@@ -578,6 +612,142 @@ var VoicePool = {
     this.active = [];
   }
 };
+
+/* ══════════════════════════════════════════════════════════
+   MIDI LEARN SYSTEM (v3.0)
+   ══════════════════════════════════════════════════════════ */
+
+// MIDI Learn state
+var MIDILearn = {
+  active: false,
+  targetParam: null,
+  ccMap: {},      // CC number -> parameter mapping
+  noteMap: {},    // Note number -> action mapping
+  lastCC: null,
+  lastNote: null,
+  
+  // Start learning a parameter
+  start: function(param) {
+    this.active = true;
+    this.targetParam = param;
+    console.log('MIDI Learn: waiting for CC for ' + param);
+  },
+  
+  // Stop learning
+  stop: function() {
+    this.active = false;
+    this.targetParam = null;
+  },
+  
+  // Handle incoming CC
+  handleCC: function(cc, value) {
+    this.lastCC = cc;
+    
+    // If learning, map this CC to the target parameter
+    if (this.active && this.targetParam) {
+      this.ccMap[cc] = this.targetParam;
+      console.log('MIDI Learn: mapped CC ' + cc + ' to ' + this.targetParam);
+      this.stop();
+      return true;
+    }
+    
+    // If mapped, apply the value
+    if (this.ccMap[cc]) {
+      var param = this.ccMap[cc];
+      var normalized = value / 127;
+      applyMIDIParam(param, normalized);
+      return true;
+    }
+    
+    return false;
+  },
+  
+  // Handle incoming note
+  handleNote: function(note, velocity) {
+    this.lastNote = note;
+    
+    // If mapped, trigger the action
+    if (this.noteMap[note]) {
+      var action = this.noteMap[note];
+      triggerMIDIAction(action, velocity);
+      return true;
+    }
+    
+    return false;
+  },
+  
+  // Clear all mappings
+  clear: function() {
+    this.ccMap = {};
+    this.noteMap = {};
+    console.log('MIDI Learn: all mappings cleared');
+  }
+};
+
+// Apply MIDI parameter to device
+function applyMIDIParam(param, value) {
+  if (!device) return;
+  
+  switch(param) {
+    case 'bpm':
+      device.bpm = 60 + value * 140; // 60-200 BPM
+      break;
+    case 'filter':
+      if (device.autoFilter) {
+        device.autoFilter.frequency.setTargetAtTime(100 + value * 17900, device.ctx.currentTime, 0.01);
+      }
+      break;
+    case 'resonance':
+      if (device.autoFilter) {
+        device.autoFilter.Q.setTargetAtTime(0.5 + value * 19.5, device.ctx.currentTime, 0.01);
+      }
+      break;
+    case 'delay':
+      if (device.delayMix) {
+        device.delayMix.gain.setTargetAtTime(value, device.ctx.currentTime, 0.01);
+      }
+      break;
+    case 'reverb':
+      if (device.reverbMix) {
+        device.reverbMix.gain.setTargetAtTime(value, device.ctx.currentTime, 0.01);
+      }
+      break;
+    case 'drive':
+      if (device.drivePost) {
+        device.drivePost.gain.setTargetAtTime(0.5 + value * 1.5, device.ctx.currentTime, 0.01);
+      }
+      break;
+    case 'volume':
+      if (device.master) {
+        device.master.gain.setTargetAtTime(value, device.ctx.currentTime, 0.01);
+      }
+      break;
+    case 'swing':
+      device.swing = value * 0.5; // 0-50% swing
+      break;
+    default:
+      console.log('MIDI Learn: unknown parameter ' + param);
+  }
+}
+
+// Trigger MIDI action
+function triggerMIDIAction(action, velocity) {
+  if (!device) return;
+  
+  switch(action) {
+    case 'play':
+      device.play();
+      break;
+    case 'stop':
+      device.stop();
+      break;
+    case 'variation':
+      device.variate();
+      break;
+    default:
+      console.log('MIDI Learn: unknown action ' + action);
+  }
+}
 
 /* $ function - get element by ID */
 function $(id){return document.getElementById(id);}
