@@ -834,6 +834,37 @@ function Groovebox(){
   this.lastLeadMidi=null;
   this._timeBuf=new Uint8Array(512);
 }
+/* ═══ GENRE SOUND CONFIG ═══ */
+var GENRE_SOUND_CONFIG={
+  "FULL-ON":{
+    bassWave:"sawtooth", bassCut:1200, bassRes:8, bassLvl:0.9,
+    leadCut:8000, leadRes:5, leadLvl:0.7,
+    arpCut:10000, arpRes:3, arpLvl:0.6,
+    padLvl:0.5, padCut:12000,
+    kickStart:150, kickEnd:55, kickDecay:0.10, kickPunch:0.35,
+    hatFreq:8000, hatDecay:0.04,
+    percTune:1.0, percDecay:0.08
+  },
+  "DARK-PSY":{
+    bassWave:"sawtooth", bassCut:800, bassRes:12, bassLvl:0.95,
+    leadCut:6000, leadRes:8, leadLvl:0.6,
+    arpCut:8000, arpRes:5, arpLvl:0.5,
+    padLvl:0.4, padCut:10000,
+    kickStart:120, kickEnd:45, kickDecay:0.12, kickPunch:0.4,
+    hatFreq:7000, hatDecay:0.05,
+    percTune:0.8, percDecay:0.10
+  },
+  "PROGRESSIVE":{
+    bassWave:"triangle", bassCut:1500, bassRes:5, bassLvl:0.85,
+    leadCut:10000, leadRes:3, leadLvl:0.7,
+    arpCut:12000, arpRes:2, arpLvl:0.65,
+    padLvl:0.6, padCut:14000,
+    kickStart:180, kickEnd:60, kickDecay:0.08, kickPunch:0.3,
+    hatFreq:9000, hatDecay:0.03,
+    percTune:1.2, percDecay:0.06
+  }
+};
+
 Groovebox.prototype.cfg=function(){
   var gs=window._genreSound||GENRE_SOUND_CONFIG["FULL-ON"];
   return {
