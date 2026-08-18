@@ -4392,6 +4392,159 @@ xyPad.addEventListener("pointerup",function(){xyActive=false;});
 xyPad.addEventListener("pointercancel",function(){xyActive=false;});
 }
 
+
+/* ══════════════════════════════════════════════════════════
+   PANEL INITIALIZATION (v4.0)
+   ══════════════════════════════════════════════════════════ */
+
+// Initialize sequencer steps
+function initSequencer() {
+  var seq = document.getElementById('sequencer');
+  if (!seq) return;
+  seq.innerHTML = '';
+  for (var i = 0; i < 16; i++) {
+    var step = document.createElement('div');
+    step.className = 'seq-step';
+    step.dataset.step = i;
+    step.addEventListener('click', function() {
+      this.classList.toggle('active');
+    });
+    seq.appendChild(step);
+  }
+}
+
+// Initialize BPM slider
+function initBpmSlider() {
+  var slider = document.getElementById('bpmSlider');
+  var value = document.getElementById('bpmValue');
+  if (!slider || !value) return;
+  slider.addEventListener('input', function() {
+    value.textContent = this.value;
+    if (device) {
+      device.bpm = parseInt(this.value);
+    }
+  });
+}
+
+// Initialize transport buttons
+function initTransport() {
+  var playBtn = document.getElementById('playBtn');
+  var stopBtn = document.getElementById('stopBtn');
+  var recBtn = document.getElementById('recBtn');
+  var variateBtn = document.getElementById('variateBtn');
+  
+  if (playBtn) {
+    playBtn.addEventListener('click', function() {
+      if (device) {
+        device.play();
+        this.classList.add('active');
+      }
+    });
+  }
+  
+  if (stopBtn) {
+    stopBtn.addEventListener('click', function() {
+      if (device) {
+        device.stop();
+        var playBtn = document.getElementById('playBtn');
+        if (playBtn) playBtn.classList.remove('active');
+      }
+    });
+  }
+  
+  if (recBtn) {
+    recBtn.addEventListener('click', function() {
+      if (device) {
+        // Toggle recording
+        this.classList.toggle('active');
+      }
+    });
+  }
+  
+  if (variateBtn) {
+    variateBtn.addEventListener('click', function() {
+      if (device) {
+        device.variate();
+      }
+    });
+  }
+}
+
+// Initialize performance pads
+function initPads() {
+  var pads = document.querySelectorAll('.pad');
+  pads.forEach(function(pad, idx) {
+    pad.addEventListener('pointerdown', function() {
+      this.style.background = 'linear-gradient(180deg, var(--accent-purple), #8a5cc0)';
+      this.style.boxShadow = '0 0 16px rgba(192,132,252,0.5)';
+      // Trigger pad sound
+      if (device) {
+        // device.triggerPad(idx);
+      }
+    });
+    pad.addEventListener('pointerup', function() {
+      this.style.background = '';
+      this.style.boxShadow = '';
+    });
+  });
+}
+
+// Initialize XY pad
+function initXyPad() {
+  var xyPad = document.getElementById('xyPad');
+  var xyDot = document.getElementById('xyDot');
+  if (!xyPad || !xyDot) return;
+  
+  var xyActive = false;
+  
+  function updateXy(x, y) {
+    var rect = xyPad.getBoundingClientRect();
+    var nx = Math.max(0, Math.min(1, (x - rect.left) / rect.width));
+    var ny = Math.max(0, Math.min(1, (y - rect.top) / rect.height));
+    xyDot.style.left = (nx * 100) + '%';
+    xyDot.style.top = (ny * 100) + '%';
+    
+    // Apply to filter
+    if (device && device.autoFilter) {
+      device.autoFilter.frequency.setTargetAtTime(100 + nx * 17900, device.ctx.currentTime, 0.05);
+      device.autoFilter.Q.setTargetAtTime(0.5 + ny * 19.5, device.ctx.currentTime, 0.05);
+    }
+  }
+  
+  xyPad.addEventListener('pointerdown', function(e) {
+    xyActive = true;
+    xyPad.setPointerCapture(e.pointerId);
+    updateXy(e.clientX, e.clientY);
+  });
+  
+  xyPad.addEventListener('pointermove', function(e) {
+    if (xyActive) updateXy(e.clientX, e.clientY);
+  });
+  
+  xyPad.addEventListener('pointerup', function() {
+    xyActive = false;
+  });
+  
+  xyPad.addEventListener('pointercancel', function() {
+    xyActive = false;
+  });
+}
+
+// Initialize all panels
+function initPanels() {
+  initSequencer();
+  initBpmSlider();
+  initTransport();
+  initPads();
+  initXyPad();
+}
+
+// Run initialization when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initPanels);
+} else {
+  initPanels();
+}
 </script>
 </body>
 </html>
