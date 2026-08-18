@@ -5134,10 +5134,75 @@ function initMixer() {
 // FX KNOB CONNECTIONS
 // ============================================================
 function initFxKnobs() {
-  var knobs = document.querySelectorAll('.knob');
-  var fxNames = ['FILTER', 'DELAY', 'REVERB', 'DRIVE'];
+  var knobs = document.querySelectorAll('.fx-knob');
+  var fxParams = ['filter', 'delay', 'reverb', 'drive'];
   
   knobs.forEach(function(knob, idx) {
+    var isDragging = false;
+    var startY = 0;
+    var startValue = 0.5;
+    var currentValue = 0.5;
+    
+    knob.addEventListener('pointerdown', function(e) {
+      isDragging = true;
+      startY = e.clientY;
+      startValue = currentValue;
+      knob.setPointerCapture(e.pointerId);
+    });
+    
+    knob.addEventListener('pointermove', function(e) {
+      if (!isDragging) return;
+      var deltaY = startY - e.clientY;
+      currentValue = Math.max(0, Math.min(1, startValue + deltaY / 200));
+      
+      // Update knob rotation
+      var rotation = currentValue * 270 - 135;
+      knob.style.transform = 'rotate(' + rotation + 'deg)';
+      
+      // Apply to device
+      if (device) {
+        applyFxParam(fxParams[idx], currentValue);
+      }
+    });
+    
+    knob.addEventListener('pointerup', function() {
+      isDragging = false;
+    });
+    
+    knob.addEventListener('pointercancel', function() {
+      isDragging = false;
+    });
+  });
+}
+
+function applyFxParam(param, value) {
+  if (!device) return;
+  
+  switch(param) {
+    case 'filter':
+      if (device.autoFilter) {
+        device.autoFilter.frequency.setTargetAtTime(100 + value * 17900, device.ctx.currentTime, 0.01);
+      }
+      break;
+    case 'delay':
+      if (device.delayMix) {
+        device.delayMix.gain.setTargetAtTime(value, device.ctx.currentTime, 0.01);
+      }
+      break;
+    case 'reverb':
+      if (device.reverbMix) {
+        device.reverbMix.gain.setTargetAtTime(value, device.ctx.currentTime, 0.01);
+      }
+      break;
+    case 'drive':
+      if (device.drivePost) {
+        device.drivePost.gain.setTargetAtTime(0.5 + value * 1.5, device.ctx.currentTime, 0.01);
+      }
+      break;
+  }
+}
+
+function(knob, idx) {
     var isDragging = false;
     var startY = 0;
     var startValue = 0.5;
@@ -5166,7 +5231,7 @@ function initFxKnobs() {
 
 function() {
       lfoRateValue.textContent = (this.value / 10).toFixed(1) + ' Hz';
-    });
+    };
   }
   
   if (lfoDepthSlider && lfoDepthValue) {
@@ -5798,34 +5863,76 @@ function patternHalf() {
 }
 
 // Connect pattern editor buttons
-function connectPatternEditor() {
-  var clearBtn = document.getElementById('patternClear');
-  var randomBtn = document.getElementById('patternRandom');
-  var reverseBtn = document.getElementById('patternReverse');
-  var shiftBtn = document.getElementById('patternShift');
-  var doubleBtn = document.getElementById('patternDouble');
-  var halfBtn = document.getElementById('patternHalf');
+function initFxKnobs() {
+  var knobs = document.querySelectorAll('.fx-knob');
+  var fxParams = ['filter', 'delay', 'reverb', 'drive'];
   
-  if (clearBtn) clearBtn.addEventListener('click', patternClear);
-  if (randomBtn) randomBtn.addEventListener('click', patternRandom);
-  if (reverseBtn) reverseBtn.addEventListener('click', patternReverse);
-  if (shiftBtn) shiftBtn.addEventListener('click', patternShift);
-  if (doubleBtn) doubleBtn.addEventListener('click', patternDouble);
-  if (halfBtn) halfBtn.addEventListener('click', patternHalf);
+  knobs.forEach(function(knob, idx) {
+    var isDragging = false;
+    var startY = 0;
+    var startValue = 0.5;
+    var currentValue = 0.5;
+    
+    knob.addEventListener('pointerdown', function(e) {
+      isDragging = true;
+      startY = e.clientY;
+      startValue = currentValue;
+      knob.setPointerCapture(e.pointerId);
+    });
+    
+    knob.addEventListener('pointermove', function(e) {
+      if (!isDragging) return;
+      var deltaY = startY - e.clientY;
+      currentValue = Math.max(0, Math.min(1, startValue + deltaY / 200));
+      
+      // Update knob rotation
+      var rotation = currentValue * 270 - 135;
+      knob.style.transform = 'rotate(' + rotation + 'deg)';
+      
+      // Apply to device
+      if (device) {
+        applyFxParam(fxParams[idx], currentValue);
+      }
+    });
+    
+    knob.addEventListener('pointerup', function() {
+      isDragging = false;
+    });
+    
+    knob.addEventListener('pointercancel', function() {
+      isDragging = false;
+    });
+  });
 }
 
-/* ══════════════════════════════════════════════════════════
-   AUTOMATION FUNCTIONALITY (v9.0)
-   ══════════════════════════════════════════════════════════ */
-
-var Automation = {
-  lfoRate: 5.0,
-  lfoDepth: 0.5,
-  envelope: 0.5,
-  lfoPhase: 0,
-  isRunning: false,
+function applyFxParam(param, value) {
+  if (!device) return;
   
-  start: function() {
+  switch(param) {
+    case 'filter':
+      if (device.autoFilter) {
+        device.autoFilter.frequency.setTargetAtTime(100 + value * 17900, device.ctx.currentTime, 0.01);
+      }
+      break;
+    case 'delay':
+      if (device.delayMix) {
+        device.delayMix.gain.setTargetAtTime(value, device.ctx.currentTime, 0.01);
+      }
+      break;
+    case 'reverb':
+      if (device.reverbMix) {
+        device.reverbMix.gain.setTargetAtTime(value, device.ctx.currentTime, 0.01);
+      }
+      break;
+    case 'drive':
+      if (device.drivePost) {
+        device.drivePost.gain.setTargetAtTime(0.5 + value * 1.5, device.ctx.currentTime, 0.01);
+      }
+      break;
+  }
+}
+
+function() {
     if (this.isRunning) return;
     this.isRunning = true;
     
@@ -5866,20 +5973,80 @@ var Automation = {
 };
 
 // Connect automation sliders
-function connectAutomation() {
-  var lfoRateSlider = document.getElementById('lfoRateSlider');
-  var lfoRateValue = document.getElementById('lfoRateValue');
-  var lfoDepthSlider = document.getElementById('lfoDepthSlider');
-  var lfoDepthValue = document.getElementById('lfoDepthValue');
-  var envSlider = document.getElementById('envSlider');
-  var envValue = document.getElementById('envValue');
+function initFxKnobs() {
+  var knobs = document.querySelectorAll('.fx-knob');
+  var fxParams = ['filter', 'delay', 'reverb', 'drive'];
   
-  if (lfoRateSlider && lfoRateValue) {
-    lfoRateSlider.addEventListener('input', function() {
+  knobs.forEach(function(knob, idx) {
+    var isDragging = false;
+    var startY = 0;
+    var startValue = 0.5;
+    var currentValue = 0.5;
+    
+    knob.addEventListener('pointerdown', function(e) {
+      isDragging = true;
+      startY = e.clientY;
+      startValue = currentValue;
+      knob.setPointerCapture(e.pointerId);
+    });
+    
+    knob.addEventListener('pointermove', function(e) {
+      if (!isDragging) return;
+      var deltaY = startY - e.clientY;
+      currentValue = Math.max(0, Math.min(1, startValue + deltaY / 200));
+      
+      // Update knob rotation
+      var rotation = currentValue * 270 - 135;
+      knob.style.transform = 'rotate(' + rotation + 'deg)';
+      
+      // Apply to device
+      if (device) {
+        applyFxParam(fxParams[idx], currentValue);
+      }
+    });
+    
+    knob.addEventListener('pointerup', function() {
+      isDragging = false;
+    });
+    
+    knob.addEventListener('pointercancel', function() {
+      isDragging = false;
+    });
+  });
+}
+
+function applyFxParam(param, value) {
+  if (!device) return;
+  
+  switch(param) {
+    case 'filter':
+      if (device.autoFilter) {
+        device.autoFilter.frequency.setTargetAtTime(100 + value * 17900, device.ctx.currentTime, 0.01);
+      }
+      break;
+    case 'delay':
+      if (device.delayMix) {
+        device.delayMix.gain.setTargetAtTime(value, device.ctx.currentTime, 0.01);
+      }
+      break;
+    case 'reverb':
+      if (device.reverbMix) {
+        device.reverbMix.gain.setTargetAtTime(value, device.ctx.currentTime, 0.01);
+      }
+      break;
+    case 'drive':
+      if (device.drivePost) {
+        device.drivePost.gain.setTargetAtTime(0.5 + value * 1.5, device.ctx.currentTime, 0.01);
+      }
+      break;
+  }
+}
+
+function() {
       var rate = this.value / 10;
       lfoRateValue.textContent = rate.toFixed(1) + ' Hz';
       Automation.setLfoRate(rate);
-    });
+    };
   }
   
   if (lfoDepthSlider && lfoDepthValue) {
