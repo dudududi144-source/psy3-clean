@@ -1569,9 +1569,8 @@ Groovebox.prototype.play=function(){
     self._barCacheKey=-1; self._lastSecIdx=-1;
     self.nextNoteTime=self.ctx.currentTime+0.06;
     self.updateDelayTime();
-    var WORKER_SRC="var iv=null;self.onmessage=function(e){if(e.data.c===\'s\'){if(iv)clearInterval(iv);iv=setInterval(function(){self.postMessage(0)},e.data.ms)}else{if(iv)clearInterval(iv);iv=null}};";
-try{var wb=new Blob([WORKER_SRC],{type:"application/javascript"});var ww=new Worker(URL.createObjectURL(wb));ww.onmessage=function(){self.scheduler();};ww.postMessage({c:"s",ms:25});self.timerId={stop:function(){ww.postMessage({c:"x"});ww.terminate();}};}
-catch(e){self.timerId=setInterval(function(){self.scheduler();},25);}
+    // Web Worker replaced with setInterval (CSP fix)
+    self.timerId=setInterval(function(){self.scheduler();},25);
   });
 };
 Groovebox.prototype.stop=function(){
