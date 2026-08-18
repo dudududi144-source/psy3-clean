@@ -407,6 +407,8 @@ input[type="range"]::-moz-range-thumb {
         <button class="btn" id="stopBtn">STOP</button>
         <button class="btn" id="recBtn">REC</button>
         <button class="btn" id="variateBtn">VARIATE</button>
+        <button class="btn" id="undoBtn">UNDO</button>
+        <button class="btn" id="redoBtn">REDO</button>
         <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
           <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary)">BPM</span>
           <input type="range" id="bpmSlider" min="60" max="200" value="145" style="width:100px">
@@ -438,27 +440,27 @@ input[type="range"]::-moz-range-thumb {
       <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px">
         <div style="text-align:center">
           <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);margin-bottom:4px">KICK</div>
-          <input type="range" orient="vertical" style="writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:20px;height:80px" value="80">
+          <input type="range" class="mixer-slider" orient="vertical" style="writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:20px;height:80px" value="80">
         </div>
         <div style="text-align:center">
           <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);margin-bottom:4px">BASS</div>
-          <input type="range" orient="vertical" style="writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:20px;height:80px" value="80">
+          <input type="range" class="mixer-slider" orient="vertical" style="writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:20px;height:80px" value="80">
         </div>
         <div style="text-align:center">
           <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);margin-bottom:4px">LEAD</div>
-          <input type="range" orient="vertical" style="writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:20px;height:80px" value="80">
+          <input type="range" class="mixer-slider" orient="vertical" style="writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:20px;height:80px" value="80">
         </div>
         <div style="text-align:center">
           <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);margin-bottom:4px">ARP</div>
-          <input type="range" orient="vertical" style="writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:20px;height:80px" value="80">
+          <input type="range" class="mixer-slider" orient="vertical" style="writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:20px;height:80px" value="80">
         </div>
         <div style="text-align:center">
           <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);margin-bottom:4px">PAD</div>
-          <input type="range" orient="vertical" style="writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:20px;height:80px" value="80">
+          <input type="range" class="mixer-slider" orient="vertical" style="writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:20px;height:80px" value="80">
         </div>
         <div style="text-align:center">
           <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);margin-bottom:4px">PERC</div>
-          <input type="range" orient="vertical" style="writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:20px;height:80px" value="80">
+          <input type="range" class="mixer-slider" orient="vertical" style="writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:20px;height:80px" value="80">
         </div>
       </div>
     </section>
@@ -666,6 +668,88 @@ var VoicePool = {
     this.active = [];
   }
 };
+
+/* ══════════════════════════════════════════════════════════
+   UNDO/REDO SYSTEM (v5.0)
+   ══════════════════════════════════════════════════════════ */
+
+var UndoRedo = {
+  history: [],
+  currentIndex: -1,
+  maxSize: 50,
+  
+  // Push a new state to history
+  push: function(state) {
+    // Remove any states after current index
+    this.history = this.history.slice(0, this.currentIndex + 1);
+    
+    // Add new state
+    this.history.push(JSON.parse(JSON.stringify(state)));
+    this.currentIndex++;
+    
+    // Limit history size
+    if (this.history.length > this.maxSize) {
+      this.history.shift();
+      this.currentIndex--;
+    }
+  },
+  
+  // Undo: go back one state
+  undo: function() {
+    if (this.currentIndex > 0) {
+      this.currentIndex--;
+      return JSON.parse(JSON.stringify(this.history[this.currentIndex]));
+    }
+    return null;
+  },
+  
+  // Redo: go forward one state
+  redo: function() {
+    if (this.currentIndex < this.history.length - 1) {
+      this.currentIndex++;
+      return JSON.parse(JSON.stringify(this.history[this.currentIndex]));
+    }
+    return null;
+  },
+  
+  // Check if undo is available
+  canUndo: function() {
+    return this.currentIndex > 0;
+  },
+  
+  // Check if redo is available
+  canRedo: function() {
+    return this.currentIndex < this.history.length - 1;
+  },
+  
+  // Clear history
+  clear: function() {
+    this.history = [];
+    this.currentIndex = -1;
+  }
+};
+
+// Get current sequencer state
+function getSequencerState() {
+  var steps = document.querySelectorAll('.seq-step');
+  var state = [];
+  steps.forEach(function(step) {
+    state.push(step.classList.contains('active'));
+  });
+  return state;
+}
+
+// Apply sequencer state
+function applySequencerState(state) {
+  var steps = document.querySelectorAll('.seq-step');
+  steps.forEach(function(step, idx) {
+    if (state[idx]) {
+      step.classList.add('active');
+    } else {
+      step.classList.remove('active');
+    }
+  });
+}
 
 /* ══════════════════════════════════════════════════════════
    MIDI LEARN SYSTEM (v3.0)
@@ -4958,6 +5042,50 @@ function() {
   }
 }
 
+
+// Initialize Undo/Redo
+function initUndoRedo() {
+  var undoBtn = document.getElementById('undoBtn');
+  var redoBtn = document.getElementById('redoBtn');
+  
+  if (undoBtn) {
+    undoBtn.addEventListener('click', function() {
+      var state = UndoRedo.undo();
+      if (state) {
+        applySequencerState(state);
+      }
+    });
+  }
+  
+  if (redoBtn) {
+    redoBtn.addEventListener('click', function() {
+      var state = UndoRedo.redo();
+      if (state) {
+        applySequencerState(state);
+      }
+    });
+  }
+  
+  // Push initial state
+  UndoRedo.push(getSequencerState());
+}
+
+// Initialize Mixer channels
+function initMixer() {
+  var sliders = document.querySelectorAll('.mixer-slider');
+  var channels = ['KICK', 'BASS', 'LEAD', 'ARP', 'PAD', 'PERC'];
+  
+  sliders.forEach(function(slider, idx) {
+    slider.addEventListener('input', function() {
+      var value = this.value / 100;
+      console.log('Mixer ' + channels[idx] + ': ' + value);
+      // Apply to device if available
+      if (device && device.trackGains && device.trackGains[idx]) {
+        device.trackGains[idx].gain.setTargetAtTime(value, device.ctx.currentTime, 0.01);
+      }
+    });
+  });
+}
 function initPanels() {
   initSequencer();
   initBpmSlider();
