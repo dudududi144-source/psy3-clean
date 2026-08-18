@@ -4495,13 +4495,7 @@ function initFxKnobs() {
   var knobs = document.querySelectorAll('.fx-knob');
   var fxParams = ['filter', 'delay', 'reverb', 'drive'];
   
-  knobs.forEach(function(knob, idx) {
-    var isDragging = false;
-    var startY = 0;
-    var startValue = 0.5;
-    var currentValue = 0.5;
-    
-    knob.addEventListener('pointerdown', function(e) {
+  knobs.forEach(function(e) {
       isDragging = true;
       startY = e.clientY;
       startValue = currentValue;
@@ -4530,7 +4524,7 @@ function initFxKnobs() {
     knob.addEventListener('pointercancel', function() {
       isDragging = false;
     });
-  });
+  };
 }
 
 function applyFxParam(param, value) {
