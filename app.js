@@ -1668,7 +1668,7 @@ function triggerMacroBurst(name){
 
 
 /* ═══ GRAMMAR SYSTEM ═══ */
-=================================
+// ============================================================
 // GRAMMAR SYSTEM — Statistical Learning (from PSY4)
 // ============================================================
 const grammars = {
