@@ -4738,6 +4738,39 @@ function initXyPad() {
   });
 }
 
+function updateXy(x, y) {
+    var rect = xyPad.getBoundingClientRect();
+    var nx = Math.max(0, Math.min(1, (x - rect.left) / rect.width));
+    var ny = Math.max(0, Math.min(1, (y - rect.top) / rect.height));
+    xyDot.style.left = (nx * 100) + '%';
+    xyDot.style.top = (ny * 100) + '%';
+    
+    // Apply to filter
+    if (device && device.autoFilter) {
+      device.autoFilter.frequency.setTargetAtTime(100 + nx * 17900, device.ctx.currentTime, 0.05);
+      device.autoFilter.Q.setTargetAtTime(0.5 + ny * 19.5, device.ctx.currentTime, 0.05);
+    }
+  }
+  
+  xyPad.addEventListener('pointerdown', function(e) {
+    xyActive = true;
+    xyPad.setPointerCapture(e.pointerId);
+    updateXy(e.clientX, e.clientY);
+  });
+  
+  xyPad.addEventListener('pointermove', function(e) {
+    if (xyActive) updateXy(e.clientX, e.clientY);
+  });
+  
+  xyPad.addEventListener('pointerup', function() {
+    xyActive = false;
+  });
+  
+  xyPad.addEventListener('pointercancel', function() {
+    xyActive = false;
+  });
+}
+
 // Initialize all panels
 
 // Initialize Preset Browser
@@ -4750,15 +4783,75 @@ function initPresetBrowser() {
   var presetList = document.getElementById('presetList');
   
   var currentPresetIdx = 0;
-  var presets = [
-    'PSYTRANCE LEAD 01',
-    'ACID BASS 01',
-    'TRANCE PAD 01',
-    'TECHNO STAB 01',
-    'PROGRESSIVE ARP 01'
-  ];
   
   function updatePresetDisplay() {
+    var items = presetList.querySelectorAll('.preset-item');
+    items.forEach(function(item, idx) {
+      item.classList.toggle('active', idx === currentPresetIdx);
+    });
+  }
+  
+  if (prevBtn) {
+    prevBtn.addEventListener('click', function() {
+      currentPresetIdx = (currentPresetIdx - 1 + PRESETS.length) % PRESETS.length;
+      updatePresetDisplay();
+      applyPreset(currentPresetIdx);
+    });
+  }
+  
+  if (nextBtn) {
+    nextBtn.addEventListener('click', function() {
+      currentPresetIdx = (currentPresetIdx + 1) % PRESETS.length;
+      updatePresetDisplay();
+      applyPreset(currentPresetIdx);
+    });
+  }
+  
+  if (saveBtn) {
+    saveBtn.addEventListener('click', function() {
+      var presetData = {
+        name: PRESETS[currentPresetIdx].name,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('psy3-preset-' + currentPresetIdx, JSON.stringify(presetData));
+    });
+  }
+  
+  if (loadBtn) {
+    loadBtn.addEventListener('click', function() {
+      var saved = localStorage.getItem('psy3-preset-' + currentPresetIdx);
+      if (saved) {
+        var presetData = JSON.parse(saved);
+        applyPreset(currentPresetIdx);
+      }
+    });
+  }
+  
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      var query = this.value.toLowerCase();
+      var items = presetList.querySelectorAll('.preset-item');
+      items.forEach(function(item) {
+        var text = item.textContent.toLowerCase();
+        item.style.display = text.includes(query) ? 'block' : 'none';
+      });
+    });
+  }
+  
+  // Add click handlers to preset items
+  var presetItems = presetList.querySelectorAll('.preset-item');
+  presetItems.forEach(function(item, idx) {
+    item.addEventListener('click', function() {
+      currentPresetIdx = idx;
+      updatePresetDisplay();
+      applyPreset(idx);
+    });
+  });
+  
+  updatePresetDisplay();
+}
+
+function updatePresetDisplay() {
     var items = presetList.querySelectorAll('.preset-item');
     items.forEach(function(item, idx) {
       item.classList.toggle('active', idx === currentPresetIdx);
