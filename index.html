@@ -4618,12 +4618,199 @@ function initXyPad() {
 }
 
 // Initialize all panels
+
+// Initialize Preset Browser
+function initPresetBrowser() {
+  var prevBtn = document.getElementById('presetPrev');
+  var nextBtn = document.getElementById('presetNext');
+  var saveBtn = document.getElementById('presetSave');
+  var loadBtn = document.getElementById('presetLoad');
+  var searchInput = document.getElementById('presetSearch');
+  var presetList = document.getElementById('presetList');
+  
+  var currentPresetIdx = 0;
+  var presets = [
+    'PSYTRANCE LEAD 01',
+    'ACID BASS 01',
+    'TRANCE PAD 01',
+    'TECHNO STAB 01',
+    'PROGRESSIVE ARP 01'
+  ];
+  
+  function updatePresetDisplay() {
+    var items = presetList.querySelectorAll('.preset-item');
+    items.forEach(function(item, idx) {
+      item.classList.toggle('active', idx === currentPresetIdx);
+    });
+  }
+  
+  if (prevBtn) {
+    prevBtn.addEventListener('click', function() {
+      currentPresetIdx = (currentPresetIdx - 1 + presets.length) % presets.length;
+      updatePresetDisplay();
+    });
+  }
+  
+  if (nextBtn) {
+    nextBtn.addEventListener('click', function() {
+      currentPresetIdx = (currentPresetIdx + 1) % presets.length;
+      updatePresetDisplay();
+    });
+  }
+  
+  if (saveBtn) {
+    saveBtn.addEventListener('click', function() {
+      // Save current preset to localStorage
+      var presetData = {
+        name: presets[currentPresetIdx],
+        timestamp: Date.now()
+      };
+      localStorage.setItem('psy3-preset-' + currentPresetIdx, JSON.stringify(presetData));
+      console.log('Preset saved:', presets[currentPresetIdx]);
+    });
+  }
+  
+  if (loadBtn) {
+    loadBtn.addEventListener('click', function() {
+      // Load preset from localStorage
+      var saved = localStorage.getItem('psy3-preset-' + currentPresetIdx);
+      if (saved) {
+        var presetData = JSON.parse(saved);
+        console.log('Preset loaded:', presetData.name);
+      }
+    });
+  }
+  
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      var query = this.value.toLowerCase();
+      var items = presetList.querySelectorAll('.preset-item');
+      items.forEach(function(item) {
+        var text = item.textContent.toLowerCase();
+        item.style.display = text.includes(query) ? 'block' : 'none';
+      });
+    });
+  }
+  
+  updatePresetDisplay();
+}
+
+// Initialize Pattern Editor
+function initPatternEditor() {
+  var clearBtn = document.getElementById('patternClear');
+  var randomBtn = document.getElementById('patternRandom');
+  var reverseBtn = document.getElementById('patternReverse');
+  var shiftBtn = document.getElementById('patternShift');
+  var doubleBtn = document.getElementById('patternDouble');
+  var halfBtn = document.getElementById('patternHalf');
+  
+  var probSlider = document.getElementById('probSlider');
+  var probValue = document.getElementById('probValue');
+  var repeatSlider = document.getElementById('repeatSlider');
+  var repeatValue = document.getElementById('repeatValue');
+  var velSlider = document.getElementById('velSlider');
+  var velValue = document.getElementById('velValue');
+  var swingSlider = document.getElementById('swingSlider');
+  var swingValue = document.getElementById('swingValue');
+  
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function() {
+      var steps = document.querySelectorAll('.seq-step');
+      steps.forEach(function(step) {
+        step.classList.remove('active');
+      });
+    });
+  }
+  
+  if (randomBtn) {
+    randomBtn.addEventListener('click', function() {
+      var steps = document.querySelectorAll('.seq-step');
+      steps.forEach(function(step) {
+        if (Math.random() > 0.5) {
+          step.classList.add('active');
+        } else {
+          step.classList.remove('active');
+        }
+      });
+    });
+  }
+  
+  if (reverseBtn) {
+    reverseBtn.addEventListener('click', function() {
+      var steps = document.querySelectorAll('.seq-step');
+      var states = Array.from(steps).map(function(s) { return s.classList.contains('active'); });
+      states.reverse();
+      steps.forEach(function(step, idx) {
+        step.classList.toggle('active', states[idx]);
+      });
+    });
+  }
+  
+  if (probSlider && probValue) {
+    probSlider.addEventListener('input', function() {
+      probValue.textContent = this.value + '%';
+    });
+  }
+  
+  if (repeatSlider && repeatValue) {
+    repeatSlider.addEventListener('input', function() {
+      repeatValue.textContent = this.value + 'x';
+    });
+  }
+  
+  if (velSlider && velValue) {
+    velSlider.addEventListener('input', function() {
+      velValue.textContent = this.value;
+    });
+  }
+  
+  if (swingSlider && swingValue) {
+    swingSlider.addEventListener('input', function() {
+      swingValue.textContent = this.value + '%';
+      if (device) {
+        device.swing = this.value / 100 * 0.5;
+      }
+    });
+  }
+}
+
+// Initialize Automation
+function initAutomation() {
+  var lfoRateSlider = document.getElementById('lfoRateSlider');
+  var lfoRateValue = document.getElementById('lfoRateValue');
+  var lfoDepthSlider = document.getElementById('lfoDepthSlider');
+  var lfoDepthValue = document.getElementById('lfoDepthValue');
+  var envSlider = document.getElementById('envSlider');
+  var envValue = document.getElementById('envValue');
+  
+  if (lfoRateSlider && lfoRateValue) {
+    lfoRateSlider.addEventListener('input', function() {
+      lfoRateValue.textContent = (this.value / 10).toFixed(1) + ' Hz';
+    });
+  }
+  
+  if (lfoDepthSlider && lfoDepthValue) {
+    lfoDepthSlider.addEventListener('input', function() {
+      lfoDepthValue.textContent = this.value + '%';
+    });
+  }
+  
+  if (envSlider && envValue) {
+    envSlider.addEventListener('input', function() {
+      envValue.textContent = this.value + '%';
+    });
+  }
+}
+
 function initPanels() {
   initSequencer();
   initBpmSlider();
   initTransport();
   initPads();
   initXyPad();
+  initPresetBrowser();
+  initPatternEditor();
+  initAutomation();
 }
 
 // Run initialization when DOM is ready
