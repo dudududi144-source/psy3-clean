@@ -3,25 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PSY6 DMT VISION</title>
-
+<title>PSY3 PRO — Hyperspace Psytrance Workstation</title>
 <style>
-
 /* ══════════════════════════════════════════════════════════
-   PSY3 PRO — Design System (PsySynthPro inspired)
+   PSY3 PRO — Professional Design System
+   Inspired by: Ableton, Elektron, Teenage Engineering
    ══════════════════════════════════════════════════════════ */
 
-/* Fonts: using system fonts for reliability */
-/* @import url('https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.8/index.css'); */
-/* @import url('https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.8/index.css'); */
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  /* Color palette */
-  --bg-primary: #0d0f14;
-  --bg-secondary: #08090d;
-  --panel-primary: #23262d;
-  --panel-secondary: #14161c;
-  --panel-tertiary: #0f1116;
+  --bg-primary: #0a0c12;
+  --bg-secondary: #06080c;
+  --panel-primary: #1a1d26;
+  --panel-secondary: #12141c;
+  --panel-tertiary: #0d0f16;
   --accent-orange: #ffb454;
   --accent-cyan: #3fa9bc;
   --accent-green: #b8e05a;
@@ -29,189 +25,149 @@
   --accent-purple: #c084fc;
   --accent-blue: #60a5fa;
   --accent-red: #f87171;
-  --text-primary: #e0e0e8;
-  --text-secondary: #99a1ab;
+  --text-primary: #e8e8f0;
+  --text-secondary: #a0a8b8;
   --text-dim: #666;
   --border-dark: #000;
-  --border-light: rgba(255,255,255,0.04);
-  
-  /* Typography */
+  --border-light: rgba(255,255,255,0.06);
   --font-ui: system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'SF Mono', 'Consolas', 'Monaco', monospace;
-  
-  /* Spacing */
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 16px;
   --space-lg: 24px;
   --space-xl: 32px;
-  
-  /* Border radius */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 16px;
-  
-  /* Shadows */
-  --shadow-panel: 0 40px 80px rgba(0,0,0,0.7);
-  --shadow-inset: 0 0 0 1px rgba(255,255,255,0.04) inset;
-  --shadow-knob: 0 2px 8px rgba(0,0,0,0.5);
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  user-select: none;
-  -webkit-user-select: none;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 18px;
 }
 
 body {
   font-family: var(--font-ui);
   background:
-    radial-gradient(1100px 500px at 15% -10%, rgba(96, 60, 180, 0.16) 0%, transparent 60%),
-    radial-gradient(900px 500px at 85% 110%, rgba(20, 120, 130, 0.12) 0%, transparent 60%),
+    radial-gradient(1200px 600px at 20% -10%, rgba(96, 60, 180, 0.2) 0%, transparent 60%),
+    radial-gradient(1000px 600px at 80% 110%, rgba(20, 120, 130, 0.15) 0%, transparent 60%),
     linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 36px 16px;
+  padding: 32px 16px;
   color: var(--text-primary);
 }
 
 /* ══════════ CHASSIS ══════════ */
 .chassis {
   position: relative;
-  width: min(1220px, 100%);
+  width: min(1280px, 100%);
   background:
-    repeating-linear-gradient(90deg, rgba(255,255,255,0.012) 0 1px, transparent 1px 3px),
-    linear-gradient(180deg, var(--panel-primary) 0%, #191c22 12%, var(--panel-secondary) 55%, var(--panel-tertiary) 100%);
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, #282c36 0%, #1c2028 12%, var(--panel-secondary) 55%, var(--panel-tertiary) 100%);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-dark);
-  padding: 26px 48px 28px;
+  padding: 28px 52px 32px;
   box-shadow:
-    var(--shadow-panel),
-    var(--shadow-inset),
-    0 2px 0 rgba(255,255,255,0.05) inset,
-    0 -3px 0 rgba(0,0,0,0.6) inset;
+    0 50px 100px rgba(0,0,0,0.8),
+    0 0 0 1px rgba(255,255,255,0.05) inset,
+    0 2px 0 rgba(255,255,255,0.06) inset,
+    0 -4px 0 rgba(0,0,0,0.7) inset;
 }
 
 /* Wood cheeks */
 .cheek {
   position: absolute;
-  top: -7px;
-  bottom: -7px;
-  width: 34px;
-  border-radius: 11px;
+  top: -8px;
+  bottom: -8px;
+  width: 38px;
+  border-radius: 12px;
   background:
-    repeating-linear-gradient(90deg, rgba(0,0,0,0.16) 0 2px, transparent 2px 6px),
-    repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 14px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,0.18) 0 2px, transparent 2px 6px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 14px),
     linear-gradient(90deg, #4d3117, #7a4f28 28%, #5d3c1c 72%, #3d2611);
   box-shadow:
-    inset 0 2px 5px rgba(255,255,255,0.18),
-    inset 0 -5px 10px rgba(0,0,0,0.55),
-    0 14px 30px rgba(0,0,0,0.6);
+    inset 0 2px 6px rgba(255,255,255,0.2),
+    inset 0 -6px 12px rgba(0,0,0,0.6),
+    0 16px 36px rgba(0,0,0,0.7);
 }
-.cheek.l { left: -40px; }
-.cheek.r { right: -40px; }
+.cheek.l { left: -44px; }
+.cheek.r { right: -44px; }
 
 /* Corner screws */
 .screw {
   position: absolute;
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #99a1ab, #454c55 55%, #14171c);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.9), inset 0 1px 2px rgba(255,255,255,0.3);
+  background: radial-gradient(circle at 35% 30%, #a0a8b2, #4a5260 55%, #181c22);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.9), inset 0 1px 2px rgba(255,255,255,0.35);
 }
 .screw::after {
   content: '';
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 8px;
+  width: 9px;
   height: 1.5px;
-  background: #1a1d22;
+  background: #1a1e24;
   transform: translate(-50%, -50%) rotate(45deg);
+}
+
+/* ══════════ HEADER ══════════ */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.logo {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: var(--accent-orange);
+  text-shadow: 0 0 20px rgba(255,180,84,0.4);
+}
+
+.logo span {
+  color: var(--accent-cyan);
+  font-size: 14px;
+  margin-left: var(--space-sm);
+  letter-spacing: 2px;
+}
+
+.subtitle {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
 }
 
 /* ══════════ PANELS ══════════ */
 .panel {
-  background: linear-gradient(180deg, #1a1d24 0%, var(--panel-secondary) 100%);
+  background: linear-gradient(180deg, #1e222c 0%, var(--panel-secondary) 100%);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-dark);
   padding: var(--space-md);
   box-shadow:
-    0 4px 12px rgba(0,0,0,0.4),
-    0 0 0 1px rgba(255,255,255,0.03) inset;
+    0 6px 16px rgba(0,0,0,0.5),
+    0 0 0 1px rgba(255,255,255,0.04) inset;
+  margin-bottom: var(--space-md);
 }
 
 .panel-title {
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 2px;
+  letter-spacing: 2.5px;
   text-transform: uppercase;
   color: var(--accent-orange);
   margin-bottom: var(--space-md);
-}
-
-/* ══════════ KNOBS ══════════ */
-.knob-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-xs);
-}
-
-.knob {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 35% 30%, #3a3f48, #1a1d22 60%),
-    linear-gradient(180deg, #2a2e36, #14171c);
-  border: 2px solid var(--border-dark);
-  box-shadow:
-    var(--shadow-knob),
-    0 0 0 1px rgba(255,255,255,0.05) inset;
-  position: relative;
-  cursor: pointer;
-  transition: transform 0.1s;
-}
-
-.knob:hover {
-  transform: scale(1.05);
-}
-
-.knob:active {
-  transform: scale(0.98);
-}
-
-.knob-indicator {
-  position: absolute;
-  top: 4px;
-  left: 50%;
-  width: 3px;
-  height: 12px;
-  background: var(--accent-orange);
-  border-radius: 2px;
-  transform-origin: bottom center;
-  box-shadow: 0 0 6px var(--accent-orange);
-}
-
-.knob-label {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-}
-
-.knob-value {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--accent-cyan);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--border-light);
 }
 
 /* ══════════ BUTTONS ══════════ */
@@ -219,310 +175,34 @@ body {
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
-  padding: 8px 16px;
+  padding: 10px 18px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-dark);
-  background: linear-gradient(180deg, #2a2e36, #1a1d22);
+  background: linear-gradient(180deg, #2e3340, #1e222c);
   color: var(--text-primary);
   cursor: pointer;
-  transition: all 0.15s;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  transition: all 0.15s ease;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.5);
 }
 
 .btn:hover {
-  background: linear-gradient(180deg, #3a3f48, #2a2e36);
+  background: linear-gradient(180deg, #3a4050, #2e3340);
   transform: translateY(-1px);
+  box-shadow: 0 5px 12px rgba(0,0,0,0.6);
 }
 
 .btn:active {
   transform: translateY(1px);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.5);
 }
 
 .btn.active {
   background: linear-gradient(180deg, var(--accent-orange), #cc8a3c);
   color: var(--border-dark);
-  box-shadow: 0 0 12px rgba(255,180,84,0.4);
+  box-shadow: 0 0 16px rgba(255,180,84,0.5);
 }
-
-/* ══════════ DISPLAY ══════════ */
-.display {
-  background: linear-gradient(180deg, #0a0c10, #06080c);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-dark);
-  padding: var(--space-md);
-  font-family: var(--font-mono);
-  color: var(--accent-green);
-  box-shadow:
-    0 0 20px rgba(184,224,90,0.1) inset,
-    0 4px 12px rgba(0,0,0,0.5);
-}
-
-.display-text {
-  font-size: 14px;
-  letter-spacing: 1px;
-  text-shadow: 0 0 8px var(--accent-green);
-}
-
-/* ══════════ LEDS ══════════ */
-.led {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #333;
-  box-shadow: 0 0 2px rgba(0,0,0,0.5) inset;
-  transition: all 0.1s;
-}
-
-.led.on {
-  background: var(--accent-green);
-  box-shadow: 0 0 8px var(--accent-green);
-}
-
-.led.orange { background: var(--accent-orange); box-shadow: 0 0 8px var(--accent-orange); }
-.led.cyan { background: var(--accent-cyan); box-shadow: 0 0 8px var(--accent-cyan); }
-.led.red { background: var(--accent-red); box-shadow: 0 0 8px var(--accent-red); }
-
-/* ══════════ PADS ══════════ */
-.pad {
-  width: 60px;
-  height: 60px;
-  border-radius: var(--radius-md);
-  background: linear-gradient(180deg, #2a2e36, #1a1d22);
-  border: 1px solid var(--border-dark);
-  cursor: pointer;
-  transition: all 0.1s;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-}
-
-.pad:active {
-  transform: scale(0.95);
-  background: linear-gradient(180deg, var(--accent-purple), #8a5cc0);
-  box-shadow: 0 0 16px rgba(192,132,252,0.5);
-}
-
-/* ══════════ RESPONSIVE ══════════ */
-@media (max-width: 768px) {
-  body {
-    padding: 16px 8px;
-  }
-  
-  .chassis {
-    padding: 16px 24px;
-  }
-  
-  .cheek {
-    display: none;
-  }
-  
-  .knob {
-    width: 48px;
-    height: 48px;
-  }
-  
-  .pad {
-    width: 50px;
-    height: 50px;
-  }
-}
-
-@media (max-width: 480px) {
-  .chassis {
-    padding: 12px 16px;
-  }
-  
-  .knob {
-    width: 40px;
-    height: 40px;
-  }
-  
-  .pad {
-    width: 44px;
-    height: 44px;
-  }
-}
-
-
-
-</style>
-</head>
-<body>
-
-<div class="chassis">
-  <div class="cheek l"></div>
-  <div class="cheek r"></div>
-  <div class="screw" style="top:12px;left:12px"></div>
-  <div class="screw" style="top:12px;right:12px"></div>
-  <div class="screw" style="bottom:12px;left:12px"></div>
-  <div class="screw" style="bottom:12px;right:12px"></div>
-<header class="topbar">
-  <div class="logo">PSY6<span>DMT VISION</span></div>
-  <div class="subtitle">hyperspace psytrance workstation</div>
-</header>
-<div class="midi-panel">
-  <button class="btn" onclick="MIDILearn.start('filter')" title="Learn filter CC">MIDI: FILTER</button>
-  <button class="btn" onclick="MIDILearn.start('resonance')" title="Learn resonance CC">MIDI: RESO</button>
-  <button class="btn" onclick="MIDILearn.start('delay')" title="Learn delay CC">MIDI: DELAY</button>
-  <button class="btn" onclick="MIDILearn.start('reverb')" title="Learn reverb CC">MIDI: REVERB</button>
-  <button class="btn" onclick="MIDILearn.start('drive')" title="Learn drive CC">MIDI: DRIVE</button>
-  <button class="btn" onclick="MIDILearn.start('volume')" title="Learn volume CC">MIDI: VOL</button>
-  <button class="btn" onclick="MIDILearn.clear()" title="Clear all MIDI mappings">MIDI: CLEAR</button>
-</div>
-<main class="device">
-  <section class="panel">
-    <div class="top-row">
-      <div class="lcd">
-        <div class="lcd-line big" id="lcd1">--</div>
-        <div class="lcd-line" id="lcd2">--</div>
-        <div class="lcd-line" id="nowPlaying" style="font-size:11px;color:var(--dim)"></div>
-        <div class="lcd-steps" id="lcdSteps"></div>
-      </div>
-      <div class="transport">
-        <button id="playBtn" class="play-btn">&#9654; PLAY</button>
-        <button id="variateBtn" class="util-btn">VARIATE</button>
-        <button id="nextSecBtn" class="util-btn">NEXT SEC &#9656;</button>
-      </div>
-      <div class="diag mono">
-        <span>self-test: <span id="selfTest" class="dim">running&hellip;</span></span>
-        <span>engine: <span id="engState" class="dim">idle</span></span>
-      </div>
-    </div>
-    <div class="macro-row" style="display:flex;gap:6px">
-      <button id="macroSpaceBtn" class="macro-btn" onclick="triggerMacroBurst('SPACE')">&#127754; SPACE</button>
-      <button id="macroEnergyBtn" class="macro-btn" onclick="triggerMacroBurst('ENERGY')">&#9889; ENERGY</button>
-      <button id="macroTensionBtn" class="macro-btn" onclick="triggerMacroBurst('TENSION')">&#128296; TENSION</button>
-    </div>
-  </section>
-  <div class="secProg">
-    <div class="track"><div class="fill" id="secFill"></div></div>
-    <div class="name" id="secName">INTRO</div>
-    <span id="secBar" class="mono" style="font-size:7px;color:var(--dim)">1/8</span>
-  </div>
-  <div class="beatDots">
-    <div class="beatDot" id="bd0"></div>
-    <div class="beatDot" id="bd1"></div>
-    <div class="beatDot" id="bd2"></div>
-    <div class="beatDot" id="bd3"></div>
-    <div class="energyDot" id="energyDot"></div>
-  </div>
-  <section class="panel">
-    <h2>Song Structure</h2>
-    <div class="timeline" id="timeline"></div>
-  </section>
-  <section class="panel">
-    <div class="bpmRow">
-      <label>BPM</label>
-      <input type="range" id="bpmSlider" min="100" max="200" step="1" value="145">
-      <b id="bpmVal">145</b>
-    </div>
-    <div id="knobs" class="knobs-row"></div>
-  </section>
-  <section class="panel xyWrap">
-    <div class="xyPad" id="xyPad"><div class="xyDot" id="xyDot"></div></div>
-    <div class="xyInfo" id="xyInfo">FILTER XY &middot; drag to control cutoff + resonance</div>
-  </section>
-  <div class="ctrlRow" style="display:flex;gap:6px;flex-wrap:wrap;padding:0 4px">
-    <div class="ctrlGroup" style="flex:1;min-width:120px">
-      <label style="font-size:8px;color:var(--dim)">SCALE</label>
-      <select id="scaleSelect" style="width:100%;background:rgba(20,0,40,.8);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px;font-size:10px">
-        <option value="phrygianDominant">Phrygian Dominant</option>
-        <option value="harmonicMinor">Harmonic Minor</option>
-        <option value="naturalMinor">Natural Minor</option>
-        <option value="phrygian">Phrygian</option>
-        <option value="doubleHarmonic">Double Harmonic</option>
-        <option value="minorPentatonic">Minor Pentatonic</option>
-      </select>
-    </div>
-    <div class="ctrlGroup" style="flex:1;min-width:120px">
-      <label style="font-size:8px;color:var(--dim)">GENRE</label>
-      <select id="genreSelect" style="width:100%;background:rgba(20,0,40,.8);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px;font-size:10px">
-        <option value="FULL-ON">Full-On</option>
-        <option value="DARK-PSY">Dark Psy</option>
-        <option value="PROGRESSIVE">Progressive</option>
-        <option value="GOA">Goa</option>
-        <option value="TECHNO">Techno</option>
-      </select>
-    </div>
-    <div class="ctrlGroup" style="display:flex;gap:4px;align-items:flex-end">
-      <button id="tapBtn" class="util-btn tapBtn">BPM TAP</button>
-    </div>
-  </div>
-  <div class="bankRow">
-    <button class="bankChip active" data-preset="fullon">FULL-ON</button>
-    <button class="bankChip" data-preset="darkpsy">DARK PSY</button>
-    <button class="bankChip" data-preset="prog">PROG</button>
-    <button class="bankChip" data-preset="goa">GOA</button>
-    <button class="bankChip" data-preset="techno">TECHNO</button>
-    <button class="bankChip" data-preset="forest">FOREST</button>
-    <button class="bankChip" data-preset="hitech">HI-TECH</button>
-  </div>
-  <div class="styleRow">
-    <label>BASS</label>
-    <button class="styleChip active" data-bass="rolling">ROLLING</button>
-    <button class="styleChip" data-bass="offbeat">OFFBEAT</button>
-    <button class="styleChip" data-bass="gallop">GALLOP</button>
-    <button class="styleChip" data-bass="minimal">MINIMAL</button>
-    <button class="styleChip" data-bass="acid">ACID</button>
-    <button class="styleChip" data-bass="tribal">TRIBAL</button>
-  </div>
-  <div class="sndRow">
-    <label style="font-size:7px;color:var(--dim);min-width:25px">SND</label>
-    <button class="sndChip active" data-snd="classic">CLASSIC</button>
-    <button class="sndChip" data-snd="acid">ACID</button>
-    <button class="sndChip" data-snd="dark">DARK</button>
-    <button class="sndChip" data-snd="bright">BRIGHT</button>
-    <button class="sndChip" data-snd="lofi">LO-FI</button>
-  </div>
-  <div class="styleRow">
-    <label>KICK</label>
-    <button class="styleChip" data-kick="deep">DEEP</button>
-    <button class="styleChip active" data-kick="punch">PUNCH</button>
-    <button class="styleChip" data-kick="sub">SUB</button>
-    <button class="styleChip" data-kick="rumble">RUMBLE</button>
-  </div>
-  <div class="styleRow">
-    <label>LEAD</label>
-    <button class="styleChip active" data-lead="squelch">SQUELCH</button>
-    <button class="styleChip" data-lead="dark">DARK</button>
-    <button class="styleChip" data-lead="hitech">HI-TECH</button>
-    <button class="styleChip" data-lead="organic">ORGANIC</button>
-  </div>
-  <div class="styleRow">
-    <label>SWING</label>
-    <button class="styleChip active" data-swing="0">STRAIGHT</button>
-    <button class="styleChip" data-swing="0.15">LIGHT</button>
-    <button class="styleChip" data-swing="0.35">HEAVY</button>
-  </div>
-  <div class="ctrlRow" style="display:flex;gap:6px;padding:0 4px;align-items:center">
-    <button id="recBtn" class="recBtn">&#9679; REC</button>
-    <button id="dlBtn" class="util-btn" style="display:none">&#8615; SAVE</button>
-    <span id="recTime" class="mono" style="font-size:10px;color:var(--dim)">00:00</span>
-  </div>
-  <div class="fxRow">
-    <button id="fxCrush" class="fxBtn">CRUSH</button>
-    <button id="fxGate" class="fxBtn">GATE</button>
-    <button id="fxWah" class="fxBtn">WAH</button>
-    <button id="fxTape" class="fxBtn">TAPE</button>
-  </div>
-  <section class="panel">
-    <h2>Arp Pattern <span class="small">(click steps to edit &mdash; live)</span></h2>
-    <div id="seq"></div>
-  </section>
-  <section class="panel">
-    <h2>Performance Pads</h2>
-    <div id="pads" class="pads-row"></div>
-    <div class="hint">Keys <b>A W S E D F T G</b> pads &middot; <b>P</b> probability &middot; <b>Space</b> play/stop &middot; <b>M</b> mute all &middot; <b>V</b> variate &middot; <b>N</b> next section &middot; <b>R</b> record</div>
-  </section>
-  <section class="panel specWrap">
-    <canvas id="viz" width="800" height="160"></canvas>
-    <canvas id="specCanvas" width="800" height="100"></canvas>
-  </section>
-  <div id="status" class="status dim"></div>
-</main>
-<footer class="footer mono">PSY6 DMT VISION &middot; hyperspace edition</footer>
-
 
 /* ══════════ MIDI PANEL ══════════ */
 .midi-panel {
@@ -530,7 +210,7 @@ body {
   flex-wrap: wrap;
   gap: var(--space-sm);
   padding: var(--space-md);
-  background: linear-gradient(180deg, #1a1d24 0%, var(--panel-secondary) 100%);
+  background: linear-gradient(180deg, #1e222c 0%, var(--panel-secondary) 100%);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-dark);
   margin-bottom: var(--space-md);
@@ -538,16 +218,98 @@ body {
 
 .midi-panel .btn {
   font-size: 9px;
-  padding: 6px 10px;
+  padding: 8px 12px;
 }
 
-.midi-panel .btn.active {
-  background: linear-gradient(180deg, var(--accent-cyan), #2a7a8c);
-  box-shadow: 0 0 12px rgba(63,169,188,0.4);
+/* ══════════ DISPLAY ══════════ */
+.display {
+  background: linear-gradient(180deg, #0a0c12, #06080c);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-dark);
+  padding: var(--space-md);
+  font-family: var(--font-mono);
+  color: var(--accent-green);
+  box-shadow:
+    0 0 24px rgba(184,224,90,0.12) inset,
+    0 6px 16px rgba(0,0,0,0.6);
 }
 
+/* ══════════ LEDS ══════════ */
+.led {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #333;
+  box-shadow: 0 0 3px rgba(0,0,0,0.6) inset;
+  transition: all 0.1s;
+}
+
+.led.on { background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); }
+.led.orange { background: var(--accent-orange); box-shadow: 0 0 10px var(--accent-orange); }
+.led.cyan { background: var(--accent-cyan); box-shadow: 0 0 10px var(--accent-cyan); }
+.led.red { background: var(--accent-red); box-shadow: 0 0 10px var(--accent-red); }
+
+/* ══════════ RESPONSIVE ══════════ */
+@media (max-width: 768px) {
+  body { padding: 16px 8px; }
+  .chassis { padding: 18px 28px; }
+  .cheek { display: none; }
+}
+
+@media (max-width: 480px) {
+  .chassis { padding: 14px 18px; }
+}
+</style>
 </head>
+<body>
+<div class="chassis">
+  <div class="cheek l"></div>
+  <div class="cheek r"></div>
+  <div class="screw" style="top:12px;left:12px"></div>
+  <div class="screw" style="top:12px;right:12px"></div>
+  <div class="screw" style="bottom:12px;left:12px"></div>
+  <div class="screw" style="bottom:12px;right:12px"></div>
+  
+  <header class="topbar">
+    <div class="logo">PSY3<span>PRO</span></div>
+    <div class="subtitle">Hyperspace Psytrance Workstation</div>
+  </header>
+  
+  <div class="midi-panel">
+    <button class="btn" onclick="MIDILearn.start('filter')">MIDI: FILTER</button>
+    <button class="btn" onclick="MIDILearn.start('resonance')">MIDI: RESO</button>
+    <button class="btn" onclick="MIDILearn.start('delay')">MIDI: DELAY</button>
+    <button class="btn" onclick="MIDILearn.start('reverb')">MIDI: REVERB</button>
+    <button class="btn" onclick="MIDILearn.start('drive')">MIDI: DRIVE</button>
+    <button class="btn" onclick="MIDILearn.start('volume')">MIDI: VOL</button>
+    <button class="btn" onclick="MIDILearn.clear()">MIDI: CLEAR</button>
+  </div>
+  
+  <!-- Main content area -->
+  <main class="device">
+    <section class="panel">
+      <div class="panel-title">TRANSPORT</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="playBtn">PLAY</button>
+        <button class="btn" id="stopBtn">STOP</button>
+        <button class="btn" id="recBtn">REC</button>
+        <button class="btn" id="variateBtn">VARIATE</button>
+      </div>
+    </section>
+    
+    <section class="panel">
+      <div class="panel-title">DISPLAY</div>
+      <div class="display">
+        <div id="lcd1">READY</div>
+        <div id="lcd2">PSY3 PRO</div>
+      </div>
+    </section>
+  </main>
+  
+</div>
+
 <script>
+
 /* ══════════════════════════════════════════════════════════
    PERFORMANCE UTILITIES (v2.0)
    ══════════════════════════════════════════════════════════ */
@@ -4431,7 +4193,7 @@ xyPad.addEventListener("pointermove",function(e){if(xyActive)xyUpdate(e.clientX,
 xyPad.addEventListener("pointerup",function(){xyActive=false;});
 xyPad.addEventListener("pointercancel",function(){xyActive=false;});
 }
+
 </script>
-</div>
 </body>
 </html>
