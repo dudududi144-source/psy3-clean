@@ -471,22 +471,22 @@ input[type="range"]::-moz-range-thumb {
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
         <div style="text-align:center">
           <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-orange);margin-bottom:8px">FILTER</div>
-          <div class="knob" style="width:48px;height:48px;margin:0 auto"></div>
+          <div class="knob fx-knob" style="width:48px;height:48px;margin:0 auto"></div>
           <div style="font-family:var(--font-mono);font-size:8px;color:var(--text-secondary);margin-top:4px">CUTOFF</div>
         </div>
         <div style="text-align:center">
           <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-cyan);margin-bottom:8px">DELAY</div>
-          <div class="knob" style="width:48px;height:48px;margin:0 auto"></div>
+          <div class="knob fx-knob" style="width:48px;height:48px;margin:0 auto"></div>
           <div style="font-family:var(--font-mono);font-size:8px;color:var(--text-secondary);margin-top:4px">MIX</div>
         </div>
         <div style="text-align:center">
           <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-purple);margin-bottom:8px">REVERB</div>
-          <div class="knob" style="width:48px;height:48px;margin:0 auto"></div>
+          <div class="knob fx-knob" style="width:48px;height:48px;margin:0 auto"></div>
           <div style="font-family:var(--font-mono);font-size:8px;color:var(--text-secondary);margin-top:4px">MIX</div>
         </div>
         <div style="text-align:center">
           <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent-red);margin-bottom:8px">DRIVE</div>
-          <div class="knob" style="width:48px;height:48px;margin:0 auto"></div>
+          <div class="knob fx-knob" style="width:48px;height:48px;margin:0 auto"></div>
           <div style="font-family:var(--font-mono);font-size:8px;color:var(--text-secondary);margin-top:4px">AMOUNT</div>
         </div>
       </div>
@@ -5085,6 +5085,171 @@ function initMixer() {
       }
     });
   });
+}
+
+// Initialize FX knobs
+function initFxKnobs() {
+  var knobs = document.querySelectorAll('.fx-knob');
+  var fxParams = ['filter', 'delay', 'reverb', 'drive'];
+  
+  knobs.forEach(function(knob, idx) {
+    var isDragging = false;
+    var startY = 0;
+    var startValue = 0.5;
+    var currentValue = 0.5;
+    
+    knob.addEventListener('pointerdown', function(e) {
+      isDragging = true;
+      startY = e.clientY;
+      startValue = currentValue;
+      knob.setPointerCapture(e.pointerId);
+    });
+    
+    knob.addEventListener('pointermove', function(e) {
+      if (!isDragging) return;
+      var deltaY = startY - e.clientY;
+      currentValue = Math.max(0, Math.min(1, startValue + deltaY / 200));
+      
+      // Update knob rotation
+      var rotation = currentValue * 270 - 135;
+      knob.style.transform = 'rotate(' + rotation + 'deg)';
+      
+      // Apply to device
+      if (device) {
+        applyFxParam(fxParams[idx], currentValue);
+      }
+    });
+    
+    knob.addEventListener('pointerup', function() {
+      isDragging = false;
+    });
+    
+    knob.addEventListener('pointercancel', function() {
+      isDragging = false;
+    });
+  });
+}
+
+// Apply FX parameter to device
+function applyFxParam(param, value) {
+  if (!device) return;
+  
+  switch(param) {
+    case 'filter':
+      if (device.autoFilter) {
+        device.autoFilter.frequency.setTargetAtTime(100 + value * 17900, device.ctx.currentTime, 0.01);
+      }
+      break;
+    case 'delay':
+      if (device.delayMix) {
+        device.delayMix.gain.setTargetAtTime(value, device.ctx.currentTime, 0.01);
+      }
+      break;
+    case 'reverb':
+      if (device.reverbMix) {
+        device.reverbMix.gain.setTargetAtTime(value, device.ctx.currentTime, 0.01);
+      }
+      break;
+    case 'drive':
+      if (device.drivePost) {
+        device.drivePost.gain.setTargetAtTime(0.5 + value * 1.5, device.ctx.currentTime, 0.01);
+      }
+      break;
+  }
+}
+
+// Preset sound data
+var PRESETS = [
+  {
+    name: 'PSYTRANCE LEAD 01',
+    osc1: 'sawtooth',
+    osc2: 'square',
+    filterCutoff: 8000,
+    filterRes: 5,
+    attack: 0.01,
+    decay: 0.1,
+    sustain: 0.7,
+    release: 0.3,
+    delayMix: 0.3,
+    reverbMix: 0.2
+  },
+  {
+    name: 'ACID BASS 01',
+    osc1: 'sawtooth',
+    osc2: 'sawtooth',
+    filterCutoff: 2000,
+    filterRes: 15,
+    attack: 0.005,
+    decay: 0.2,
+    sustain: 0.5,
+    release: 0.1,
+    delayMix: 0.1,
+    reverbMix: 0.1
+  },
+  {
+    name: 'TRANCE PAD 01',
+    osc1: 'sine',
+    osc2: 'triangle',
+    filterCutoff: 12000,
+    filterRes: 2,
+    attack: 0.5,
+    decay: 0.3,
+    sustain: 0.8,
+    release: 1.0,
+    delayMix: 0.4,
+    reverbMix: 0.5
+  },
+  {
+    name: 'TECHNO STAB 01',
+    osc1: 'square',
+    osc2: 'sawtooth',
+    filterCutoff: 5000,
+    filterRes: 8,
+    attack: 0.001,
+    decay: 0.15,
+    sustain: 0.3,
+    release: 0.2,
+    delayMix: 0.2,
+    reverbMix: 0.15
+  },
+  {
+    name: 'PROGRESSIVE ARP 01',
+    osc1: 'triangle',
+    osc2: 'sine',
+    filterCutoff: 10000,
+    filterRes: 3,
+    attack: 0.01,
+    decay: 0.1,
+    sustain: 0.6,
+    release: 0.4,
+    delayMix: 0.35,
+    reverbMix: 0.25
+  }
+];
+
+// Apply preset to device
+function applyPreset(presetIdx) {
+  if (!device || !PRESETS[presetIdx]) return;
+  
+  var preset = PRESETS[presetIdx];
+  
+  // Apply filter
+  if (device.autoFilter) {
+    device.autoFilter.frequency.setTargetAtTime(preset.filterCutoff, device.ctx.currentTime, 0.01);
+    device.autoFilter.Q.setTargetAtTime(preset.filterRes, device.ctx.currentTime, 0.01);
+  }
+  
+  // Apply delay
+  if (device.delayMix) {
+    device.delayMix.gain.setTargetAtTime(preset.delayMix, device.ctx.currentTime, 0.01);
+  }
+  
+  // Apply reverb
+  if (device.reverbMix) {
+    device.reverbMix.gain.setTargetAtTime(preset.reverbMix, device.ctx.currentTime, 0.01);
+  }
+  
+  console.log('Preset applied:', preset.name);
 }
 function initPanels() {
   initSequencer();
