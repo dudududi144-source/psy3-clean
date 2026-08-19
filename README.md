@@ -1,123 +1,73 @@
-# PSY3 PRO - Hyperspace Psytrance Workstation
+# PSY3 PRO — Hyperspace Psytrance Workstation
 
-Professional psytrance production instrument. One file. Zero server. Infinite groove.
+> One file. Zero server. Infinite groove.
+> Based on PSY6-ULTIMATE architecture.
 
 ## Live Demo
 
-https://dudududi144-source.github.io/psy3-clean/
+**https://dudududi144-source.github.io/psy3-clean/**
 
 ## Features
 
-### Sound Engine
-- Groovebox engine - Professional psytrance synthesis
-- 6 parts - KICK, BASS, PERC, LEAD, ARP, PAD
-- 16-step sequencer - With part colors and mute buttons
-- Song arranger - Multiple sections with transitions
-- Real-time visualizer - 64-bar frequency spectrum
+### Engine
+- **PooledEngine** — 20 synth + 24 drum voices, zero GC dropouts
+- **8 layers** — UI, Brain, Composition, Scheduler, Engine, FX, Persistence, I/O
+- **Master FX Chain** — Filter + Delay + Reverb + Drive
 
-### Controls
-- 7 knobs - BPM, FILTER, RESO, DRIVE, DELAY, REVERB, SWING
-- 8 performance pads - Trigger melodic patterns
-- Transport - PLAY, VARIATE, NEXT SEC
-- Timeline - Visual song section navigation
+### Creative Brain
+- **GENERATIVE** — CandidateGenerator creates 5 candidates/bar, picks best
+- **MANUAL** — Only plays what you program
+- **ADAPTIVE** — Learns from performance, generates from grammars
 
-### Features
-- Preset system - Save/load device state
-- Pattern editor - Clear, random, reverse, shift, double, half, invert
-- Song editor - Add, remove, move, duplicate sections
-- MIDI input - Web MIDI API with CC/note mapping
-- MIDI learn - Map controllers to parameters
-- Undo/Redo - 50-step history
-- Settings persistence - localStorage
+### Grammar System
+- **BassGrammar** — 12x12 interval transition matrix
+- **MelodicGrammar** — Interval histogram + contour tracking
+- **RhythmGrammar** — 16-step kick onset probabilities
 
-### Mobile
-- Touch-optimized - 44px+ touch targets
-- Stacked layout - Portrait mode optimization
-- Bottom navigation - PLAY, KNOBS, SEQ, PADS
-- Swipe gestures - Left/right to navigate sections
-- PWA - Installable app with offline support
+### Music
+- **Chord Progressions** — 7 progressions (Epic, Minor, Major, Andalusian, Melodic, Psy Hypnotic, Pop/Prog)
+- **Arpeggiator** — UP, DOWN, UP-DOWN, RANDOM, CHORD
+- **Bass Modes** — ROLLING, OFFBEAT, PUMPING, HALFTIME
+- **Pattern Operations** — 12 types (Nudge, Rotate, Copy/Paste, Swap, Merge, Invert, etc.)
+
+### I/O
+- **MIDI In** — Notes + CC (auto-learn)
+- **MIDI Out** — LEAD notes + MIDI Clock
+- **WAV Export** — Offline rendering
+- **Live Recording** — MediaRecorder
+
+### Persistence
+- **Pattern Banks A-D** — localStorage
+- **Session Persistence** — Full restore on reload
+- **Projects** — Save/load .psy.json
 
 ## Keyboard Shortcuts
 
 | Key | Action |
 |-----|--------|
 | SPACE | Play / Stop |
-| A, W, S, E, D, F, T, G | Trigger pads 1-8 |
-| Ctrl+Z | Undo |
-| Ctrl+Shift+Z | Redo |
-| Ctrl+S | Quick save preset |
+| V | New variation (reseed) |
+| W | Generate chord progression |
+| D | Generate drum pattern |
+| H | Generate melody |
+| Z | Generate arpeggio |
+| R | Record + Export WAV (4 bars) |
+| S | Sound design randomizer |
+| A | Cycle arpeggiator mode |
+| 1-8 | Jump to section |
+| ? | Help overlay |
 
-## MIDI Support
+## Quick Start
 
-- Web MIDI API integration
-- CC mapping via MIDI Learn
-- Note mapping for pad triggers
-- Auto-detect MIDI controllers
-- Hot-plug support
-
-## Pattern Editor Functions
-
-| Function | Description |
-|----------|-------------|
-| patternClear(part) | Clear pattern for a part (or all) |
-| patternRandom(part) | Randomize pattern |
-| patternReverse(part) | Reverse pattern |
-| patternShift(part, dir) | Shift pattern left/right |
-| patternDouble(part) | Double first 8 steps to second 8 |
-| patternHalf(part) | Clear second 8 steps |
-| patternInvert(part) | Invert pattern |
-
-## Song Editor Functions
-
-| Function | Description |
-|----------|-------------|
-| songAddSection(name) | Add a new section |
-| songRemoveSection(index) | Remove a section |
-| songMoveSection(from, to) | Move a section |
-| songDuplicateSection(index) | Duplicate a section |
-| songGetInfo() | Get song info |
+1. Open the live demo
+2. Press POWER (or click anywhere)
+3. Press SPACE to play
+4. Press ? for help
 
 ## Architecture
 
-psy3-clean/
-  index.html       - HTML + CSS (design system)
-  app.js           - Groovebox engine + UI logic
-  manifest.json    - PWA manifest
-  sw.js            - Service worker (offline)
-  ROADMAP.md       - Development roadmap
-  README.md        - This file
-
-## Design System
-
-### Colors
-- Background: #06080c (deep), #0a0c12 (primary), #0f1118 (panel)
-- Accents: orange #ffb454, cyan #3fa9bc, green #b8e05a, red #ff4757, purple #a78bfa
-- Parts: kick #ff2e88, bass #ff8a3c, perc #ffd166, lead #06d6a0, arp #118ab2, pad #a8e6cf
-- LCD: #b8e05a (green phosphor)
-
-### Typography
-- UI: system-ui, -apple-system, Segoe UI, sans-serif
-- Mono: SF Mono, Cascadia Code, Consolas, monospace
-
-## Browser Support
-
-- Chrome 90+
-- Firefox 88+
-- Safari 14+
-- Edge 90+
-
-## Development
-
-### Local Development
-
-Serve locally:
-  npx serve .
-
-Or use Python:
-  python -m http.server 8000
-
-### Deployment
-Deployed to GitHub Pages. Push to main branch to update.
+Based on PSY6-ULTIMATE v6.5 architecture.
+See ARCHITECTURE.md for full specification.
 
 ## License
 
@@ -125,4 +75,4 @@ MIT
 
 ---
 
-PSY3 PRO - Professional psytrance production instrument.
+*PSY3 PRO — Professional psytrance production instrument.*
