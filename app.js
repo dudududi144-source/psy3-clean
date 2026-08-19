@@ -1131,6 +1131,7 @@ Groovebox.prototype.setKnob=function(name,v){
 Groovebox.prototype.play=function(){
   var self=this;
   return this.init().then(function(){
+    hideLoading();
     if(self.isPlaying) return;
     self.isPlaying=true;
     self.uiQueue=[];
@@ -1713,7 +1714,9 @@ function initUi(){
   window.__psy6=device;
 }
 function safeInitUi(){
-  try{ initUi(); }
+  try{ initUi(); 
+  hideLoading();
+}
   catch(e){
     var st=document.getElementById("status");
     if(st){ st.textContent="INIT ERROR: "+e.message; alert("INIT ERROR: "+e.message); st.className="status err"; }
