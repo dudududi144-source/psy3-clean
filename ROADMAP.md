@@ -58,17 +58,17 @@ Now we build the professional product around it.
 
 ---
 
-## Phase 4: MOBILE — 2/7 COMPLETE
+## Phase 4: MOBILE — COMPLETE
 
-- [ ] 4.1 Touch-optimized controls (44px+ touch targets)
-- [ ] 4.2 Stacked layout for portrait mode
-- [ ] 4.3 Bottom navigation bar
-- [ ] 4.4 Swipe gestures for section navigation
-- [ ] 4.5 Reduced animations on mobile
+- [x] 4.1 Touch-optimized controls (44px+ touch targets)
+- [x] 4.2 Stacked layout for portrait mode
+- [x] 4.3 Bottom navigation bar
+- [x] 4.4 Swipe gestures for section navigation
+- [x] 4.5 Reduced animations on mobile
 - [x] 4.6 PWA manifest (installable app)
 - [x] 4.7 Offline support (service worker)
 
-### Status: 2/7 COMPLETE
+### Status: COMPLETE
 
 ---
 
@@ -105,7 +105,7 @@ Now we build the professional product around it.
 | Phase 1: Design | COMPLETE | 2026-08-18 | 2026-08-18 |
 | Phase 2: Functionality | COMPLETE | 2026-08-18 | 2026-08-18 |
 | Phase 3: Features | COMPLETE | 2026-08-18 | 2026-08-18 |
-| Phase 4: Mobile | 2/7 | 2026-08-18 | - |
+| Phase 4: Mobile | COMPLETE | 2026-08-18 | 2026-08-18 |
 | Phase 5: Quality | NOT STARTED | - | - |
 | Phase 6: Launch | NOT STARTED | - | - |
 
@@ -123,6 +123,7 @@ Now we build the professional product around it.
 | 2026-08-18 | Phase 3: MIDI input, Preset, Undo/Redo, Settings | Phase 3 |
 | 2026-08-18 | Phase 3.2 + 3.3: Pattern Editor + Song Editor | Phase 3 |
 | 2026-08-18 | Phase 4.6 + 4.7: PWA manifest + Service Worker | Phase 4 |
+| 2026-08-18 | Phase 4.1-4.5: Touch, Layout, Nav, Gestures, Animations | Phase 4 |
 
 ---
 
@@ -138,6 +139,19 @@ Now we build the professional product around it.
 
 ---
 
+## Mobile Features
+
+| Feature | Description |
+|---------|-------------|
+| Touch targets | 44px+ for all interactive elements |
+| Stacked layout | Portrait mode optimization |
+| Bottom nav | PLAY, KNOBS, SEQ, PADS buttons |
+| Swipe gestures | Left/right to navigate sections |
+| Reduced animations | Faster transitions on mobile |
+| PWA | Installable app with offline support |
+
+---
+
 ## Pattern Editor Functions
 
 | Function | Description |
@@ -148,7 +162,7 @@ Now we build the professional product around it.
 | patternShift(part, dir) | Shift pattern left/right |
 | patternDouble(part) | Double first 8 steps to second 8 |
 | patternHalf(part) | Clear second 8 steps |
-| patternInvert(part) | Invert pattern (0→1, 1→0) |
+| patternInvert(part) | Invert pattern (0 to 1, 1 to 0) |
 
 ---
 
