@@ -1427,6 +1427,92 @@ var BrickwallLimiter = {
 };
 
 // Initialize BrickwallLimiter and connect to master
+
+
+var OversampledLowpass = {
+  create: function(ctx, frequency) {
+    var filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = frequency || 8000;
+    filter.Q.value = 0.707;
+    return filter;
+  },
+  state: {
+    y: 0,
+    process: function(input, freq, sampleRate) {
+      var rc = 1.0 / (2.0 * Math.PI * freq);
+      var dt = 1.0 / sampleRate;
+      var alpha = dt / (rc + dt);
+      this.y = this.y + alpha * (input - this.y);
+      return this.y;
+    },
+    reset: function() { this.y = 0; }
+  }
+};
+
+
+var Envelope = {
+  create: function() {
+    return {
+      attack: 0.01,
+      decay: 0.1,
+      sustain: 0.7,
+      release: 0.3,
+      phase: 'idle',
+      level: 0,
+      noteOn: function(t) { this.phase = 'attack'; this.level = 0; },
+      noteOff: function(t) { this.phase = 'release'; },
+      process: function(sampleRate) {
+        var dt = 1.0 / sampleRate;
+        if (this.phase === 'attack') {
+          var attackRate = 1.0 / (this.attack * sampleRate);
+          this.level += attackRate * (1.0 - this.level);
+          if (this.level >= 0.99) { this.level = 1.0; this.phase = 'decay'; }
+        } else if (this.phase === 'decay') {
+          var decayRate = 1.0 / (this.decay * sampleRate);
+          this.level += decayRate * (this.sustain - this.level);
+          if (Math.abs(this.level - this.sustain) < 0.01) { this.level = this.sustain; this.phase = 'sustain'; }
+        } else if (this.phase === 'sustain') {
+          this.level = this.sustain;
+        } else if (this.phase === 'release') {
+          var releaseRate = 1.0 / (this.release * sampleRate);
+          this.level -= releaseRate * this.level;
+          if (this.level < 0.001) { this.level = 0; this.phase = 'idle'; }
+        }
+        return this.level;
+      },
+      reset: function() { this.phase = 'idle'; this.level = 0; }
+    };
+  }
+};
+
+
+var SoftClip = {
+  process: function(input, drive) {
+    drive = drive || 1.0;
+    return Math.tanh(input * drive) / Math.tanh(drive);
+  },
+  create: function(ctx, drive) {
+    var shaper = ctx.createWaveShaper();
+    var samples = 44100;
+    var curve = new Float32Array(samples);
+    drive = drive || 1.0;
+    for (var i = 0; i < samples; i++) {
+      var x = (i * 2) / samples - 1;
+      curve[i] = Math.tanh(x * drive) / Math.tanh(drive);
+    }
+    shaper.curve = curve;
+    shaper.oversample = '4x';
+    return shaper;
+  }
+};
+
+function initSoftClipOutput() {
+  if (device && device.ctx && device.master) {
+    var shaper = SoftClip.create(device.ctx, 1.5);
+    console.log('SoftClip output stage available');
+  }
+}
 function initBrickwallLimiter() {
   if (device && device.ctx && device.master) {
     // Create limiter
