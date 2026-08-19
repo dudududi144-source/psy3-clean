@@ -1635,6 +1635,108 @@ var Grammars = {
 Grammars.init();
 
 /* ============================================================
+   GRAMMAR INTEGRATION (Connect grammars to performance)
+   ============================================================ */
+
+// Track last played note for grammar learning
+var grammarTracker = {
+  lastBassNote: null,
+  lastMelodyNote: null,
+  lastKickStep: null,
+  
+  // Call this when a bass note is played
+  trackBass: function(note) {
+    if (this.lastBassNote !== null) {
+      var interval = note - this.lastBassNote;
+      Grammars.bass.observe(interval, 0);
+    }
+    this.lastBassNote = note;
+  },
+  
+  // Call this when a melody note is played
+  trackMelody: function(note) {
+    if (this.lastMelodyNote !== null) {
+      var interval = note - this.lastMelodyNote;
+      Grammars.melodic.observe(interval);
+    }
+    this.lastMelodyNote = note;
+  },
+  
+  // Call this when a kick is triggered
+  trackKick: function(step) {
+    Grammars.rhythm.observe(step);
+    this.lastKickStep = step;
+  }
+};
+
+// Hook into hitPad to track performance
+var originalHitPad = null;
+if (typeof hitPad === 'function') {
+  originalHitPad = hitPad;
+  hitPad = function(idx, el) {
+    // Track melody for grammar learning
+    grammarTracker.trackMelody(idx);
+    
+    // Call original
+    if (originalHitPad) {
+      return originalHitPad(idx, el);
+    }
+  };
+}
+
+// Hook into scheduleStep to track kick and generate
+var originalScheduleStep = null;
+if (typeof Groovebox !== 'undefined' && Groovebox.prototype.scheduleStep) {
+  originalScheduleStep = Groovebox.prototype.scheduleStep;
+  Groovebox.prototype.scheduleStep = function(absStep, t) {
+    var step = absStep % 16;
+    
+    // Track kick for rhythm grammar
+    if (step === 0 || step === 4 || step === 8 || step === 12) {
+      grammarTracker.trackKick(step);
+    }
+    
+    // ADAPTIVE mode: Generate music using CandidateGenerator
+    if (this.brainMode === 'ADAPTIVE' && step === 0) {
+      var currentState = {
+        lastBassInterval: grammarTracker.lastBassNote || 0
+      };
+      var best = CandidateGenerator.generateNextBar(currentState, null);
+      
+      // Apply generated rhythm to kick pattern
+      if (best && best.rhythmPattern && this.patterns && this.patterns.KICK) {
+        for (var i = 0; i < 16; i++) {
+          this.patterns.KICK[i] = best.rhythmPattern[i];
+        }
+        refreshSeqUi();
+      }
+    }
+    
+    // Call original
+    if (originalScheduleStep) {
+      return originalScheduleStep.call(this, absStep, t);
+    }
+  };
+}
+
+// Initialize brain mode
+var brainMode = 'MANUAL'; // MANUAL, GENERATIVE, ADAPTIVE
+
+function setBrainMode(mode) {
+  brainMode = mode;
+  if (device) {
+    device.brainMode = mode;
+  }
+  var statusEl = document.getElementById('status');
+  if (statusEl) {
+    statusEl.textContent = 'BRAIN: ' + mode;
+    statusEl.className = 'ok';
+  }
+  trackEvent('brain_mode', { mode: mode });
+}
+
+
+/* ============================================================
    CANDIDATE GENERATOR (Phase B2)
    Inspired by PSY6-ULTIMATE — 5 candidates/bar
    ============================================================ */
@@ -1729,6 +1831,47 @@ var PolyBLEPOscillator = {
     return osc;
   }
 };
+
+
+
+/* ============================================================
+   POOLED ENGINE INTEGRATION
+   ============================================================ */
+
+// Use PooledEngine for drum voices if available
+function triggerDrumWithPool(type, velocity, t) {
+  if (PooledEngine.isInitialized) {
+    var voice = PooledEngine.nextDrum();
+    voice.trigger(type, velocity, t);
+    return true;
+  }
+  return false;
+}
+
+// Use PooledEngine for synth voices if available
+function triggerSynthWithPool(freq, velocity, t) {
+  if (PooledEngine.isInitialized) {
+    var voice = PooledEngine.nextSynth();
+    voice.noteOn(freq, velocity, t);
+    return true;
+  }
+  return false;
+}
+
+// Panic function using PooledEngine
+function panicAllVoices() {
+  if (PooledEngine.isInitialized) {
+    PooledEngine.panic();
+  }
+  if (device) {
+    device.stop();
+  }
+  var statusEl = document.getElementById('status');
+  if (statusEl) {
+    statusEl.textContent = 'PANIC: All voices stopped';
+    statusEl.className = 'err';
+  }
+}
 
 function initPooledEngine() {
   if (device && device.ctx && device.master) {
@@ -2524,6 +2667,43 @@ var Arpeggiator = {
     return pattern;
   }
 };
+
+
+
+/* ============================================================
+   ARPEGGIATOR INTEGRATION
+   ============================================================ */
+
+// Arpeggiator UI controls
+function setArpMode(mode) {
+  Arpeggiator.setMode(mode);
+  var statusEl = document.getElementById('status');
+  if (statusEl) {
+    statusEl.textContent = 'ARP MODE: ' + mode.toUpperCase();
+    statusEl.className = 'ok';
+  }
+}
+
+function toggleArpHold() {
+  Arpeggiator.setHold(!Arpeggiator.hold);
+  var statusEl = document.getElementById('status');
+  if (statusEl) {
+    statusEl.textContent = 'ARP HOLD: ' + (Arpeggiator.hold ? 'ON' : 'OFF');
+    statusEl.className = 'ok';
+  }
+}
+
+// Hook Arpeggiator into hitPad
+var arpEnabled = false;
+
+function toggleArp() {
+  arpEnabled = !arpEnabled;
+  var statusEl = document.getElementById('status');
+  if (statusEl) {
+    statusEl.textContent = 'ARP: ' + (arpEnabled ? 'ON' : 'OFF');
+    statusEl.className = arpEnabled ? 'ok' : '';
+  }
+}
 
 /* ============================================================
    PRESET SYSTEM (Phase 3.1)
