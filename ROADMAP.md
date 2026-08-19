@@ -43,32 +43,32 @@ Now we build the professional product around it.
 
 ---
 
-## Phase 3: FEATURES — 6/8 COMPLETE
+## Phase 3: FEATURES — COMPLETE
 
 - [x] 3.1 Preset system (save/load device state)
-- [ ] 3.2 Pattern editor (edit sequencer patterns)
-- [ ] 3.3 Song editor (arrange sections)
+- [x] 3.2 Pattern editor (edit sequencer patterns)
+- [x] 3.3 Song editor (arrange sections)
 - [x] 3.4 MIDI input support (Web MIDI API)
 - [x] 3.5 MIDI learn (map CC to parameters)
 - [x] 3.6 Keyboard shortcuts
 - [x] 3.7 Undo/Redo system
 - [x] 3.8 Settings persistence (localStorage)
 
-### Status: 6/8 COMPLETE
+### Status: COMPLETE
 
 ---
 
-## Phase 4: MOBILE (Week 4)
+## Phase 4: MOBILE — 2/7 COMPLETE
 
 - [ ] 4.1 Touch-optimized controls (44px+ touch targets)
 - [ ] 4.2 Stacked layout for portrait mode
 - [ ] 4.3 Bottom navigation bar
 - [ ] 4.4 Swipe gestures for section navigation
 - [ ] 4.5 Reduced animations on mobile
-- [ ] 4.6 PWA manifest (installable app)
-- [ ] 4.7 Offline support (service worker)
+- [x] 4.6 PWA manifest (installable app)
+- [x] 4.7 Offline support (service worker)
 
-### Status: NOT STARTED
+### Status: 2/7 COMPLETE
 
 ---
 
@@ -104,8 +104,8 @@ Now we build the professional product around it.
 |-------|--------|---------|-----------|
 | Phase 1: Design | COMPLETE | 2026-08-18 | 2026-08-18 |
 | Phase 2: Functionality | COMPLETE | 2026-08-18 | 2026-08-18 |
-| Phase 3: Features | 6/8 | 2026-08-18 | - |
-| Phase 4: Mobile | NOT STARTED | - | - |
+| Phase 3: Features | COMPLETE | 2026-08-18 | 2026-08-18 |
+| Phase 4: Mobile | 2/7 | 2026-08-18 | - |
 | Phase 5: Quality | NOT STARTED | - | - |
 | Phase 6: Launch | NOT STARTED | - | - |
 
@@ -121,6 +121,8 @@ Now we build the professional product around it.
 | 2026-08-18 | drawViz added, pads fixed | Phase 2 |
 | 2026-08-18 | Phase 2 complete: all functionality connected | Phase 2 |
 | 2026-08-18 | Phase 3: MIDI input, Preset, Undo/Redo, Settings | Phase 3 |
+| 2026-08-18 | Phase 3.2 + 3.3: Pattern Editor + Song Editor | Phase 3 |
+| 2026-08-18 | Phase 4.6 + 4.7: PWA manifest + Service Worker | Phase 4 |
 
 ---
 
@@ -136,23 +138,38 @@ Now we build the professional product around it.
 
 ---
 
-## MIDI Support
+## Pattern Editor Functions
 
-- Web MIDI API integration
-- CC mapping via MIDI Learn
-- Note mapping for pad triggers
-- Auto-detect MIDI controllers
-- Hot-plug support
+| Function | Description |
+|----------|-------------|
+| patternClear(part) | Clear pattern for a part (or all) |
+| patternRandom(part) | Randomize pattern |
+| patternReverse(part) | Reverse pattern |
+| patternShift(part, dir) | Shift pattern left/right |
+| patternDouble(part) | Double first 8 steps to second 8 |
+| patternHalf(part) | Clear second 8 steps |
+| patternInvert(part) | Invert pattern (0→1, 1→0) |
 
 ---
 
-## Preset System
+## Song Editor Functions
 
-- Save/load device state
-- Stored in localStorage
-- Quick save with Ctrl+S
-- List all presets: listPresets()
-- Delete preset: deletePreset(name)
+| Function | Description |
+|----------|-------------|
+| songAddSection(name) | Add a new section |
+| songRemoveSection(index) | Remove a section |
+| songMoveSection(from, to) | Move a section |
+| songDuplicateSection(index) | Duplicate a section |
+| songGetInfo() | Get song info |
+
+---
+
+## PWA Support
+
+- manifest.json for installable app
+- Service worker for offline support
+- Cache-first strategy
+- Auto-update on new version
 
 ---
 
