@@ -1481,6 +1481,27 @@ btn.textContent="\u25A0 STOP"; btn.className="play-btn playing";
   });
 }
 var vizBuf=new Uint8Array(256);
+
+function drawViz(){
+  var canvas=document.getElementById("viz");
+  if(!canvas||!device||!device.analyser) return;
+  var ctx2d=canvas.getContext("2d");
+  var w=canvas.width=canvas.offsetWidth||300;
+  var h=canvas.height=canvas.offsetHeight||56;
+  device.analyser.getByteFrequencyData(vizBuf);
+  ctx2d.clearRect(0,0,w,h);
+  var barCount=64;
+  var barWidth=w/barCount;
+  for(var i=0;i<barCount;i++){
+    var v=vizBuf[i]/255;
+    var barHeight=v*h;
+    var hue=180+i*2;
+    var lightness=40+v*30;
+    ctx2d.fillStyle="hsla("+hue+",70%,"+lightness+"%,0.85)";
+    ctx2d.fillRect(i*barWidth,h-barHeight,barWidth-1,barHeight);
+  }
+}
+
 function uiLoop(){
   requestAnimationFrame(uiLoop);
   if(!device.ctx||!device.analyser) return;
