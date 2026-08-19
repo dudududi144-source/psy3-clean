@@ -132,6 +132,23 @@ var UndoRedo = {
   }
 };
 
+function doUndo() {
+  var state = UndoRedo.undo();
+  if (state) {
+    applyDeviceState(state);
+    setStatus('Undo', 'ok');
+  }
+}
+
+function doRedo() {
+  var state = UndoRedo.redo();
+  if (state) {
+    applyDeviceState(state);
+    setStatus('Redo', 'ok');
+  }
+}
+
+
 // Get current sequencer state
 function getSequencerState() {
   var steps = document.querySelectorAll('.seq-step');
@@ -220,6 +237,74 @@ var MIDILearn = {
   // Clear all mappings
   clear: function() {
     this.ccMap = {};
+
+var MIDIInput = {
+  access: null,
+  inputs: [],
+  
+  init: function() {
+    var self = this;
+    if (!navigator.requestMIDIAccess) {
+      console.log('Web MIDI API not supported');
+      return;
+    }
+    navigator.requestMIDIAccess({ sysex: false }).then(function(access) {
+      self.access = access;
+      var inputs = access.inputs.values();
+      for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
+        self.inputs.push(input.value);
+        input.value.onmidimessage = function(event) {
+          self.handleMessage(event);
+        };
+        console.log('MIDI input connected: ' + input.value.name);
+      }
+      access.onstatechange = function(event) {
+        if (event.port.type === 'input' && event.port.state === 'connected') {
+          self.inputs.push(event.port);
+          event.port.onmidimessage = function(e) {
+            self.handleMessage(e);
+          };
+        }
+      };
+    }).catch(function(err) {
+      console.log('MIDI access failed: ' + err);
+    });
+  },
+  
+  handleMessage: function(event) {
+    var data = event.data;
+    var status = data[0] & 0xF0;
+    var note = data[1];
+    var velocity = data[2];
+    if (status === 0xB0) this.handleCC(note, velocity);
+    if (status === 0x90 && velocity > 0) this.handleNoteOn(note, velocity);
+  },
+  
+  handleCC: function(cc, value) {
+    if (MIDILearn.active && MIDILearn.targetParam) {
+      MIDILearn.ccMap[cc] = MIDILearn.targetParam;
+      console.log('MIDI Learn: mapped CC ' + cc + ' to ' + MIDILearn.targetParam);
+      MIDILearn.stop();
+      return;
+    }
+    var param = MIDILearn.ccMap[cc];
+    if (param && device) {
+      applyMacro(param, value / 127);
+    }
+  },
+  
+  handleNoteOn: function(note, velocity) {
+    var action = MIDILearn.noteMap[note];
+    if (action && typeof action === 'number') {
+      hitPad(action);
+    }
+  }
+};
+
+function initMIDIInput() {
+  MIDIInput.init();
+}
+
     this.noteMap = {};
     console.log('MIDI Learn: all mappings cleared');
   }
@@ -1529,6 +1614,19 @@ window.addEventListener("keydown",function(e){
   var k=(e.key||"").toLowerCase();
   if(k in KEYMAP){ hitPad(KEYMAP[k],null); }
   else if(k===" "){ if(e.preventDefault)e.preventDefault(); togglePlay(); }
+
+  // Undo/Redo shortcuts (Phase 3.7)
+  if(k==="z"&&(e.ctrlKey||e.metaKey)){
+    e.preventDefault();
+    if(e.shiftKey){ doRedo(); } else { doUndo(); }
+    return;
+  }
+  // Save preset shortcut (Phase 3.1)
+  if(k==="s"&&(e.ctrlKey||e.metaKey)){
+    e.preventDefault();
+    savePreset('Quick Save ' + Date.now());
+    return;
+  }
 });
 function renderTimelineFor(dev){
   var el=$("timeline"); if(!el||!dev.song) return;
@@ -1584,3 +1682,127 @@ function safeInitUi(){
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",safeInitUi);
 else safeInitUi();
+
+
+/* ============================================================
+   PRESET SYSTEM (Phase 3.1)
+   ============================================================ */
+
+function savePreset(name) {
+  if (!device) return;
+  var preset = {
+    name: name || 'Untitled',
+    timestamp: Date.now(),
+    bpm: device.bpm,
+    swing: device.swing,
+    seed: device.seed,
+    variation: device.variation,
+    knobVals: JSON.parse(JSON.stringify(device.knobVals)),
+    mutes: JSON.parse(JSON.stringify(device.mutes))
+  };
+  var presets = JSON.parse(localStorage.getItem('psy3_presets') || '[]');
+  var existingIdx = presets.findIndex(function(p) { return p.name === name; });
+  if (existingIdx >= 0) {
+    presets[existingIdx] = preset;
+  } else {
+    presets.push(preset);
+  }
+  localStorage.setItem('psy3_presets', JSON.stringify(presets));
+  setStatus('Preset saved: ' + preset.name, 'ok');
+  trackEvent('preset_saved', { name: preset.name });
+}
+
+function loadPreset(name) {
+  if (!device) return;
+  var presets = JSON.parse(localStorage.getItem('psy3_presets') || '[]');
+  var preset = presets.find(function(p) { return p.name === name; });
+  if (!preset) {
+    setStatus('Preset not found: ' + name, 'err');
+    return;
+  }
+  device.bpm = preset.bpm;
+  device.swing = preset.swing;
+  device.seed = preset.seed;
+  device.variation = preset.variation;
+  device.knobVals = JSON.parse(JSON.stringify(preset.knobVals));
+  device.mutes = JSON.parse(JSON.stringify(preset.mutes));
+  for (var key in device.knobVals) {
+    device.applyKnob(key);
+  }
+  device.refreshPartGains(device.ctx.currentTime);
+  setStatus('Preset loaded: ' + preset.name, 'ok');
+  trackEvent('preset_loaded', { name: preset.name });
+}
+
+function listPresets() {
+  var presets = JSON.parse(localStorage.getItem('psy3_presets') || '[]');
+  return presets.map(function(p) { return p.name; });
+}
+
+function deletePreset(name) {
+  var presets = JSON.parse(localStorage.getItem('psy3_presets') || '[]');
+  presets = presets.filter(function(p) { return p.name !== name; });
+  localStorage.setItem('psy3_presets', JSON.stringify(presets));
+  setStatus('Preset deleted: ' + name, 'ok');
+}
+
+function saveSettings() {
+  if (!device) return;
+  var settings = {
+    bpm: device.bpm,
+    swing: device.swing,
+    seed: device.seed,
+    variation: device.variation,
+    knobVals: device.knobVals,
+    mutes: device.mutes
+  };
+  localStorage.setItem('psy3_settings', JSON.stringify(settings));
+}
+
+function loadSettings() {
+  if (!device) return;
+  var saved = localStorage.getItem('psy3_settings');
+  if (!saved) return;
+  try {
+    var settings = JSON.parse(saved);
+    device.bpm = settings.bpm || 145;
+    device.swing = settings.swing || 0.12;
+    device.seed = settings.seed || 1337;
+    device.variation = settings.variation || 1;
+    if (settings.knobVals) device.knobVals = settings.knobVals;
+    if (settings.mutes) device.mutes = settings.mutes;
+    for (var key in device.knobVals) {
+      device.applyKnob(key);
+    }
+    console.log('Settings loaded');
+  } catch (e) {
+    console.log('Settings load failed: ' + e);
+  }
+}
+
+
+function getDeviceState() {
+  if (!device) return null;
+  return {
+    bpm: device.bpm,
+    swing: device.swing,
+    seed: device.seed,
+    variation: device.variation,
+    knobVals: JSON.parse(JSON.stringify(device.knobVals)),
+    mutes: JSON.parse(JSON.stringify(device.mutes))
+  };
+}
+
+function applyDeviceState(state) {
+  if (!device || !state) return;
+  device.bpm = state.bpm;
+  device.swing = state.swing;
+  device.seed = state.seed;
+  device.variation = state.variation;
+  device.knobVals = JSON.parse(JSON.stringify(state.knobVals));
+  device.mutes = JSON.parse(JSON.stringify(state.mutes));
+  for (var key in device.knobVals) {
+    device.applyKnob(key);
+  }
+  device.refreshPartGains(device.ctx.currentTime);
+}
