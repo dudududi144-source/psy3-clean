@@ -1507,6 +1507,195 @@ var SoftClip = {
   }
 };
 
+
+
+/* ============================================================
+   GRAMMAR SYSTEM (Phase B1)
+   Inspired by PSY6-ULTIMATE — Statistical Learning
+   ============================================================ */
+
+var Grammars = {
+  bass: {
+    transitions: [],
+    totalObservations: 0,
+    init: function() {
+      this.transitions = [];
+      for (var i = 0; i < 12; i++) {
+        this.transitions[i] = [];
+        for (var j = 0; j < 12; j++) {
+          this.transitions[i][j] = 1;
+        }
+      }
+      this.totalObservations = 0;
+    },
+    observe: function(fromInterval, toInterval) {
+      var from = ((fromInterval % 12) + 12) % 12;
+      var to = ((toInterval % 12) + 12) % 12;
+      this.transitions[from][to]++;
+      this.totalObservations++;
+    },
+    generate: function(currentInterval, rng) {
+      var from = ((currentInterval % 12) + 12) % 12;
+      var row = this.transitions[from];
+      var total = 0;
+      for (var i = 0; i < 12; i++) total += row[i];
+      var r = (rng ? rng() : Math.random()) * total;
+      var cumulative = 0;
+      for (var i = 0; i < 12; i++) {
+        cumulative += row[i];
+        if (r <= cumulative) return i;
+      }
+      return 0;
+    },
+    confidence: function() {
+      return Math.min(100, Math.floor(this.totalObservations / 50 * 100));
+    }
+  },
+  melodic: {
+    intervals: [],
+    contourUp: 0,
+    contourDown: 0,
+    contourSame: 0,
+    totalObservations: 0,
+    init: function() {
+      this.intervals = [];
+      for (var i = 0; i < 25; i++) {
+        this.intervals[i] = 1;
+      }
+      this.contourUp = 0;
+      this.contourDown = 0;
+      this.contourSame = 0;
+      this.totalObservations = 0;
+    },
+    observe: function(interval) {
+      var idx = Math.max(0, Math.min(24, interval + 12));
+      this.intervals[idx]++;
+      if (interval > 0) this.contourUp++;
+      else if (interval < 0) this.contourDown++;
+      else this.contourSame++;
+      this.totalObservations++;
+    },
+    generate: function(rng) {
+      var total = 0;
+      for (var i = 0; i < 25; i++) total += this.intervals[i];
+      var r = (rng ? rng() : Math.random()) * total;
+      var cumulative = 0;
+      for (var i = 0; i < 25; i++) {
+        cumulative += this.intervals[i];
+        if (r <= cumulative) return i - 12;
+      }
+      return 0;
+    },
+    contourTendency: function() {
+      var total = this.contourUp + this.contourDown + this.contourSame;
+      if (total === 0) return 'neutral';
+      if (this.contourUp > this.contourDown && this.contourUp > this.contourSame) return 'up';
+      if (this.contourDown > this.contourUp && this.contourDown > this.contourSame) return 'down';
+      return 'same';
+    },
+    confidence: function() {
+      return Math.min(100, Math.floor(this.totalObservations / 50 * 100));
+    }
+  },
+  rhythm: {
+    steps: [],
+    totalObservations: 0,
+    init: function() {
+      this.steps = [];
+      for (var i = 0; i < 16; i++) {
+        this.steps[i] = 1;
+      }
+      this.totalObservations = 0;
+    },
+    observe: function(step) {
+      var s = ((step % 16) + 16) % 16;
+      this.steps[s]++;
+      this.totalObservations++;
+    },
+    generate: function(rng) {
+      var pattern = [];
+      for (var i = 0; i < 16; i++) {
+        var probability = this.steps[i] / (this.totalObservations + 16);
+        pattern[i] = (rng ? rng() : Math.random()) < probability * 2 ? 1 : 0;
+      }
+      return pattern;
+    },
+    confidence: function() {
+      return Math.min(100, Math.floor(this.totalObservations / 50 * 100));
+    }
+  },
+  init: function() {
+    this.bass.init();
+    this.melodic.init();
+    this.rhythm.init();
+    console.log('Grammars initialized');
+  }
+};
+
+Grammars.init();
+
+/* ============================================================
+   CANDIDATE GENERATOR (Phase B2)
+   Inspired by PSY6-ULTIMATE — 5 candidates/bar
+   ============================================================ */
+
+var CandidateGenerator = {
+  candidatesPerBar: 5,
+  generateCandidates: function(currentState, rng) {
+    var candidates = [];
+    for (var i = 0; i < this.candidatesPerBar; i++) {
+      candidates.push(this.generateCandidate(currentState, rng));
+    }
+    return candidates;
+  },
+  generateCandidate: function(currentState, rng) {
+    var candidate = {
+      bassNotes: [],
+      melodyNotes: [],
+      rhythmPattern: [],
+      score: 0
+    };
+    var currentInterval = currentState.lastBassInterval || 0;
+    for (var i = 0; i < 4; i++) {
+      var nextInterval = Grammars.bass.generate(currentInterval, rng);
+      candidate.bassNotes.push(nextInterval);
+      currentInterval = nextInterval;
+    }
+    for (var i = 0; i < 8; i++) {
+      var interval = Grammars.melodic.generate(rng);
+      candidate.melodyNotes.push(interval);
+    }
+    candidate.rhythmPattern = Grammars.rhythm.generate(rng);
+    candidate.score = this.scoreCandidate(candidate, currentState);
+    return candidate;
+  },
+  scoreCandidate: function(candidate, currentState) {
+    var score = 0;
+    score += Grammars.bass.confidence() * 0.3;
+    score += Grammars.melodic.confidence() * 0.3;
+    score += Grammars.rhythm.confidence() * 0.2;
+    var rhythmVariety = 0;
+    for (var i = 0; i < candidate.rhythmPattern.length; i++) {
+      if (candidate.rhythmPattern[i]) rhythmVariety++;
+    }
+    score += rhythmVariety * 2;
+    var contour = Grammars.melodic.contourTendency();
+    if (contour !== 'neutral') score += 10;
+    return score;
+  },
+  selectBest: function(candidates) {
+    var best = candidates[0];
+    for (var i = 1; i < candidates.length; i++) {
+      if (candidates[i].score > best.score) best = candidates[i];
+    }
+    return best;
+  },
+  generateNextBar: function(currentState, rng) {
+    var candidates = this.generateCandidates(currentState, rng);
+    return this.selectBest(candidates);
+  }
+};
+
 function initSoftClipOutput() {
   if (device && device.ctx && device.master) {
     var shaper = SoftClip.create(device.ctx, 1.5);
@@ -2264,6 +2453,77 @@ function safeInitUi(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",safeInitUi);
 else safeInitUi();
 
+
+
+
+/* ============================================================
+   ARPEGGIATOR (Phase B5)
+   Inspired by PsySynthPro — UP/DOWN/UP-DOWN/RANDOM
+   ============================================================ */
+
+var Arpeggiator = {
+  mode: 'up',
+  octaveRange: 2,
+  hold: false,
+  notes: [],
+  currentIndex: 0,
+  direction: 1,
+  setMode: function(mode) {
+    this.mode = mode;
+    this.currentIndex = 0;
+    this.direction = 1;
+  },
+  setOctaveRange: function(range) {
+    this.octaveRange = range;
+  },
+  setHold: function(hold) {
+    this.hold = hold;
+  },
+  addNote: function(note) {
+    if (this.notes.indexOf(note) === -1) {
+      this.notes.push(note);
+      this.notes.sort(function(a, b) { return a - b; });
+    }
+  },
+  removeNote: function(note) {
+    var idx = this.notes.indexOf(note);
+    if (idx >= 0) this.notes.splice(idx, 1);
+  },
+  clearNotes: function() {
+    if (!this.hold) {
+      this.notes = [];
+      this.currentIndex = 0;
+      this.direction = 1;
+    }
+  },
+  nextNote: function(rng) {
+    if (this.notes.length === 0) return null;
+    var note;
+    if (this.mode === 'up') {
+      note = this.notes[this.currentIndex];
+      this.currentIndex = (this.currentIndex + 1) % this.notes.length;
+    } else if (this.mode === 'down') {
+      note = this.notes[this.notes.length - 1 - this.currentIndex];
+      this.currentIndex = (this.currentIndex + 1) % this.notes.length;
+    } else if (this.mode === 'updown') {
+      note = this.notes[this.currentIndex];
+      this.currentIndex += this.direction;
+      if (this.currentIndex >= this.notes.length - 1) this.direction = -1;
+      else if (this.currentIndex <= 0) this.direction = 1;
+    } else if (this.mode === 'random') {
+      var idx = Math.floor((rng ? rng() : Math.random()) * this.notes.length);
+      note = this.notes[idx];
+    }
+    return note;
+  },
+  generatePattern: function(steps, rng) {
+    var pattern = [];
+    for (var i = 0; i < steps; i++) {
+      pattern.push(this.nextNote(rng));
+    }
+    return pattern;
+  }
+};
 
 /* ============================================================
    PRESET SYSTEM (Phase 3.1)
