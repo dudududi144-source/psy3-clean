@@ -1806,3 +1806,213 @@ function applyDeviceState(state) {
   }
   device.refreshPartGains(device.ctx.currentTime);
 }
+
+
+/* ============================================================
+   PATTERN EDITOR (Phase 3.2)
+   ============================================================ */
+
+function getSequencerState() {
+  if (!device || !device.patterns) return null;
+  return JSON.parse(JSON.stringify(device.patterns));
+}
+
+function applySequencerState(state) {
+  if (!device || !state) return;
+  device.patterns = JSON.parse(JSON.stringify(state));
+  refreshSeqUi();
+}
+
+function patternClear(part) {
+  if (!device || !device.patterns) return;
+  if (part && device.patterns[part]) {
+    for (var i = 0; i < 16; i++) {
+      device.patterns[part][i] = 0;
+    }
+  } else {
+    for (var p in device.patterns) {
+      for (var i = 0; i < 16; i++) {
+        device.patterns[p][i] = 0;
+      }
+    }
+  }
+  refreshSeqUi();
+  setStatus('Pattern cleared', 'ok');
+}
+
+function patternRandom(part) {
+  if (!device || !device.patterns) return;
+  var rng = mulberry32(device.seed + Date.now());
+  if (part && device.patterns[part]) {
+    for (var i = 0; i < 16; i++) {
+      device.patterns[part][i] = rng() > 0.5 ? 1 : 0;
+    }
+  } else {
+    for (var p in device.patterns) {
+      for (var i = 0; i < 16; i++) {
+        device.patterns[p][i] = rng() > 0.5 ? 1 : 0;
+      }
+    }
+  }
+  refreshSeqUi();
+  setStatus('Pattern randomized', 'ok');
+}
+
+function patternReverse(part) {
+  if (!device || !device.patterns) return;
+  if (part && device.patterns[part]) {
+    device.patterns[part].reverse();
+  } else {
+    for (var p in device.patterns) {
+      device.patterns[p].reverse();
+    }
+  }
+  refreshSeqUi();
+  setStatus('Pattern reversed', 'ok');
+}
+
+function patternShift(part, direction) {
+  if (!device || !device.patterns) return;
+  direction = direction || 1;
+  if (part && device.patterns[part]) {
+    var arr = device.patterns[part];
+    if (direction > 0) {
+      arr.push(arr.shift());
+    } else {
+      arr.unshift(arr.pop());
+    }
+  } else {
+    for (var p in device.patterns) {
+      var arr = device.patterns[p];
+      if (direction > 0) {
+        arr.push(arr.shift());
+      } else {
+        arr.unshift(arr.pop());
+      }
+    }
+  }
+  refreshSeqUi();
+  setStatus('Pattern shifted', 'ok');
+}
+
+function patternDouble(part) {
+  if (!device || !device.patterns) return;
+  if (part && device.patterns[part]) {
+    var arr = device.patterns[part];
+    for (var i = 0; i < 8; i++) {
+      arr[i + 8] = arr[i];
+    }
+  } else {
+    for (var p in device.patterns) {
+      var arr = device.patterns[p];
+      for (var i = 0; i < 8; i++) {
+        arr[i + 8] = arr[i];
+      }
+    }
+  }
+  refreshSeqUi();
+  setStatus('Pattern doubled', 'ok');
+}
+
+function patternHalf(part) {
+  if (!device || !device.patterns) return;
+  if (part && device.patterns[part]) {
+    var arr = device.patterns[part];
+    for (var i = 8; i < 16; i++) {
+      arr[i] = 0;
+    }
+  } else {
+    for (var p in device.patterns) {
+      var arr = device.patterns[p];
+      for (var i = 8; i < 16; i++) {
+        arr[i] = 0;
+      }
+    }
+  }
+  refreshSeqUi();
+  setStatus('Pattern halved', 'ok');
+}
+
+function patternInvert(part) {
+  if (!device || !device.patterns) return;
+  if (part && device.patterns[part]) {
+    for (var i = 0; i < 16; i++) {
+      device.patterns[part][i] = device.patterns[part][i] ? 0 : 1;
+    }
+  } else {
+    for (var p in device.patterns) {
+      for (var i = 0; i < 16; i++) {
+        device.patterns[p][i] = device.patterns[p][i] ? 0 : 1;
+      }
+    }
+  }
+  refreshSeqUi();
+  setStatus('Pattern inverted', 'ok');
+}
+
+
+/* ============================================================
+   SONG EDITOR (Phase 3.3)
+   ============================================================ */
+
+function songAddSection(sectionName) {
+  if (!device || !device.song) return;
+  var newSection = {
+    name: sectionName || 'NEW',
+    bars: 4,
+    type: 'drop'
+  };
+  device.song.sections.push(newSection);
+  if (typeof renderTimelineFor === 'function') {
+    renderTimelineFor(device);
+  }
+  setStatus('Section added: ' + newSection.name, 'ok');
+}
+
+function songRemoveSection(index) {
+  if (!device || !device.song) return;
+  if (index >= 0 && index < device.song.sections.length) {
+    var removed = device.song.sections.splice(index, 1);
+    if (typeof renderTimelineFor === 'function') {
+      renderTimelineFor(device);
+    }
+    setStatus('Section removed: ' + removed[0].name, 'ok');
+  }
+}
+
+function songMoveSection(fromIndex, toIndex) {
+  if (!device || !device.song) return;
+  var sections = device.song.sections;
+  if (fromIndex >= 0 && fromIndex < sections.length && toIndex >= 0 && toIndex < sections.length) {
+    var section = sections.splice(fromIndex, 1)[0];
+    sections.splice(toIndex, 0, section);
+    if (typeof renderTimelineFor === 'function') {
+      renderTimelineFor(device);
+    }
+    setStatus('Section moved', 'ok');
+  }
+}
+
+function songDuplicateSection(index) {
+  if (!device || !device.song) return;
+  if (index >= 0 && index < device.song.sections.length) {
+    var original = device.song.sections[index];
+    var copy = JSON.parse(JSON.stringify(original));
+    copy.name = original.name + ' COPY';
+    device.song.sections.splice(index + 1, 0, copy);
+    if (typeof renderTimelineFor === 'function') {
+      renderTimelineFor(device);
+    }
+    setStatus('Section duplicated', 'ok');
+  }
+}
+
+function songGetInfo() {
+  if (!device || !device.song) return null;
+  return {
+    sections: device.song.sections.length,
+    totalBars: device.song.sections.reduce(function(sum, s) { return sum + s.bars; }, 0),
+    bpm: device.bpm,
+    seed: device.seed
+  };
+}
