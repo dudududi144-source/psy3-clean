@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="PSY3 PRO - Professional Hyperspace Psytrance Workstation">
 <meta name="theme-color" content="#0a0c12">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PSY3 PRO">
+
 <title>PSY3 PRO - Hyperspace Psytrance Workstation</title>
 <style>
 /* ============================================================
@@ -549,5 +554,18 @@ body {
 </div>
 
 <script src="app.js"></script>
+
+<script>
+// Register service worker (Phase 4.7)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('sw.js').then(function(registration) {
+      console.log('ServiceWorker registered:', registration.scope);
+    }).catch(function(error) {
+      console.log('ServiceWorker registration failed:', error);
+    });
+  });
+}
+</script>
 </body>
 </html>
