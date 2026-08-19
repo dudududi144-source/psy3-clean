@@ -1714,14 +1714,17 @@ function initUi(){
   window.__psy6=device;
 }
 function safeInitUi(){
-  try{ initUi(); 
-  hideLoading();
-}
+  try{
+    initUi();
+  }
   catch(e){
     var st=document.getElementById("status");
     if(st){ st.textContent="INIT ERROR: "+e.message; alert("INIT ERROR: "+e.message); st.className="status err"; }
     var st2=document.getElementById("selfTest");
     if(st2){ st2.textContent="ERR: "+e.message; st2.className="err"; }
+  }
+  finally{
+    hideLoading();
   }
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",safeInitUi);
@@ -2198,3 +2201,9 @@ function hideLoading() {
     }, 500);
   }
 }
+
+
+// Fallback: hide loading after 5 seconds regardless
+setTimeout(function() {
+  hideLoading();
+}, 5000);
