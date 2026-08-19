@@ -1798,6 +1798,103 @@ var CandidateGenerator = {
   }
 };
 
+
+
+/* ============================================================
+   PER-TRACK CONTROL (from PSY6-ULTIMATE)
+   Mute/Solo, Volume, FX Mode, Pan, Delay/Reverb sends
+   ============================================================ */
+
+var TrackControl = {
+  tracks: ['KICK', 'BASS', 'PERC', 'LEAD', 'ARP', 'PAD'],
+  
+  init: function() {
+    if (!device || !device.partGains) return;
+    
+    for (var i = 0; i < this.tracks.length; i++) {
+      var track = this.tracks[i];
+      
+      // Create pan node for each track
+      if (device.ctx && device.ctx.createStereoPanner) {
+        var panner = device.ctx.createStereoPanner();
+        panner.pan.value = 0; // Center
+        if (device.partGains[track]) {
+          device.partGains[track].connect(panner);
+          panner.connect(device.master);
+        }
+        device.trackPanners = device.trackPanners || {};
+        device.trackPanners[track] = panner;
+      }
+      
+      // Create delay send for each track
+      if (device.ctx) {
+        var delaySend = device.ctx.createGain();
+        delaySend.gain.value = 0;
+        if (device.partGains[track] && device.delayIn) {
+          device.partGains[track].connect(delaySend);
+          delaySend.connect(device.delayIn);
+        }
+        device.trackDelaySends = device.trackDelaySends || {};
+        device.trackDelaySends[track] = delaySend;
+      }
+      
+      // Create reverb send for each track
+      if (device.ctx) {
+        var reverbSend = device.ctx.createGain();
+        reverbSend.gain.value = 0;
+        if (device.partGains[track] && device.reverbIn) {
+          device.partGains[track].connect(reverbSend);
+          reverbSend.connect(device.reverbIn);
+        }
+        device.trackReverbSends = device.trackReverbSends || {};
+        device.trackReverbSends[track] = reverbSend;
+      }
+    }
+    
+    console.log('TrackControl initialized for ' + this.tracks.length + ' tracks');
+  },
+  
+  // Mute a track
+  mute: function(track) {
+    if (device && device.mutes) {
+      device.mutes[track] = device.mutes[track] ? 0 : 1;
+      if (device.ctx) device.refreshPartGains(device.ctx.currentTime);
+      var statusEl = document.getElementById('status');
+      if (statusEl) {
+        statusEl.textContent = track + (device.mutes[track] ? ' MUTED' : ' UNMUTED');
+        statusEl.className = device.mutes[track] ? 'err' : 'ok';
+      }
+    }
+  },
+  
+  // Set track volume
+  setVolume: function(track, volume) {
+    if (device && device.partGains && device.partGains[track]) {
+      device.partGains[track].gain.setTargetAtTime(volume, device.ctx.currentTime, 0.01);
+    }
+  },
+  
+  // Set track pan
+  setPan: function(track, pan) {
+    if (device && device.trackPanners && device.trackPanners[track]) {
+      device.trackPanners[track].pan.setTargetAtTime(pan, device.ctx.currentTime, 0.01);
+    }
+  },
+  
+  // Set track delay send
+  setDelaySend: function(track, amount) {
+    if (device && device.trackDelaySends && device.trackDelaySends[track]) {
+      device.trackDelaySends[track].gain.setTargetAtTime(amount, device.ctx.currentTime, 0.01);
+    }
+  },
+  
+  // Set track reverb send
+  setReverbSend: function(track, amount) {
+    if (device && device.trackReverbSends && device.trackReverbSends[track]) {
+      device.trackReverbSends[track].gain.setTargetAtTime(amount, device.ctx.currentTime, 0.01);
+    }
+  }
+};
 function initSoftClipOutput() {
   if (device && device.ctx && device.master) {
     var shaper = SoftClip.create(device.ctx, 1.5);
@@ -1833,6 +1930,81 @@ var PolyBLEPOscillator = {
 };
 
 
+
+
+
+/* ============================================================
+   CHORD PROGRESSION ENGINE (from PSY6-ULTIMATE)
+   7 progressions for different moods
+   ============================================================ */
+
+var ChordEngine = {
+  progressions: [
+    { name: 'Epic/Trance', degrees: [0, 5, 2, 6] },      // i-VI-III-VII
+    { name: 'Minor Classic', degrees: [0, 3, 4, 0] },     // i-iv-v-i
+    { name: 'Major Classic', degrees: [0, 3, 4, 0] },     // I-IV-V-I
+    { name: 'Andalusian', degrees: [0, 6, 5, 4] },        // i-VII-VI-V
+    { name: 'Melodic', degrees: [0, 2, 6, 5] },           // i-III-VII-VI
+    { name: 'Psy Hypnotic', degrees: [0, 4, 3, 4] },      // i-v-iv-v
+    { name: 'Pop/Prog', degrees: [0, 4, 5, 3] }           // I-V-vi-IV
+  ],
+  
+  currentProgression: 0,
+  currentChord: 0,
+  root: 33, // A1 in MIDI
+  
+  setProgression: function(index) {
+    this.currentProgression = index % this.progressions.length;
+    this.currentChord = 0;
+    var statusEl = document.getElementById('status');
+    if (statusEl) {
+      statusEl.textContent = 'CHORD: ' + this.progressions[this.currentProgression].name;
+      statusEl.className = 'ok';
+    }
+  },
+  
+  nextChord: function() {
+    this.currentChord = (this.currentChord + 1) % 4;
+    return this.getCurrentChord();
+  },
+  
+  getCurrentChord: function() {
+    var prog = this.progressions[this.currentProgression];
+    var degree = prog.degrees[this.currentChord];
+    
+    // Scale degrees to semitones (minor scale)
+    var scaleDegrees = [0, 2, 3, 5, 7, 8, 10];
+    var semitone = scaleDegrees[degree % 7];
+    
+    return {
+      root: this.root + semitone,
+      third: this.root + semitone + 3,  // Minor third
+      fifth: this.root + semitone + 7,  // Perfect fifth
+      name: prog.name
+    };
+  },
+  
+  // Generate chord-aware arpeggio
+  generateArpeggio: function(mode) {
+    var chord = this.getCurrentChord();
+    var notes = [chord.root, chord.third, chord.fifth, chord.root + 12];
+    
+    if (mode === 'up') return notes;
+    if (mode === 'down') return notes.reverse();
+    if (mode === 'updown') return notes.concat(notes.slice(1, -1).reverse());
+    if (mode === 'random') {
+      // Shuffle
+      for (var i = notes.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = notes[i];
+        notes[i] = notes[j];
+        notes[j] = temp;
+      }
+      return notes;
+    }
+    return notes;
+  }
+};
 
 /* ============================================================
    POOLED ENGINE INTEGRATION
@@ -3181,3 +3353,246 @@ function hideLoading() {
 setTimeout(function() {
   hideLoading();
 }, 5000);
+
+
+/* ============================================================
+   KEYBOARD SHORTCUTS (from PSY6-ULTIMATE)
+   SPACE, V, W, D, H, Z, R, S, A, 1-8
+   ============================================================ */
+
+var KeyboardShortcuts = {
+  enabled: true,
+  
+  handleKey: function(e) {
+    if (!this.enabled) return;
+    
+    var key = e.key.toLowerCase();
+    
+    // SPACE: Play/Stop
+    if (key === ' ') {
+      e.preventDefault();
+      togglePlay();
+      return;
+    }
+    
+    // V: New variation (reseed)
+    if (key === 'v' && !e.ctrlKey && !e.metaKey) {
+      if (device) {
+        device.variate();
+        var statusEl = document.getElementById('status');
+        if (statusEl) {
+          statusEl.textContent = 'VARIATION: ' + device.variation;
+          statusEl.className = 'ok';
+        }
+      }
+      return;
+    }
+    
+    // W: Generate chord progression
+    if (key === 'w' && !e.ctrlKey && !e.metaKey) {
+      var randomProg = Math.floor(Math.random() * 7);
+      ChordEngine.setProgression(randomProg);
+      return;
+    }
+    
+    // D: Generate drum pattern
+    if (key === 'd' && !e.ctrlKey && !e.metaKey) {
+      patternRandom('KICK');
+      return;
+    }
+    
+    // H: Generate melody
+    if (key === 'h' && !e.ctrlKey && !e.metaKey) {
+      patternRandom('LEAD');
+      return;
+    }
+    
+    // Z: Generate arpeggio
+    if (key === 'z' && !e.ctrlKey && !e.metaKey) {
+      patternRandom('ARP');
+      return;
+    }
+    
+    // A: Cycle arpeggiator mode
+    if (key === 'a' && !e.ctrlKey && !e.metaKey) {
+      var modes = ['up', 'down', 'updown', 'random'];
+      var currentIdx = modes.indexOf(Arpeggiator.mode);
+      var nextMode = modes[(currentIdx + 1) % modes.length];
+      setArpMode(nextMode);
+      return;
+    }
+    
+    // 1-8: Jump to section
+    if (key >= '1' && key <= '8') {
+      var sectionIdx = parseInt(key) - 1;
+      if (device && device.seekToBar) {
+        device.seekToBar(sectionIdx * 4);
+        var statusEl = document.getElementById('status');
+        if (statusEl) {
+          statusEl.textContent = 'SECTION: ' + key;
+          statusEl.className = 'ok';
+        }
+      }
+      return;
+    }
+    
+    // ?: Help overlay
+    if (key === '?') {
+      toggleHelp();
+      return;
+    }
+    
+    // Ctrl+Z: Undo
+    if (key === 'z' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      if (e.shiftKey) {
+        doRedo();
+      } else {
+        doUndo();
+      }
+      return;
+    }
+    
+    // Ctrl+S: Save preset
+    if (key === 's' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      savePreset('Quick Save ' + Date.now());
+      return;
+    }
+  }
+};
+
+// Replace existing keydown listener with enhanced version
+window.removeEventListener('keydown', KeyboardShortcuts.handleKey);
+window.addEventListener('keydown', function(e) {
+  KeyboardShortcuts.handleKey(e);
+});
+
+
+/* ============================================================
+   HELP OVERLAY (from PSY6-ULTIMATE)
+   Press ? to toggle
+   ============================================================ */
+
+function toggleHelp() {
+  var existing = document.getElementById('helpOverlay');
+  if (existing) {
+    existing.remove();
+    return;
+  }
+  
+  var overlay = document.createElement('div');
+  overlay.id = 'helpOverlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(6,8,12,0.95);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+  
+  overlay.innerHTML = '<div style="max-width:600px;max-height:80vh;overflow-y:auto;background:#14171f;border-radius:14px;padding:24px;border:1px solid #000;font-family:monospace;color:#e8e8f0;">' +
+    '<h2 style="color:#ffb454;margin-bottom:16px;font-size:18px;">PSY3 PRO - HELP</h2>' +
+    '<h3 style="color:#3fa9bc;margin:12px 0 8px;font-size:14px;">KEYBOARD SHORTCUTS</h3>' +
+    '<table style="width:100%;font-size:12px;border-collapse:collapse;">' +
+    '<tr><td style="padding:4px;color:#b8e05a;">SPACE</td><td>Play / Stop</td></tr>' +
+    '<tr><td style="padding:4px;color:#b8e05a;">V</td><td>New variation (reseed)</td></tr>' +
+    '<tr><td style="padding:4px;color:#b8e05a;">W</td><td>Generate chord progression</td></tr>' +
+    '<tr><td style="padding:4px;color:#b8e05a;">D</td><td>Generate drum pattern</td></tr>' +
+    '<tr><td style="padding:4px;color:#b8e05a;">H</td><td>Generate melody</td></tr>' +
+    '<tr><td style="padding:4px;color:#b8e05a;">Z</td><td>Generate arpeggio</td></tr>' +
+    '<tr><td style="padding:4px;color:#b8e05a;">A</td><td>Cycle arpeggiator mode</td></tr>' +
+    '<tr><td style="padding:4px;color:#b8e05a;">1-8</td><td>Jump to section</td></tr>' +
+    '<tr><td style="padding:4px;color:#b8e05a;">Ctrl+Z</td><td>Undo</td></tr>' +
+    '<tr><td style="padding:4px;color:#b8e05a;">Ctrl+Shift+Z</td><td>Redo</td></tr>' +
+    '<tr><td style="padding:4px;color:#b8e05a;">Ctrl+S</td><td>Quick save preset</td></tr>' +
+    '<tr><td style="padding:4px;color:#b8e05a;">?</td><td>Toggle this help</td></tr>' +
+    '</table>' +
+    '<h3 style="color:#3fa9bc;margin:16px 0 8px;font-size:14px;">BRAIN MODES</h3>' +
+    '<p style="font-size:12px;line-height:1.6;">' +
+    '<b>MANUAL:</b> Only plays sequencer patterns<br>' +
+    '<b>GENERATIVE:</b> CandidateGenerator creates 5 candidates/bar, picks best<br>' +
+    '<b>ADAPTIVE:</b> Learns from performance, generates from grammars' +
+    '</p>' +
+    '<h3 style="color:#3fa9bc;margin:16px 0 8px;font-size:14px;">MIDI</h3>' +
+    '<p style="font-size:12px;line-height:1.6;">' +
+    'Connect any MIDI controller. Notes trigger pads and teach melodic grammar.<br>' +
+    'CC 20-27 auto-learn to knobs. CC 28-30 control macros.' +
+    '</p>' +
+    '<p style="margin-top:16px;font-size:11px;color:#4a5266;">Press ? to close</p>' +
+    '</div>';
+  
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) {
+      overlay.remove();
+    }
+  });
+  
+  document.body.appendChild(overlay);
+}
+
+
+/* ============================================================
+   PATTERN BANKS A-D (from PSY6-ULTIMATE)
+   Store and recall complete pattern sets
+   ============================================================ */
+
+var PatternBanks = {
+  banks: { A: null, B: null, C: null, D: null },
+  
+  // Save current patterns to a bank
+  save: function(bank) {
+    if (!device || !device.patterns) return;
+    
+    this.banks[bank] = JSON.parse(JSON.stringify(device.patterns));
+    localStorage.setItem('psy3_bank_' + bank, JSON.stringify(this.banks[bank]));
+    
+    var statusEl = document.getElementById('status');
+    if (statusEl) {
+      statusEl.textContent = 'BANK ' + bank + ' SAVED';
+      statusEl.className = 'ok';
+    }
+    trackEvent('bank_saved', { bank: bank });
+  },
+  
+  // Load patterns from a bank
+  load: function(bank) {
+    if (!device) return;
+    
+    var saved = localStorage.getItem('psy3_bank_' + bank);
+    if (saved) {
+      try {
+        this.banks[bank] = JSON.parse(saved);
+        device.patterns = JSON.parse(JSON.stringify(this.banks[bank]));
+        refreshSeqUi();
+        
+        var statusEl = document.getElementById('status');
+        if (statusEl) {
+          statusEl.textContent = 'BANK ' + bank + ' LOADED';
+          statusEl.className = 'ok';
+        }
+        trackEvent('bank_loaded', { bank: bank });
+      } catch (e) {
+        console.log('Bank load failed: ' + e);
+      }
+    } else {
+      var statusEl = document.getElementById('status');
+      if (statusEl) {
+        statusEl.textContent = 'BANK ' + bank + ' EMPTY';
+        statusEl.className = 'err';
+      }
+    }
+  },
+  
+  // Load all banks from localStorage
+  loadAll: function() {
+    var banks = ['A', 'B', 'C', 'D'];
+    for (var i = 0; i < banks.length; i++) {
+      var saved = localStorage.getItem('psy3_bank_' + banks[i]);
+      if (saved) {
+        try {
+          this.banks[banks[i]] = JSON.parse(saved);
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
+    }
+  }
+};
+
+// Load banks on startup
+PatternBanks.loadAll();
