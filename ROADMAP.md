@@ -9,8 +9,6 @@ Now we build the professional product around it.
 
 ## Phase 1: DESIGN REBUILD — COMPLETE
 
-### Goal: Professional chassis design inspired by hardware synths
-
 - [x] 1.1 Rebuild HTML structure with proper semantic layout
 - [x] 1.2 Professional CSS design system (dark theme, gradients, shadows)
 - [x] 1.3 Chassis design (metal body, wood cheeks, corner screws)
@@ -28,9 +26,7 @@ Now we build the professional product around it.
 
 ---
 
-## Phase 2: FUNCTIONALITY — IN PROGRESS
-
-### Goal: Connect all UI elements to the Groovebox engine
+## Phase 2: FUNCTIONALITY — COMPLETE
 
 - [x] 2.1 Transport buttons connected to device.play()/stop()/variate()
 - [x] 2.2 Knobs connected to device.applyKnob()
@@ -39,34 +35,30 @@ Now we build the professional product around it.
 - [x] 2.5 Timeline connected to device.jumpSection()
 - [x] 2.6 Display updates in real-time during playback
 - [x] 2.7 Visualizer connected to device.analyser (drawViz added)
-- [ ] 2.8 BPM control connected to device.bpm
+- [x] 2.8 BPM control connected to device.bpm
 - [x] 2.9 Mute buttons connected to device.mutes
 - [x] 2.10 Section navigation connected to device.seekToBar()
 
-### Status: 9/10 COMPLETE
+### Status: COMPLETE
 
 ---
 
-## Phase 3: FEATURES (Week 3)
+## Phase 3: FEATURES — 6/8 COMPLETE
 
-### Goal: Add professional features
-
-- [ ] 3.1 Preset system (save/load device state)
+- [x] 3.1 Preset system (save/load device state)
 - [ ] 3.2 Pattern editor (edit sequencer patterns)
 - [ ] 3.3 Song editor (arrange sections)
-- [ ] 3.4 MIDI input support (Web MIDI API)
-- [ ] 3.5 MIDI learn (map CC to parameters)
-- [ ] 3.6 Keyboard shortcuts
-- [ ] 3.7 Undo/Redo system
-- [ ] 3.8 Settings persistence (localStorage)
+- [x] 3.4 MIDI input support (Web MIDI API)
+- [x] 3.5 MIDI learn (map CC to parameters)
+- [x] 3.6 Keyboard shortcuts
+- [x] 3.7 Undo/Redo system
+- [x] 3.8 Settings persistence (localStorage)
 
-### Status: NOT STARTED
+### Status: 6/8 COMPLETE
 
 ---
 
 ## Phase 4: MOBILE (Week 4)
-
-### Goal: Full mobile experience
 
 - [ ] 4.1 Touch-optimized controls (44px+ touch targets)
 - [ ] 4.2 Stacked layout for portrait mode
@@ -82,8 +74,6 @@ Now we build the professional product around it.
 
 ## Phase 5: QUALITY (Week 5)
 
-### Goal: Production-ready quality
-
 - [ ] 5.1 Error handling everywhere
 - [ ] 5.2 Loading states
 - [ ] 5.3 Accessibility (ARIA labels, keyboard navigation)
@@ -97,8 +87,6 @@ Now we build the professional product around it.
 
 ## Phase 6: LAUNCH (Week 6)
 
-### Goal: Ship it
-
 - [ ] 6.1 Final design polish
 - [ ] 6.2 Performance audit
 - [ ] 6.3 SEO meta tags
@@ -110,33 +98,13 @@ Now we build the professional product around it.
 
 ---
 
-## Architecture Decisions
-
-### What we keep:
-- Groovebox engine (original, working)
-- Web Audio API for sound
-- Single-file deployment (index.html + app.js)
-
-### What we build:
-- Professional design system
-- Proper state management
-- Mobile-first responsive layout
-- PWA capabilities
-
-### What we avoid:
-- Frameworks (vanilla JS for performance)
-- External dependencies (self-contained)
-- Over-engineering (ship fast, iterate)
-
----
-
 ## Tracking
 
 | Phase | Status | Started | Completed |
 |-------|--------|---------|-----------|
 | Phase 1: Design | COMPLETE | 2026-08-18 | 2026-08-18 |
-| Phase 2: Functionality | 9/10 | 2026-08-18 | - |
-| Phase 3: Features | NOT STARTED | - | - |
+| Phase 2: Functionality | COMPLETE | 2026-08-18 | 2026-08-18 |
+| Phase 3: Features | 6/8 | 2026-08-18 | - |
 | Phase 4: Mobile | NOT STARTED | - | - |
 | Phase 5: Quality | NOT STARTED | - | - |
 | Phase 6: Launch | NOT STARTED | - | - |
@@ -151,6 +119,40 @@ Now we build the professional product around it.
 | 2026-08-18 | Roadmap created | - |
 | 2026-08-18 | Phase 1 complete: professional design system | Phase 1 |
 | 2026-08-18 | drawViz added, pads fixed | Phase 2 |
+| 2026-08-18 | Phase 2 complete: all functionality connected | Phase 2 |
+| 2026-08-18 | Phase 3: MIDI input, Preset, Undo/Redo, Settings | Phase 3 |
+
+---
+
+## Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| SPACE | Play / Stop |
+| A, W, S, E, D, F, T, G | Trigger pads 1-8 |
+| Ctrl+Z | Undo |
+| Ctrl+Shift+Z | Redo |
+| Ctrl+S | Quick save preset |
+
+---
+
+## MIDI Support
+
+- Web MIDI API integration
+- CC mapping via MIDI Learn
+- Note mapping for pad triggers
+- Auto-detect MIDI controllers
+- Hot-plug support
+
+---
+
+## Preset System
+
+- Save/load device state
+- Stored in localStorage
+- Quick save with Ctrl+S
+- List all presets: listPresets()
+- Delete preset: deletePreset(name)
 
 ---
 
@@ -171,9 +173,3 @@ Now we build the professional product around it.
 
 ### Border Radius:
 - sm: 4px, md: 8px, lg: 14px, xl: 20px
-
-### Shadows:
-- deep: 0 20px 60px rgba(0,0,0,0.8)
-- panel: 0 4px 16px rgba(0,0,0,0.4)
-- inset: inset 0 2px 8px rgba(0,0,0,0.6)
-- raised: 0 2px 8px rgba(0,0,0,0.3)
