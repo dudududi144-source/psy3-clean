@@ -706,6 +706,51 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ============================================================
+   BRAIN PANEL STYLES (Phase B)
+   ============================================================ */
+
+.brain-btn:hover,
+.brain-panel button:hover,
+.arp-panel button:hover {
+  background: var(--bg-raised);
+  color: var(--text-primary);
+}
+
+.brain-btn.active,
+.brain-panel button.active,
+.arp-panel button.active {
+  background: var(--accent-purple);
+  color: var(--bg-deep);
+  border-color: var(--accent-purple);
+}
+
+#arpToggle.on {
+  background: var(--accent-cyan);
+  color: var(--bg-deep);
+  border-color: var(--accent-cyan);
+}
+
+/* Engine status indicators */
+.engine-panel span span {
+  color: var(--accent-green);
+}
+
+/* Responsive Brain Panel */
+@media (max-width: 768px) {
+  .brain-panel,
+  .arp-panel,
+  .engine-panel {
+    padding: var(--space-sm);
+  }
+  
+  .brain-panel button,
+  .arp-panel button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
 </style>
 </head>
 <body>
@@ -734,7 +779,45 @@ body {
     <button id="nextSecBtn" role="button" aria-label="Jump to next section">NEXT SEC</button>
   </div>
   
-  <div class="display">
+  
+  <!-- Brain Panel (Phase B) -->
+  <div class="panel brain-panel" style="margin-bottom:var(--space-md);padding:var(--space-md);background:var(--bg-raised);border-radius:var(--radius-lg);border:1px solid var(--border-dark);">
+    <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--accent-purple);margin-bottom:var(--space-sm);">BRAIN</div>
+    <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;align-items:center;">
+      <button onclick="setBrainMode('MANUAL')" class="brain-btn" style="font-family:var(--font-mono);font-size:9px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">MANUAL</button>
+      <button onclick="setBrainMode('GENERATIVE')" class="brain-btn" style="font-family:var(--font-mono);font-size:9px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">GENERATIVE</button>
+      <button onclick="setBrainMode('ADAPTIVE')" class="brain-btn" style="font-family:var(--font-mono);font-size:9px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">ADAPTIVE</button>
+      <span id="grammarConfidence" style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-left:auto;">GRAMMAR: 0%</span>
+    </div>
+  </div>
+
+  <!-- Arpeggiator Panel (Phase B5) -->
+  <div class="panel arp-panel" style="margin-bottom:var(--space-md);padding:var(--space-md);background:var(--bg-raised);border-radius:var(--radius-lg);border:1px solid var(--border-dark);">
+    <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--accent-cyan);margin-bottom:var(--space-sm);">ARPEGGIATOR</div>
+    <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;align-items:center;">
+      <button onclick="toggleArp()" id="arpToggle" style="font-family:var(--font-mono);font-size:9px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">ARP: OFF</button>
+      <button onclick="setArpMode('up')" style="font-family:var(--font-mono);font-size:9px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">UP</button>
+      <button onclick="setArpMode('down')" style="font-family:var(--font-mono);font-size:9px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">DOWN</button>
+      <button onclick="setArpMode('updown')" style="font-family:var(--font-mono);font-size:9px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">UP-DOWN</button>
+      <button onclick="setArpMode('random')" style="font-family:var(--font-mono);font-size:9px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">RANDOM</button>
+      <button onclick="toggleArpHold()" style="font-family:var(--font-mono);font-size:9px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">HOLD</button>
+    </div>
+  </div>
+
+  <!-- Engine Status Panel -->
+  <div class="panel engine-panel" style="margin-bottom:var(--space-md);padding:var(--space-md);background:var(--bg-raised);border-radius:var(--radius-lg);border:1px solid var(--border-dark);">
+    <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--accent-green);margin-bottom:var(--space-sm);">ENGINE</div>
+    <div style="display:flex;gap:var(--space-md);flex-wrap:wrap;font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);">
+      <span>VOICES: <span id="voiceCount">20S+24D</span></span>
+      <span>LIMITER: <span id="limiterStatus">ON</span></span>
+      <span>GC: <span id="gcStatus">ZERO</span></span>
+    </div>
+    <div style="margin-top:var(--space-sm);">
+      <button onclick="panicAllVoices()" style="font-family:var(--font-mono);font-size:9px;padding:8px 16px;border-radius:var(--radius-sm);border:1px solid var(--accent-red);background:var(--bg-inset);color:var(--accent-red);cursor:pointer;">PANIC</button>
+    </div>
+  </div>
+
+<div class="display">
     <div id="lcd1" class="lcd-line" role="log" aria-live="polite">READY</div>
     <div id="lcd2" class="lcd-line">PSY3 PRO</div>
     <div id="nowPlaying" class="lcd-line"></div>
@@ -763,5 +846,55 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+
+<script>
+// Update grammar confidence display
+function updateGrammarDisplay() {
+  var el = document.getElementById('grammarConfidence');
+  if (el && typeof Grammars !== 'undefined') {
+    var bassConf = Grammars.bass.confidence();
+    var melConf = Grammars.melodic.confidence();
+    var rhythmConf = Grammars.rhythm.confidence();
+    var avgConf = Math.floor((bassConf + melConf + rhythmConf) / 3);
+    el.textContent = 'GRAMMAR: ' + avgConf + '%';
+  }
+}
+
+// Update every second
+setInterval(updateGrammarDisplay, 1000);
+
+// Update brain button states
+function updateBrainButtons() {
+  var buttons = document.querySelectorAll('.brain-btn');
+  buttons.forEach(function(btn) {
+    var mode = btn.textContent.trim();
+    if (typeof brainMode !== 'undefined' && mode === brainMode) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+}
+
+// Update arpeggiator button state
+function updateArpButton() {
+  var btn = document.getElementById('arpToggle');
+  if (btn && typeof arpEnabled !== 'undefined') {
+    btn.textContent = 'ARP: ' + (arpEnabled ? 'ON' : 'OFF');
+    if (arpEnabled) {
+      btn.classList.add('on');
+    } else {
+      btn.classList.remove('on');
+    }
+  }
+}
+
+// Update displays periodically
+setInterval(function() {
+  updateBrainButtons();
+  updateArpButton();
+}, 500);
+</script>
+
 </body>
 </html>
