@@ -2,61 +2,72 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="PSY3 PRO - Professional Hyperspace Psytrance Workstation">
+<meta name="theme-color" content="#0a0c12">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="PSY3 PRO - Professional Hyperspace Psytrance Workstation">
-<meta name="theme-color" content="#0a0c12">
 <link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="PSY3 PRO">
-
 <title>PSY3 PRO - Hyperspace Psytrance Workstation</title>
 <style>
 /* ============================================================
-   PSY3 PRO - Professional Design System v2.0
+   PSY3 PRO - Commercial Design System v2.0
    Inspired by: Ableton, Elektron, Teenage Engineering
    ============================================================ */
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
+  /* Color Palette */
   --bg-deep: #06080c;
   --bg-primary: #0a0c12;
   --bg-panel: #0f1118;
   --bg-raised: #14171f;
   --bg-inset: #080a0f;
+  
+  /* Accent Colors */
   --accent-orange: #ffb454;
   --accent-cyan: #3fa9bc;
   --accent-green: #b8e05a;
   --accent-red: #ff4757;
   --accent-purple: #a78bfa;
+  
+  /* Part Colors */
   --part-kick: #ff2e88;
   --part-bass: #ff8a3c;
   --part-perc: #ffd166;
   --part-lead: #06d6a0;
   --part-arp: #118ab2;
   --part-pad: #a8e6cf;
+  
+  /* Text */
   --text-primary: #e8e8f0;
   --text-secondary: #8a92a6;
   --text-dim: #4a5266;
   --text-lcd: #b8e05a;
+  
+  /* Borders and Shadows */
   --border-dark: #000000;
   --border-subtle: rgba(255,255,255,0.04);
   --shadow-deep: 0 20px 60px rgba(0,0,0,0.8);
   --shadow-panel: 0 4px 16px rgba(0,0,0,0.4);
   --shadow-inset: inset 0 2px 8px rgba(0,0,0,0.6);
   --shadow-raised: 0 2px 8px rgba(0,0,0,0.3);
+  
+  /* Typography */
   --font-ui: system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  
+  /* Spacing */
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 16px;
   --space-lg: 24px;
   --space-xl: 32px;
+  
+  /* Border Radius */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 14px;
@@ -67,81 +78,36 @@ html { font-size: 16px; -webkit-font-smoothing: antialiased; }
 
 body {
   font-family: var(--font-ui);
-  background:
-    radial-gradient(ellipse 1200px 600px at 20% -10%, rgba(120,80,200,0.12) 0%, transparent 60%),
-    radial-gradient(ellipse 1000px 500px at 80% 110%, rgba(40,140,160,0.10) 0%, transparent 60%),
-    linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-deep) 100%);
+  background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-deep) 100%);
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: var(--space-lg) var(--space-md);
+  padding: var(--space-lg);
   color: var(--text-primary);
   overflow-x: hidden;
 }
 
 /* ============================================================
-   CHASSIS
+   MAIN INSTRUMENT
    ============================================================ */
 
-.chassis {
-  position: relative;
-  width: min(1100px, 100%);
-  background:
-    repeating-linear-gradient(90deg, rgba(255,255,255,0.008) 0 1px, transparent 1px 3px),
-    linear-gradient(180deg, #1e2128 0%, #16181f 8%, var(--bg-panel) 50%, #0c0e14 100%);
+.instrument {
+  width: min(900px, 100%);
+  background: linear-gradient(180deg, #1a1d26 0%, var(--bg-panel) 50%, #0c0e14 100%);
   border-radius: var(--radius-xl);
   border: 1px solid var(--border-dark);
-  padding: var(--space-xl) 56px var(--space-xl);
-  box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.8);
+  padding: var(--space-xl);
+  box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(255,255,255,0.06);
 }
-
-.cheek {
-  position: absolute;
-  top: -6px;
-  bottom: -6px;
-  width: 34px;
-  border-radius: 10px;
-  background:
-    repeating-linear-gradient(90deg, rgba(0,0,0,0.15) 0 2px, transparent 2px 5px),
-    repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 12px),
-    linear-gradient(90deg, #3d2814, #6b4423 25%, #4d3117 75%, #2d1d0e);
-  box-shadow: inset 0 2px 4px rgba(255,255,255,0.15), inset 0 -4px 8px rgba(0,0,0,0.5), 0 12px 28px rgba(0,0,0,0.6);
-}
-.cheek.l { left: -40px; }
-.cheek.r { right: -40px; }
-
-.screw {
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #9aa2ae, #3d4450 55%, #14181e);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.9), inset 0 1px 1px rgba(255,255,255,0.3);
-}
-.screw::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 8px;
-  height: 1.5px;
-  background: #181c22;
-  transform: translate(-50%, -50%) rotate(45deg);
-  border-radius: 1px;
-}
-.screw.tl { top: 10px; left: 10px; }
-.screw.tr { top: 10px; right: 10px; }
-.screw.bl { bottom: 10px; left: 10px; }
-.screw.br { bottom: 10px; right: 10px; }
 
 /* ============================================================
    HEADER
    ============================================================ */
 
-.topbar {
+.header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   margin-bottom: var(--space-lg);
   padding-bottom: var(--space-md);
@@ -150,340 +116,319 @@ body {
 
 .logo {
   font-family: var(--font-mono);
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 700;
   letter-spacing: 6px;
   color: var(--accent-orange);
-  text-shadow: 0 0 24px rgba(255,180,84,0.3);
 }
+
 .logo span {
   color: var(--accent-cyan);
-  font-size: 13px;
+  font-size: 14px;
   letter-spacing: 3px;
   margin-left: var(--space-sm);
-  opacity: 0.9;
 }
 
-.subtitle {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--text-dim);
-}
-
-/* ============================================================
-   STATUS BAR
-   ============================================================ */
-
-.status-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-md);
-  padding: var(--space-sm) var(--space-md);
-  background: var(--bg-inset);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-dark);
-  box-shadow: var(--shadow-inset);
-}
-
-#status {
+.status {
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 1px;
   color: var(--text-secondary);
 }
-#status.ok { color: var(--accent-green); }
-#status.err { color: var(--accent-red); }
 
-#engState {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-raised);
-}
-#engState.ok { color: var(--accent-green); }
+.status.ok { color: var(--accent-green); }
+.status.err { color: var(--accent-red); }
 
 /* ============================================================
-   TRANSPORT
+   TRANSPORT (Large, prominent)
    ============================================================ */
 
 .transport {
   display: flex;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-md);
-  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
 }
 
-.transport button {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  padding: 12px 22px;
-  border-radius: var(--radius-md);
+.transport-btn {
+  flex: 1;
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border-dark);
   background: linear-gradient(180deg, #2a2e38, #1c2028);
   color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 2px;
   cursor: pointer;
-  transition: all 0.12s ease;
-  box-shadow: var(--shadow-raised);
+  transition: all 0.15s ease;
+  text-transform: uppercase;
 }
-.transport button:hover {
+
+.transport-btn:hover {
   background: linear-gradient(180deg, #343842, #2a2e38);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
-.transport button:active { transform: translateY(1px); }
-#playBtn.playing {
+
+.transport-btn:active {
+  transform: translateY(0);
+}
+
+.transport-btn.primary {
   background: linear-gradient(180deg, var(--accent-orange), #cc8a3c);
   color: var(--bg-deep);
-  box-shadow: 0 0 20px rgba(255,180,84,0.4);
+}
+
+.transport-btn.playing {
+  background: linear-gradient(180deg, var(--accent-green), #8ab03c);
+  color: var(--bg-deep);
+  box-shadow: 0 0 30px rgba(184,224,90,0.4);
 }
 
 /* ============================================================
-   DISPLAY - LCD Screen
+   DISPLAY (LCD)
    ============================================================ */
 
 .display {
   background: linear-gradient(180deg, #080a0e, #050709);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-dark);
-  padding: var(--space-md) var(--space-lg);
-  margin-bottom: var(--space-md);
-  box-shadow: inset 0 0 30px rgba(184,224,90,0.06), var(--shadow-inset);
-  position: relative;
-  overflow: hidden;
-}
-.display::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(184,224,90,0.2), transparent);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  box-shadow: var(--shadow-inset);
 }
 
 .lcd-line {
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 16px;
   color: var(--text-lcd);
   margin-bottom: var(--space-xs);
-  text-shadow: 0 0 8px rgba(184,224,90,0.3);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  text-shadow: 0 0 10px rgba(184,224,90,0.3);
 }
-.lcd-line:first-child { font-size: 16px; font-weight: 600; }
 
-.lcd-steps { display: flex; gap: 3px; margin-top: var(--space-sm); }
-.lcd-steps .ls {
-  width: 14px; height: 14px;
-  border-radius: 2px;
-  background: #1a1e24;
-  transition: all 0.08s;
-}
-.lcd-steps .ls.on {
-  background: var(--text-lcd);
-  box-shadow: 0 0 8px rgba(184,224,90,0.6);
+.lcd-line:first-child {
+  font-size: 20px;
+  font-weight: 600;
 }
 
 /* ============================================================
-   KNOBS
+   SEQUENCER (Visual, colorful)
+   ============================================================ */
+
+.sequencer {
+  margin-bottom: var(--space-lg);
+}
+
+.seq-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xs);
+}
+
+.seq-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  width: 40px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.seq-steps {
+  display: flex;
+  gap: 2px;
+  flex: 1;
+}
+
+.seq-step {
+  flex: 1;
+  aspect-ratio: 1;
+  max-width: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-dark);
+  background: var(--bg-inset);
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.seq-step:hover {
+  background: var(--bg-raised);
+}
+
+.seq-step.on {
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* ============================================================
+   KNOBS (Large, tactile)
    ============================================================ */
 
 .knobs {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-md);
   justify-content: center;
-  margin-bottom: var(--space-md);
-  padding: var(--space-md);
-  background: var(--bg-raised);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-dark);
+  gap: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  flex-wrap: wrap;
 }
 
-.knob { display: flex; flex-direction: column; align-items: center; gap: var(--space-xs); }
+.knob {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+}
 
 .knob-dial {
-  width: 52px; height: 52px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #3a3f4a, #1a1d24 60%), linear-gradient(180deg, #282c34, #14171c);
+  background: radial-gradient(circle at 35% 30%, #3a3f4a, #1a1d24 60%);
   border: 2px solid var(--border-dark);
-  box-shadow: 0 3px 10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
   position: relative;
   cursor: pointer;
-  transition: transform 0.08s;
+  transition: transform 0.1s ease;
 }
-.knob-dial:hover { transform: scale(1.05); }
-.knob-dial:active { transform: scale(0.97); }
+
+.knob-dial:hover {
+  transform: scale(1.05);
+}
 
 .knob-ind {
   position: absolute;
-  top: 5px; left: 50%;
-  width: 3px; height: 12px;
+  top: 6px;
+  left: 50%;
+  width: 3px;
+  height: 14px;
   background: var(--accent-orange);
   border-radius: 2px;
   transform-origin: 50% 210%;
-  box-shadow: 0 0 6px rgba(255,180,84,0.5);
+  box-shadow: 0 0 8px rgba(255,180,84,0.5);
 }
 
-.knob-name {
-  font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-}
-.knob-val { font-family: var(--font-mono); font-size: 10px; color: var(--accent-cyan); }
-
-/* ============================================================
-   SEQUENCER
-   ============================================================ */
-
-.seq {
-  margin-bottom: var(--space-md);
-  padding: var(--space-md);
-  background: var(--bg-raised);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-dark);
-}
-
-.seq-row { display: flex; align-items: center; gap: var(--space-xs); margin-bottom: var(--space-xs); }
-.seq-row .part-label {
+.knob-label {
   font-family: var(--font-mono);
   font-size: 9px;
   letter-spacing: 1px;
-  width: 36px;
-  text-align: right;
-  flex-shrink: 0;
-}
-.seq-row .mute {
-  font-family: var(--font-mono);
-  font-size: 8px;
-  padding: 3px 6px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-dark);
-  background: var(--bg-inset);
+  text-transform: uppercase;
   color: var(--text-secondary);
-  cursor: pointer;
-  flex-shrink: 0;
 }
-.seq-row .mute.muted { background: var(--accent-red); color: var(--bg-deep); }
-.seq-row .steps { display: flex; gap: 2px; flex: 1; }
-.seq-row .steps button {
-  flex: 1;
-  aspect-ratio: 1;
-  max-width: 28px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-dark);
-  background: linear-gradient(180deg, #22262e, #181c22);
-  cursor: pointer;
-  transition: all 0.06s;
-}
-.seq-row .steps button:hover { background: linear-gradient(180deg, #2a2e36, #22262e); }
-.seq-row .steps button.on { box-shadow: 0 0 6px currentColor; }
 
 /* ============================================================
-   PADS - Fixed size (not huge squares)
+   PADS (Large, colorful)
    ============================================================ */
 
 .pads {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-sm);
-  margin-bottom: var(--space-md);
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
 }
-.pads button {
-  height: 52px;
+
+.pad {
+  aspect-ratio: 1.2;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-dark);
   background: linear-gradient(180deg, #242830, #1a1e24);
   color: var(--text-secondary);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 14px;
   cursor: pointer;
-  transition: all 0.08s;
-  box-shadow: var(--shadow-raised);
-}
-.pads button:hover {
-  background: linear-gradient(180deg, #2c3038, #242830);
-  transform: translateY(-1px);
-}
-.pads button:active, .pads button.hit {
-  transform: translateY(1px) scale(0.96);
-  background: var(--accent-purple);
-  color: var(--bg-deep);
-  box-shadow: 0 0 16px rgba(167,139,250,0.5);
-}
-
-/* ============================================================
-   TIMELINE
-   ============================================================ */
-
-.timeline {
-  display: flex;
-  gap: 2px;
-  margin-bottom: var(--space-md);
-  padding: var(--space-sm);
-  background: var(--bg-inset);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-dark);
-  overflow-x: auto;
-}
-.timeline .tl-sec {
-  min-width: 48px;
-  height: 28px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-dark);
-  background: linear-gradient(180deg, #22262e, #181c22);
-  font-family: var(--font-mono);
-  font-size: 7px;
-  letter-spacing: 0.5px;
-  color: var(--text-dim);
+  transition: all 0.1s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.1s;
-  flex-shrink: 0;
 }
-.timeline .tl-sec:hover { background: linear-gradient(180deg, #2a2e36, #22262e); color: var(--text-secondary); }
-.timeline .tl-sec.active { border-color: var(--accent-cyan); color: var(--accent-cyan); box-shadow: 0 0 8px rgba(63,169,188,0.3); }
+
+.pad:hover {
+  background: linear-gradient(180deg, #2c3038, #242830);
+  transform: translateY(-2px);
+}
+
+.pad:active, .pad.hit {
+  transform: scale(0.95);
+  background: var(--accent-purple);
+  color: var(--bg-deep);
+  box-shadow: 0 0 20px rgba(167,139,250,0.5);
+}
 
 /* ============================================================
    VISUALIZER
    ============================================================ */
 
-.viz {
+.visualizer {
   width: 100%;
-  height: 56px;
+  height: 60px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-dark);
   background: var(--bg-inset);
-  margin-bottom: var(--space-md);
-  box-shadow: var(--shadow-inset);
+  margin-bottom: var(--space-lg);
 }
 
 /* ============================================================
-   SELF TEST
+   BRAIN MODE (Prominent, unique)
    ============================================================ */
 
-.self-test {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 1px;
-  color: var(--text-dim);
-  text-align: center;
-  padding-top: var(--space-sm);
-  border-top: 1px solid var(--border-subtle);
+.brain-mode {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+  padding: var(--space-md);
+  background: var(--bg-raised);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-dark);
 }
-.self-test.err { color: var(--accent-red); }
+
+.brain-btn {
+  flex: 1;
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-dark);
+  background: var(--bg-inset);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.brain-btn:hover {
+  background: var(--bg-panel);
+  color: var(--text-primary);
+}
+
+.brain-btn.active {
+  background: var(--accent-purple);
+  color: var(--bg-deep);
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 16px rgba(167,139,250,0.4);
+}
+
+/* ============================================================
+   HELP BUTTON
+   ============================================================ */
+
+.help-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  color: var(--bg-deep);
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(63,169,188,0.4);
+  z-index: 100;
+  transition: transform 0.15s ease;
+}
+
+.help-btn:hover {
+  transform: scale(1.1);
+}
 
 /* ============================================================
    RESPONSIVE
@@ -491,401 +436,73 @@ body {
 
 @media (max-width: 768px) {
   body { padding: var(--space-sm); }
-  .chassis { padding: var(--space-md); border-radius: var(--radius-lg); }
-  .cheek, .screw { display: none; }
-  .topbar { flex-direction: column; gap: var(--space-xs); }
-  .logo { font-size: 20px; }
-  .transport { flex-wrap: wrap; }
-  .transport button { flex: 1; min-width: 80px; padding: 10px 12px; }
-  .knobs { gap: var(--space-sm); }
-  .knob-dial { width: 44px; height: 44px; }
-  .pads button { height: 44px; }
+  .instrument { padding: var(--space-md); }
+  .transport { flex-direction: column; }
+  .knobs { gap: var(--space-md); }
+  .knob-dial { width: 48px; height: 48px; }
+  .pads { gap: var(--space-sm); }
 }
 
-@media (max-width: 480px) {
-  .lcd-line { font-size: 12px; }
-  .lcd-line:first-child { font-size: 14px; }
-  .lcd-steps .ls { width: 10px; height: 10px; }
-  .seq-row .steps button { max-width: 20px; }
-  .pads button { height: 40px; font-size: 10px; }
-  .viz { height: 40px; }
-}
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-inset); }
 ::-webkit-scrollbar-thumb { background: var(--text-dim); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
-
-/* ============================================================
-   MOBILE OPTIMIZATIONS (Phase 4.1, 4.2, 4.5)
-   ============================================================ */
-
-/* Touch-optimized controls: 44px+ touch targets */
-@media (max-width: 768px) {
-  .transport button {
-    min-height: 44px;
-    min-width: 44px;
-    padding: 12px 16px;
-    font-size: 12px;
-  }
-  
-  .knob-dial {
-    width: 48px;
-    height: 48px;
-  }
-  
-  .pads button {
-    height: 48px;
-    min-height: 44px;
-  }
-  
-  .seq-row .steps button {
-    max-width: 24px;
-    min-width: 20px;
-    min-height: 20px;
-  }
-  
-  .seq-row .mute {
-    min-width: 32px;
-    min-height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .timeline .tl-sec {
-    min-width: 44px;
-    min-height: 32px;
-  }
-}
-
-/* Stacked layout for portrait mode */
-@media (max-width: 480px) and (orientation: portrait) {
-  .chassis {
-    padding: var(--space-sm);
-  }
-  
-  .topbar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-xs);
-  }
-  
-  .transport {
-    flex-direction: column;
-  }
-  
-  .transport button {
-    width: 100%;
-  }
-  
-  .knobs {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .pads {
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--space-xs);
-  }
-  
-  .pads button {
-    height: 44px;
-    font-size: 10px;
-  }
-  
-  .display {
-    padding: var(--space-sm);
-  }
-  
-  .lcd-line {
-    font-size: 11px;
-  }
-  
-  .lcd-line:first-child {
-    font-size: 13px;
-  }
-  
-  .lcd-steps .ls {
-    width: 8px;
-    height: 8px;
-  }
-  
-  .viz {
-    height: 36px;
-  }
-}
-
-/* Reduced animations on mobile */
-@media (max-width: 768px) {
-  * {
-    transition-duration: 0.05s !important;
-  }
-  
-  .knob-dial:hover,
-  .transport button:hover,
-  .pads button:hover {
-    transform: none;
-  }
-}
-
-/* Bottom navigation bar for mobile */
-@media (max-width: 768px) {
-  .mobile-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: space-around;
-    background: var(--bg-panel);
-    border-top: 1px solid var(--border-dark);
-    padding: var(--space-sm) 0;
-    z-index: 100;
-    box-shadow: 0 -4px 16px rgba(0,0,0,0.4);
-  }
-  
-  .mobile-nav button {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    padding: var(--space-sm) var(--space-md);
-    cursor: pointer;
-    min-width: 44px;
-    min-height: 44px;
-  }
-  
-  .mobile-nav button.active {
-    color: var(--accent-orange);
-  }
-  
-  .chassis {
-    margin-bottom: 60px;
-  }
-}
-
-@media (min-width: 769px) {
-  .mobile-nav {
-    display: none;
-  }
-}
-
-/* ============================================================
-   PERFORMANCE OPTIMIZATIONS (Phase 5.4)
-   ============================================================ */
-
-.knob-dial {
-  will-change: transform;
-}
-
-.transport button {
-  will-change: transform;
-}
-
-.pads button {
-  will-change: transform, background-color;
-}
-
-.seq-row .steps button {
-  will-change: background-color, box-shadow;
-}
-
-.lcd-steps .ls {
-  will-change: background-color, box-shadow;
-}
-
-/* Use transform for animations instead of layout properties */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* ============================================================
-   BRAIN PANEL STYLES (Phase B)
-   ============================================================ */
-
-.brain-btn:hover,
-.brain-panel button:hover,
-.arp-panel button:hover {
-  background: var(--bg-raised);
-  color: var(--text-primary);
-}
-
-.brain-btn.active,
-.brain-panel button.active,
-.arp-panel button.active {
-  background: var(--accent-purple);
-  color: var(--bg-deep);
-  border-color: var(--accent-purple);
-}
-
-#arpToggle.on {
-  background: var(--accent-cyan);
-  color: var(--bg-deep);
-  border-color: var(--accent-cyan);
-}
-
-/* Engine status indicators */
-.engine-panel span span {
-  color: var(--accent-green);
-}
-
-/* Responsive Brain Panel */
-@media (max-width: 768px) {
-  .brain-panel,
-  .arp-panel,
-  .engine-panel {
-    padding: var(--space-sm);
-  }
-  
-  .brain-panel button,
-  .arp-panel button {
-    min-height: 44px;
-    min-width: 44px;
-  }
-}
 </style>
 </head>
 <body>
 
-  <div class="chassis">
-  <div class="cheek l"></div>
-  <div class="cheek r"></div>
-  <div class="screw tl"></div>
-  <div class="screw tr"></div>
-  <div class="screw bl"></div>
-  <div class="screw br"></div>
-  
-  <header class="topbar">
+<div class="instrument">
+  <!-- Header -->
+  <header class="header">
     <div class="logo">PSY3<span>PRO</span></div>
-    <div class="subtitle">Hyperspace Psytrance Workstation</div>
+    <div id="status" class="status">READY</div>
   </header>
   
-  <div class="status-bar">
-    <div id="status" role="status" aria-live="polite">READY</div>
-    <div id="engState" role="status" aria-live="polite">stopped</div>
-  </div>
-  
+  <!-- Transport -->
   <div class="transport">
-    <button id="playBtn" role="button" aria-label="Play or stop the music">PLAY</button>
-    <button id="variateBtn" role="button" aria-label="Generate a new variation">VARIATE</button>
-    <button id="nextSecBtn" role="button" aria-label="Jump to next section">NEXT SEC</button>
+    <button id="playBtn" class="transport-btn primary" onclick="togglePlay()">PLAY</button>
+    <button id="variateBtn" class="transport-btn" onclick="if(device)device.variate()">VARIATE</button>
+    <button id="nextSecBtn" class="transport-btn" onclick="if(device)device.jumpSection()">NEXT SEC</button>
   </div>
   
-  
-  <!-- Brain Panel (Phase B) -->
-  
-  <!-- Per-Track Control Panel (from PSY6-ULTIMATE) -->
-  <div class="panel track-control-panel" style="margin-bottom:var(--space-md);padding:var(--space-md);background:var(--bg-raised);border-radius:var(--radius-lg);border:1px solid var(--border-dark);">
-    <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--accent-orange);margin-bottom:var(--space-sm);">TRACK CONTROL</div>
-    <div id="trackControlGrid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:var(--space-xs);font-family:var(--font-mono);font-size:8px;">
-      <!-- Track controls will be generated by JavaScript -->
-    </div>
-  </div>
-
-  <!-- Chord Progression Panel -->
-  <div class="panel chord-panel" style="margin-bottom:var(--space-md);padding:var(--space-md);background:var(--bg-raised);border-radius:var(--radius-lg);border:1px solid var(--border-dark);">
-    <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--accent-green);margin-bottom:var(--space-sm);">CHORD PROGRESSION</div>
-    <div style="display:flex;gap:var(--space-xs);flex-wrap:wrap;">
-      <button onclick="ChordEngine.setProgression(0)" style="font-family:var(--font-mono);font-size:8px;padding:6px 10px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">EPIC</button>
-      <button onclick="ChordEngine.setProgression(1)" style="font-family:var(--font-mono);font-size:8px;padding:6px 10px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">MINOR</button>
-      <button onclick="ChordEngine.setProgression(2)" style="font-family:var(--font-mono);font-size:8px;padding:6px 10px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">MAJOR</button>
-      <button onclick="ChordEngine.setProgression(3)" style="font-family:var(--font-mono);font-size:8px;padding:6px 10px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">ANDALUSIAN</button>
-      <button onclick="ChordEngine.setProgression(4)" style="font-family:var(--font-mono);font-size:8px;padding:6px 10px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">MELODIC</button>
-      <button onclick="ChordEngine.setProgression(5)" style="font-family:var(--font-mono);font-size:8px;padding:6px 10px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">PSY HYPNO</button>
-      <button onclick="ChordEngine.setProgression(6)" style="font-family:var(--font-mono);font-size:8px;padding:6px 10px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">POP/PROG</button>
-      <span id="chordDisplay" style="font-family:var(--font-mono);font-size:9px;color:var(--accent-cyan);margin-left:auto;">i-VI-III-VII</span>
-    </div>
-  </div>
-
-  <!-- Pattern Banks Panel -->
-  <div class="panel banks-panel" style="margin-bottom:var(--space-md);padding:var(--space-md);background:var(--bg-raised);border-radius:var(--radius-lg);border:1px solid var(--border-dark);">
-    <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--accent-purple);margin-bottom:var(--space-sm);">PATTERN BANKS</div>
-    <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;">
-      <div style="display:flex;flex-direction:column;gap:var(--space-xs);">
-        <button onclick="PatternBanks.save('A')" style="font-family:var(--font-mono);font-size:9px;padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">SAVE A</button>
-        <button onclick="PatternBanks.load('A')" style="font-family:var(--font-mono);font-size:9px;padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">LOAD A</button>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:var(--space-xs);">
-        <button onclick="PatternBanks.save('B')" style="font-family:var(--font-mono);font-size:9px;padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">SAVE B</button>
-        <button onclick="PatternBanks.load('B')" style="font-family:var(--font-mono);font-size:9px;padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">LOAD B</button>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:var(--space-xs);">
-        <button onclick="PatternBanks.save('C')" style="font-family:var(--font-mono);font-size:9px;padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">SAVE C</button>
-        <button onclick="PatternBanks.load('C')" style="font-family:var(--font-mono);font-size:9px;padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">LOAD C</button>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:var(--space-xs);">
-        <button onclick="PatternBanks.save('D')" style="font-family:var(--font-mono);font-size:9px;padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">SAVE D</button>
-        <button onclick="PatternBanks.load('D')" style="font-family:var(--font-mono);font-size:9px;padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">LOAD D</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Help Button -->
-  <button onclick="toggleHelp()" style="position:fixed;bottom:16px;right:16px;width:44px;height:44px;border-radius:50%;background:var(--accent-cyan);color:var(--bg-deep);border:none;font-family:var(--font-mono);font-size:18px;font-weight:bold;cursor:pointer;box-shadow:0 4px 12px rgba(63,169,188,0.4);z-index:100;">?</button>
-
-<div class="panel brain-panel" style="margin-bottom:var(--space-md);padding:var(--space-md);background:var(--bg-raised);border-radius:var(--radius-lg);border:1px solid var(--border-dark);">
-    <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--accent-purple);margin-bottom:var(--space-sm);">BRAIN</div>
-    <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;align-items:center;">
-      <button onclick="setBrainMode('MANUAL')" class="brain-btn" style="font-family:var(--font-mono);font-size:9px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">MANUAL</button>
-      <button onclick="setBrainMode('GENERATIVE')" class="brain-btn" style="font-family:var(--font-mono);font-size:9px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">GENERATIVE</button>
-      <button onclick="setBrainMode('ADAPTIVE')" class="brain-btn" style="font-family:var(--font-mono);font-size:9px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">ADAPTIVE</button>
-      <span id="grammarConfidence" style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-left:auto;">GRAMMAR: 0%</span>
-    </div>
-  </div>
-
-  <!-- Arpeggiator Panel (Phase B5) -->
-  <div class="panel arp-panel" style="margin-bottom:var(--space-md);padding:var(--space-md);background:var(--bg-raised);border-radius:var(--radius-lg);border:1px solid var(--border-dark);">
-    <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--accent-cyan);margin-bottom:var(--space-sm);">ARPEGGIATOR</div>
-    <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;align-items:center;">
-      <button onclick="toggleArp()" id="arpToggle" style="font-family:var(--font-mono);font-size:9px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">ARP: OFF</button>
-      <button onclick="setArpMode('up')" style="font-family:var(--font-mono);font-size:9px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">UP</button>
-      <button onclick="setArpMode('down')" style="font-family:var(--font-mono);font-size:9px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">DOWN</button>
-      <button onclick="setArpMode('updown')" style="font-family:var(--font-mono);font-size:9px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">UP-DOWN</button>
-      <button onclick="setArpMode('random')" style="font-family:var(--font-mono);font-size:9px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">RANDOM</button>
-      <button onclick="toggleArpHold()" style="font-family:var(--font-mono);font-size:9px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-dark);background:var(--bg-inset);color:var(--text-secondary);cursor:pointer;">HOLD</button>
-    </div>
-  </div>
-
-  <!-- Engine Status Panel -->
-  <div class="panel engine-panel" style="margin-bottom:var(--space-md);padding:var(--space-md);background:var(--bg-raised);border-radius:var(--radius-lg);border:1px solid var(--border-dark);">
-    <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--accent-green);margin-bottom:var(--space-sm);">ENGINE</div>
-    <div style="display:flex;gap:var(--space-md);flex-wrap:wrap;font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);">
-      <span>VOICES: <span id="voiceCount">20S+24D</span></span>
-      <span>LIMITER: <span id="limiterStatus">ON</span></span>
-      <span>GC: <span id="gcStatus">ZERO</span></span>
-    </div>
-    <div style="margin-top:var(--space-sm);">
-      <button onclick="panicAllVoices()" style="font-family:var(--font-mono);font-size:9px;padding:8px 16px;border-radius:var(--radius-sm);border:1px solid var(--accent-red);background:var(--bg-inset);color:var(--accent-red);cursor:pointer;">PANIC</button>
-    </div>
-  </div>
-
-<div class="display">
-    <div id="lcd1" class="lcd-line" role="log" aria-live="polite">READY</div>
+  <!-- Display -->
+  <div class="display">
+    <div id="lcd1" class="lcd-line">READY</div>
     <div id="lcd2" class="lcd-line">PSY3 PRO</div>
     <div id="nowPlaying" class="lcd-line"></div>
-    <div id="lcdSteps" class="lcd-steps"></div>
+    <div id="lcdSteps" class="lcd-steps" style="display:flex;gap:3px;margin-top:8px;"></div>
   </div>
   
+  <!-- Brain Mode -->
+  <div class="brain-mode">
+    <button class="brain-btn active" onclick="setBrainMode('MANUAL')">MANUAL</button>
+    <button class="brain-btn" onclick="setBrainMode('GENERATIVE')">GENERATIVE</button>
+    <button class="brain-btn" onclick="setBrainMode('ADAPTIVE')">ADAPTIVE</button>
+  </div>
+  
+  <!-- Knobs -->
   <div id="knobs" class="knobs"></div>
-  <div id="seq" class="seq"></div>
+  
+  <!-- Sequencer -->
+  <div id="seq" class="sequencer"></div>
+  
+  <!-- Pads -->
   <div id="pads" class="pads"></div>
-  <div id="timeline" class="timeline"></div>
-  <canvas id="viz" class="viz" role="img" aria-label="Audio visualizer"></canvas>
-  <div id="selfTest" class="self-test">SELF TEST: PENDING</div>
+  
+  <!-- Visualizer -->
+  <canvas id="viz" class="visualizer"></canvas>
 </div>
 
-<script src="app.js?v=4"></script>
+<!-- Help Button -->
+<button class="help-btn" onclick="toggleHelp()">?</button>
 
+<script src="app.js?v=5"></script>
 <script>
-// Register service worker (Phase 4.7)
+// Register service worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
     navigator.serviceWorker.register('sw.js').then(function(registration) {
@@ -896,105 +513,5 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-
-<script>
-// Update grammar confidence display
-function updateGrammarDisplay() {
-  var el = document.getElementById('grammarConfidence');
-  if (el && typeof Grammars !== 'undefined') {
-    var bassConf = Grammars.bass.confidence();
-    var melConf = Grammars.melodic.confidence();
-    var rhythmConf = Grammars.rhythm.confidence();
-    var avgConf = Math.floor((bassConf + melConf + rhythmConf) / 3);
-    el.textContent = 'GRAMMAR: ' + avgConf + '%';
-  }
-}
-
-// Update every second
-setInterval(updateGrammarDisplay, 1000);
-
-// Update brain button states
-function updateBrainButtons() {
-  var buttons = document.querySelectorAll('.brain-btn');
-  buttons.forEach(function(btn) {
-    var mode = btn.textContent.trim();
-    if (typeof brainMode !== 'undefined' && mode === brainMode) {
-      btn.classList.add('active');
-    } else {
-      btn.classList.remove('active');
-    }
-  });
-}
-
-// Update arpeggiator button state
-function updateArpButton() {
-  var btn = document.getElementById('arpToggle');
-  if (btn && typeof arpEnabled !== 'undefined') {
-    btn.textContent = 'ARP: ' + (arpEnabled ? 'ON' : 'OFF');
-    if (arpEnabled) {
-      btn.classList.add('on');
-    } else {
-      btn.classList.remove('on');
-    }
-  }
-}
-
-// Update displays periodically
-setInterval(function() {
-  updateBrainButtons();
-  updateArpButton();
-}, 500);
-</script>
-
-
-<script>
-// Generate track control grid
-function generateTrackControls() {
-  var grid = document.getElementById('trackControlGrid');
-  if (!grid) return;
-  
-  var tracks = ['KICK', 'BASS', 'PERC', 'LEAD', 'ARP', 'PAD'];
-  var colors = ['#ff2e88', '#ff8a3c', '#ffd166', '#06d6a0', '#118ab2', '#a8e6cf'];
-  
-  grid.innerHTML = '';
-  
-  for (var i = 0; i < tracks.length; i++) {
-    var track = tracks[i];
-    var color = colors[i];
-    
-    var cell = document.createElement('div');
-    cell.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px;background:var(--bg-inset);border-radius:var(--radius-sm);';
-    
-    cell.innerHTML = '<div style="color:' + color + ';font-weight:bold;">' + track + '</div>' +
-      '<button onclick="TrackControl.mute('' + track + '')" style="font-size:8px;padding:4px 8px;border-radius:3px;border:1px solid var(--border-dark);background:var(--bg-raised);color:var(--text-secondary);cursor:pointer;width:100%;">M</button>' +
-      '<div style="display:flex;gap:2px;width:100%;">' +
-      '<button onclick="TrackControl.setPan('' + track + '',-1)" style="flex:1;font-size:7px;padding:2px;border:none;background:var(--bg-raised);color:var(--text-dim);cursor:pointer;">L</button>' +
-      '<button onclick="TrackControl.setPan('' + track + '',0)" style="flex:1;font-size:7px;padding:2px;border:none;background:var(--bg-raised);color:var(--text-dim);cursor:pointer;">C</button>' +
-      '<button onclick="TrackControl.setPan('' + track + '',1)" style="flex:1;font-size:7px;padding:2px;border:none;background:var(--bg-raised);color:var(--text-dim);cursor:pointer;">R</button>' +
-      '</div>';
-    
-    grid.appendChild(cell);
-  }
-}
-
-// Generate track controls when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', generateTrackControls);
-} else {
-  generateTrackControls();
-}
-
-// Update chord display
-function updateChordDisplay() {
-  var el = document.getElementById('chordDisplay');
-  if (el && typeof ChordEngine !== 'undefined') {
-    var prog = ChordEngine.progressions[ChordEngine.currentProgression];
-    el.textContent = prog.name;
-  }
-}
-
-setInterval(updateChordDisplay, 500);
-</script>
-
 </body>
 </html>
