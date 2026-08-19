@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="6" fill="#0a0c12"/>
+  <rect x="2" y="2" width="28" height="28" rx="4" fill="#14171f"/>
+  <text x="16" y="14" font-family="monospace" font-size="8" font-weight="bold" fill="#ffb454" text-anchor="middle">PSY3</text>
+  <text x="16" y="24" font-family="monospace" font-size="6" fill="#3fa9bc" text-anchor="middle">PRO</text>
+</svg>
