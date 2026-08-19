@@ -13,61 +13,45 @@
 <title>PSY3 PRO - Hyperspace Psytrance Workstation</title>
 <style>
 /* ============================================================
-   PSY3 PRO - Commercial Design System v2.0
-   Inspired by: Ableton, Elektron, Teenage Engineering
+   PSY3 PRO - Design System v3.0
+   Matches app.js dynamic UI generation
    ============================================================ */
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  /* Color Palette */
   --bg-deep: #06080c;
   --bg-primary: #0a0c12;
   --bg-panel: #0f1118;
   --bg-raised: #14171f;
   --bg-inset: #080a0f;
-  
-  /* Accent Colors */
   --accent-orange: #ffb454;
   --accent-cyan: #3fa9bc;
   --accent-green: #b8e05a;
   --accent-red: #ff4757;
   --accent-purple: #a78bfa;
-  
-  /* Part Colors */
   --part-kick: #ff2e88;
   --part-bass: #ff8a3c;
   --part-perc: #ffd166;
   --part-lead: #06d6a0;
   --part-arp: #118ab2;
   --part-pad: #a8e6cf;
-  
-  /* Text */
   --text-primary: #e8e8f0;
   --text-secondary: #8a92a6;
   --text-dim: #4a5266;
   --text-lcd: #b8e05a;
-  
-  /* Borders and Shadows */
   --border-dark: #000000;
   --border-subtle: rgba(255,255,255,0.04);
   --shadow-deep: 0 20px 60px rgba(0,0,0,0.8);
-  --shadow-panel: 0 4px 16px rgba(0,0,0,0.4);
   --shadow-inset: inset 0 2px 8px rgba(0,0,0,0.6);
   --shadow-raised: 0 2px 8px rgba(0,0,0,0.3);
-  
-  /* Typography */
   --font-ui: system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
-  
-  /* Spacing */
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 16px;
   --space-lg: 24px;
   --space-xl: 32px;
-  
-  /* Border Radius */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 14px;
@@ -89,10 +73,11 @@ body {
 }
 
 /* ============================================================
-   MAIN INSTRUMENT
+   INSTRUMENT CHASSIS
    ============================================================ */
 
-.instrument {
+.chassis {
+  position: relative;
   width: min(900px, 100%);
   background: linear-gradient(180deg, #1a1d26 0%, var(--bg-panel) 50%, #0c0e14 100%);
   border-radius: var(--radius-xl);
@@ -102,10 +87,10 @@ body {
 }
 
 /* ============================================================
-   HEADER
+   TOPBAR
    ============================================================ */
 
-.header {
+.topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -129,17 +114,54 @@ body {
   margin-left: var(--space-sm);
 }
 
-.status {
+.subtitle {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* ============================================================
+   STATUS BAR
+   ============================================================ */
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-inset);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-dark);
+  box-shadow: var(--shadow-inset);
+}
+
+#status {
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-secondary);
 }
 
-.status.ok { color: var(--accent-green); }
-.status.err { color: var(--accent-red); }
+#status.ok { color: var(--accent-green); }
+#status.err { color: var(--accent-red); }
+
+#engState {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-raised);
+}
+
+#engState.ok { color: var(--accent-green); }
 
 /* ============================================================
-   TRANSPORT (Large, prominent)
+   TRANSPORT
    ============================================================ */
 
 .transport {
@@ -148,7 +170,7 @@ body {
   margin-bottom: var(--space-lg);
 }
 
-.transport-btn {
+.transport button {
   flex: 1;
   padding: var(--space-lg);
   border-radius: var(--radius-lg);
@@ -164,21 +186,16 @@ body {
   text-transform: uppercase;
 }
 
-.transport-btn:hover {
+.transport button:hover {
   background: linear-gradient(180deg, #343842, #2a2e38);
   transform: translateY(-2px);
 }
 
-.transport-btn:active {
+.transport button:active {
   transform: translateY(0);
 }
 
-.transport-btn.primary {
-  background: linear-gradient(180deg, var(--accent-orange), #cc8a3c);
-  color: var(--bg-deep);
-}
-
-.transport-btn.playing {
+#playBtn.playing {
   background: linear-gradient(180deg, var(--accent-green), #8ab03c);
   color: var(--bg-deep);
   box-shadow: 0 0 30px rgba(184,224,90,0.4);
@@ -210,64 +227,39 @@ body {
   font-weight: 600;
 }
 
-/* ============================================================
-   SEQUENCER (Visual, colorful)
-   ============================================================ */
-
-.sequencer {
-  margin-bottom: var(--space-lg);
-}
-
-.seq-row {
+.lcd-steps {
   display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  margin-bottom: var(--space-xs);
+  gap: 3px;
+  margin-top: var(--space-sm);
 }
 
-.seq-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  width: 40px;
-  text-align: right;
-  flex-shrink: 0;
+.lcd-steps .ls {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  background: #1a1e24;
+  transition: all 0.08s;
 }
 
-.seq-steps {
-  display: flex;
-  gap: 2px;
-  flex: 1;
-}
-
-.seq-step {
-  flex: 1;
-  aspect-ratio: 1;
-  max-width: 32px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-dark);
-  background: var(--bg-inset);
-  cursor: pointer;
-  transition: all 0.1s ease;
-}
-
-.seq-step:hover {
-  background: var(--bg-raised);
-}
-
-.seq-step.on {
-  box-shadow: 0 0 8px currentColor;
+.lcd-steps .ls.on {
+  background: var(--text-lcd);
+  box-shadow: 0 0 8px rgba(184,224,90,0.6);
 }
 
 /* ============================================================
-   KNOBS (Large, tactile)
+   KNOBS (matches app.js buildKnobs)
    ============================================================ */
 
 .knobs {
   display: flex;
-  justify-content: center;
-  gap: var(--space-lg);
-  margin-bottom: var(--space-lg);
   flex-wrap: wrap;
+  gap: var(--space-lg);
+  justify-content: center;
+  margin-bottom: var(--space-lg);
+  padding: var(--space-md);
+  background: var(--bg-raised);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-dark);
 }
 
 .knob {
@@ -305,7 +297,7 @@ body {
   box-shadow: 0 0 8px rgba(255,180,84,0.5);
 }
 
-.knob-label {
+.knob-name {
   font-family: var(--font-mono);
   font-size: 9px;
   letter-spacing: 1px;
@@ -313,8 +305,83 @@ body {
   color: var(--text-secondary);
 }
 
+.knob-val {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent-cyan);
+}
+
 /* ============================================================
-   PADS (Large, colorful)
+   SEQUENCER (matches app.js buildSeq)
+   ============================================================ */
+
+.seq {
+  margin-bottom: var(--space-lg);
+  padding: var(--space-md);
+  background: var(--bg-raised);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-dark);
+}
+
+.seq-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xs);
+}
+
+.seq-row .part-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  width: 40px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.seq-row .mute {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-dark);
+  background: var(--bg-inset);
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.seq-row .mute.muted {
+  background: var(--accent-red);
+  color: var(--bg-deep);
+}
+
+.seq-row .steps {
+  display: flex;
+  gap: 2px;
+  flex: 1;
+}
+
+.seq-row .steps button {
+  flex: 1;
+  aspect-ratio: 1;
+  max-width: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-dark);
+  background: var(--bg-inset);
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.seq-row .steps button:hover {
+  background: var(--bg-raised);
+}
+
+.seq-row .steps button.on {
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* ============================================================
+   PADS (matches app.js buildPads)
    ============================================================ */
 
 .pads {
@@ -324,7 +391,7 @@ body {
   margin-bottom: var(--space-lg);
 }
 
-.pad {
+.pads button {
   aspect-ratio: 1.2;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-dark);
@@ -339,12 +406,12 @@ body {
   justify-content: center;
 }
 
-.pad:hover {
+.pads button:hover {
   background: linear-gradient(180deg, #2c3038, #242830);
   transform: translateY(-2px);
 }
 
-.pad:active, .pad.hit {
+.pads button:active, .pads button.pad.hit {
   transform: scale(0.95);
   background: var(--accent-purple);
   color: var(--bg-deep);
@@ -352,83 +419,78 @@ body {
 }
 
 /* ============================================================
+   TIMELINE
+   ============================================================ */
+
+.timeline {
+  display: flex;
+  gap: 2px;
+  margin-bottom: var(--space-lg);
+  padding: var(--space-sm);
+  background: var(--bg-inset);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-dark);
+  overflow-x: auto;
+}
+
+.timeline .tl-sec {
+  min-width: 48px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-dark);
+  background: linear-gradient(180deg, #22262e, #181c22);
+  font-family: var(--font-mono);
+  font-size: 7px;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.1s;
+  flex-shrink: 0;
+}
+
+.timeline .tl-sec:hover {
+  background: linear-gradient(180deg, #2a2e36, #22262e);
+  color: var(--text-secondary);
+}
+
+.timeline .tl-sec.active {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  box-shadow: 0 0 8px rgba(63,169,188,0.3);
+}
+
+/* ============================================================
    VISUALIZER
    ============================================================ */
 
-.visualizer {
+.viz {
   width: 100%;
   height: 60px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-dark);
   background: var(--bg-inset);
   margin-bottom: var(--space-lg);
+  box-shadow: var(--shadow-inset);
 }
 
 /* ============================================================
-   BRAIN MODE (Prominent, unique)
+   SELF TEST
    ============================================================ */
 
-.brain-mode {
-  display: flex;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-lg);
-  padding: var(--space-md);
-  background: var(--bg-raised);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-dark);
-}
-
-.brain-btn {
-  flex: 1;
-  padding: var(--space-md);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-dark);
-  background: var(--bg-inset);
-  color: var(--text-secondary);
+.self-test {
   font-family: var(--font-mono);
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.15s ease;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  text-align: center;
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--border-subtle);
 }
 
-.brain-btn:hover {
-  background: var(--bg-panel);
-  color: var(--text-primary);
-}
-
-.brain-btn.active {
-  background: var(--accent-purple);
-  color: var(--bg-deep);
-  border-color: var(--accent-purple);
-  box-shadow: 0 0 16px rgba(167,139,250,0.4);
-}
-
-/* ============================================================
-   HELP BUTTON
-   ============================================================ */
-
-.help-btn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--accent-cyan);
-  color: var(--bg-deep);
-  border: none;
-  font-family: var(--font-mono);
-  font-size: 20px;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(63,169,188,0.4);
-  z-index: 100;
-  transition: transform 0.15s ease;
-}
-
-.help-btn:hover {
-  transform: scale(1.1);
-}
+.self-test.err { color: var(--accent-red); }
 
 /* ============================================================
    RESPONSIVE
@@ -436,11 +498,13 @@ body {
 
 @media (max-width: 768px) {
   body { padding: var(--space-sm); }
-  .instrument { padding: var(--space-md); }
+  .chassis { padding: var(--space-md); }
   .transport { flex-direction: column; }
+  .transport button { padding: var(--space-md); }
   .knobs { gap: var(--space-md); }
   .knob-dial { width: 48px; height: 48px; }
   .pads { gap: var(--space-sm); }
+  .pads button { aspect-ratio: 1; }
 }
 
 /* ============================================================
@@ -454,53 +518,39 @@ body {
 </style>
 </head>
 <body>
-
-<div class="instrument">
-  <!-- Header -->
-  <header class="header">
+<div class="chassis">
+  <header class="topbar">
     <div class="logo">PSY3<span>PRO</span></div>
-    <div id="status" class="status">READY</div>
+    <div class="subtitle">Hyperspace Psytrance Workstation</div>
   </header>
   
-  <!-- Transport -->
-  <div class="transport">
-    <button id="playBtn" class="transport-btn primary" onclick="togglePlay()">PLAY</button>
-    <button id="variateBtn" class="transport-btn" onclick="if(device)device.variate()">VARIATE</button>
-    <button id="nextSecBtn" class="transport-btn" onclick="if(device)device.jumpSection()">NEXT SEC</button>
+  <div class="status-bar">
+    <div id="status">READY</div>
+    <div id="engState">stopped</div>
   </div>
   
-  <!-- Display -->
+  <div class="transport">
+    <button id="playBtn">PLAY</button>
+    <button id="variateBtn">VARIATE</button>
+    <button id="nextSecBtn">NEXT SEC</button>
+  </div>
+  
   <div class="display">
     <div id="lcd1" class="lcd-line">READY</div>
     <div id="lcd2" class="lcd-line">PSY3 PRO</div>
     <div id="nowPlaying" class="lcd-line"></div>
-    <div id="lcdSteps" class="lcd-steps" style="display:flex;gap:3px;margin-top:8px;"></div>
+    <div id="lcdSteps" class="lcd-steps"></div>
   </div>
   
-  <!-- Brain Mode -->
-  <div class="brain-mode">
-    <button class="brain-btn active" onclick="setBrainMode('MANUAL')">MANUAL</button>
-    <button class="brain-btn" onclick="setBrainMode('GENERATIVE')">GENERATIVE</button>
-    <button class="brain-btn" onclick="setBrainMode('ADAPTIVE')">ADAPTIVE</button>
-  </div>
-  
-  <!-- Knobs -->
   <div id="knobs" class="knobs"></div>
-  
-  <!-- Sequencer -->
-  <div id="seq" class="sequencer"></div>
-  
-  <!-- Pads -->
+  <div id="seq" class="seq"></div>
   <div id="pads" class="pads"></div>
-  
-  <!-- Visualizer -->
-  <canvas id="viz" class="visualizer"></canvas>
+  <div id="timeline" class="timeline"></div>
+  <canvas id="viz" class="viz"></canvas>
+  <div id="selfTest" class="self-test">SELF TEST: PENDING</div>
 </div>
 
-<!-- Help Button -->
-<button class="help-btn" onclick="toggleHelp()">?</button>
-
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 <script>
 // Register service worker
 if ('serviceWorker' in navigator) {
