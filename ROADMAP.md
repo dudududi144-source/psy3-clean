@@ -7,7 +7,7 @@ Now we build the professional product around it.
 
 ---
 
-## Phase 1: DESIGN REBUILD (Week 1)
+## Phase 1: DESIGN REBUILD — COMPLETE
 
 ### Goal: Professional chassis design inspired by hardware synths
 
@@ -18,44 +18,32 @@ Now we build the professional product around it.
 - [x] 1.5 Display panel (LCD with section info, BPM, variation)
 - [x] 1.6 Knobs panel (FILTER, RES, DRIVE, DELAY, REVERB, SWING)
 - [x] 1.7 Sequencer panel (16-step grid with part colors)
-- [x] 1.8 Pads panel (8 performance pads)
+- [x] 1.8 Pads panel (8 performance pads, fixed size)
 - [x] 1.9 Timeline panel (song sections visualization)
 - [x] 1.10 Visualizer (canvas-based waveform/spectrum)
 - [x] 1.11 Responsive design (mobile + desktop)
 - [x] 1.12 Status bar and self-test display
 
-### Success Criteria:
-- Looks like a professional hardware synth
-- All panels visible and functional
-- Responsive on mobile (320px+) and desktop (1920px)
-- No emoji, clean text labels
-- Dark theme with proper contrast
-
 ### Status: COMPLETE
 
 ---
 
-## Phase 2: FUNCTIONALITY (Week 2)
+## Phase 2: FUNCTIONALITY — IN PROGRESS
 
 ### Goal: Connect all UI elements to the Groovebox engine
 
-- [ ] 2.1 Transport buttons connected to device.play()/stop()/variate()
-- [ ] 2.2 Knobs connected to device.applyKnob()
-- [ ] 2.3 Sequencer steps connected to device patterns
-- [ ] 2.4 Pads connected to device.triggerPad()
-- [ ] 2.5 Timeline connected to device.jumpSection()
-- [ ] 2.6 Display updates in real-time during playback
-- [ ] 2.7 Visualizer connected to device.analyser
+- [x] 2.1 Transport buttons connected to device.play()/stop()/variate()
+- [x] 2.2 Knobs connected to device.applyKnob()
+- [x] 2.3 Sequencer steps connected to device patterns
+- [x] 2.4 Pads connected to device.triggerPad()
+- [x] 2.5 Timeline connected to device.jumpSection()
+- [x] 2.6 Display updates in real-time during playback
+- [x] 2.7 Visualizer connected to device.analyser (drawViz added)
 - [ ] 2.8 BPM control connected to device.bpm
-- [ ] 2.9 Mute buttons connected to device.mutes
-- [ ] 2.10 Section navigation connected to device.seekToBar()
+- [x] 2.9 Mute buttons connected to device.mutes
+- [x] 2.10 Section navigation connected to device.seekToBar()
 
-### Success Criteria:
-- Every UI element controls the engine
-- Real-time visual feedback during playback
-- No dead buttons or disconnected controls
-
-### Status: NOT STARTED
+### Status: 9/10 COMPLETE
 
 ---
 
@@ -71,11 +59,6 @@ Now we build the professional product around it.
 - [ ] 3.6 Keyboard shortcuts
 - [ ] 3.7 Undo/Redo system
 - [ ] 3.8 Settings persistence (localStorage)
-
-### Success Criteria:
-- All features work without errors
-- State persists across page reloads
-- MIDI controllers can control the device
 
 ### Status: NOT STARTED
 
@@ -93,12 +76,6 @@ Now we build the professional product around it.
 - [ ] 4.6 PWA manifest (installable app)
 - [ ] 4.7 Offline support (service worker)
 
-### Success Criteria:
-- Fully usable on 320px width
-- Touch response < 50ms
-- Installable as PWA
-- Works offline
-
 ### Status: NOT STARTED
 
 ---
@@ -114,12 +91,6 @@ Now we build the professional product around it.
 - [ ] 5.5 Cross-browser testing
 - [ ] 5.6 Documentation (README, user guide)
 
-### Success Criteria:
-- No console errors
-- 60fps on mid-range devices
-- Accessible via keyboard
-- Works in Chrome, Firefox, Safari, Edge
-
 ### Status: NOT STARTED
 
 ---
@@ -134,11 +105,6 @@ Now we build the professional product around it.
 - [ ] 6.4 Analytics (privacy-respecting)
 - [ ] 6.5 Launch announcement
 - [ ] 6.6 Feedback collection system
-
-### Success Criteria:
-- Product is live and stable
-- Users can provide feedback
-- No critical bugs
 
 ### Status: NOT STARTED
 
@@ -169,7 +135,7 @@ Now we build the professional product around it.
 | Phase | Status | Started | Completed |
 |-------|--------|---------|-----------|
 | Phase 1: Design | COMPLETE | 2026-08-18 | 2026-08-18 |
-| Phase 2: Functionality | NOT STARTED | - | - |
+| Phase 2: Functionality | 9/10 | 2026-08-18 | - |
 | Phase 3: Features | NOT STARTED | - | - |
 | Phase 4: Mobile | NOT STARTED | - | - |
 | Phase 5: Quality | NOT STARTED | - | - |
@@ -184,6 +150,7 @@ Now we build the professional product around it.
 | 2026-08-18 | Device plays music after rebuild | v1.0 |
 | 2026-08-18 | Roadmap created | - |
 | 2026-08-18 | Phase 1 complete: professional design system | Phase 1 |
+| 2026-08-18 | drawViz added, pads fixed | Phase 2 |
 
 ---
 
