@@ -6,7 +6,48 @@
 
 // Debounce utility
 function debounce(fn, delay) {
-  var timer = null;
+  
+
+/* ============================================================
+   GLOBAL ERROR HANDLER (Phase 5.1)
+   ============================================================ */
+
+window.onerror = function(message, source, lineno, colno, error) {
+  console.error('PSY3 PRO Error:', message, 'at', source + ':' + lineno + ':' + colno);
+  
+  // Show error in status bar
+  var statusEl = document.getElementById('status');
+  if (statusEl) {
+    statusEl.textContent = 'ERROR: ' + message.substring(0, 50);
+    statusEl.className = 'err';
+  }
+  
+  // Track error
+  trackEvent('error', {
+    message: message,
+    source: source,
+    line: lineno,
+    col: colno
+  });
+  
+  return false;
+};
+
+window.addEventListener('unhandledrejection', function(event) {
+  console.error('PSY3 PRO Unhandled Rejection:', event.reason);
+  
+  var statusEl = document.getElementById('status');
+  if (statusEl) {
+    statusEl.textContent = 'ERROR: ' + String(event.reason).substring(0, 50);
+    statusEl.className = 'err';
+  }
+  
+  trackEvent('unhandled_rejection', {
+    reason: String(event.reason)
+  });
+});
+
+var timer = null;
   return function() {
     var ctx = this, args = arguments;
     if (timer) clearTimeout(timer);
@@ -2118,5 +2159,39 @@ function initMobileNav() {
       var pads = document.getElementById('pads');
       if (pads) pads.scrollIntoView({ behavior: 'smooth' });
     });
+  }
+}
+
+
+/* ============================================================
+   LOADING STATE (Phase 5.2)
+   ============================================================ */
+
+function showLoading(text) {
+  var overlay = document.getElementById('loadingOverlay');
+  var loadingText = document.getElementById('loadingText');
+  if (overlay) {
+    overlay.style.opacity = '1';
+    overlay.style.display = 'flex';
+  }
+  if (loadingText && text) {
+    loadingText.textContent = text;
+  }
+}
+
+function updateLoading(percent) {
+  var bar = document.getElementById('loadingBar');
+  if (bar) {
+    bar.style.width = percent + '%';
+  }
+}
+
+function hideLoading() {
+  var overlay = document.getElementById('loadingOverlay');
+  if (overlay) {
+    overlay.style.opacity = '0';
+    setTimeout(function() {
+      overlay.style.display = 'none';
+    }, 500);
   }
 }
