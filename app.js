@@ -1004,6 +1004,24 @@ Groovebox.prototype.cfg=function(){
   };
 };
 Groovebox.prototype.stepDur=function(){ return 60/this.bpm/4; };
+
+
+/* ============================================================
+   UTILITY FUNCTIONS
+   ============================================================ */
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function mapRange(value, inMin, inMax, outMin, outMax) {
+  return outMin + (outMax - outMin) * ((value - inMin) / (inMax - inMin));
+}
+
 var PART_COLORS={
   KICK:"#ff2e88",
   BASS:"#ff8a3c",
