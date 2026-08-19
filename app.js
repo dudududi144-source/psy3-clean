@@ -1015,6 +1015,217 @@ var PART_COLORS={
 
 var PART_NAMES=["KICK","BASS","PERC","LEAD","ARP","PAD"];
 
+/* ============================================================
+   POOLED ENGINE — Zero GC Architecture (Phase A1)
+   Inspired by PSY6-ULTIMATE PooledEngine
+   ============================================================
+   
+   Problem: Creating Web Audio nodes per-note causes GC pauses
+   leading to audio dropouts.
+   
+   Solution: Pre-allocate all voices at init. Reuse via round-robin.
+   
+   - SYNTH_VOICES = 20 (melodic: bass, lead, arp, pad)
+   - DRUM_VOICES = 24 (percussive: kick, snare, hat, perc)
+   
+   Each voice:
+   - Created ONCE at AudioContext init
+   - All nodes pre-connected (osc -> filter -> vca -> bus)
+   - noteOn() only updates parameters (freq, gain, envelope)
+   - panic() cancels scheduled values and zeroes gain
+   ============================================================ */
+
+var PooledEngine = {
+  ctx: null,
+  synthVoices: [],
+  drumVoices: [],
+  SYNTH_VOICE_COUNT: 20,
+  DRUM_VOICE_COUNT: 24,
+  nextSynthVoice: 0,
+  nextDrumVoice: 0,
+  masterBus: null,
+  isInitialized: false,
+  
+  init: function(ctx, masterBus) {
+    if (this.isInitialized) return;
+    
+    this.ctx = ctx;
+    this.masterBus = masterBus;
+    
+    // Pre-allocate synth voices
+    for (var i = 0; i < this.SYNTH_VOICE_COUNT; i++) {
+      this.synthVoices.push(this.createSynthVoice(ctx, masterBus));
+    }
+    
+    // Pre-allocate drum voices
+    for (var i = 0; i < this.DRUM_VOICE_COUNT; i++) {
+      this.drumVoices.push(this.createDrumVoice(ctx, masterBus));
+    }
+    
+    this.isInitialized = true;
+    console.log('PooledEngine initialized: ' + this.SYNTH_VOICE_COUNT + ' synth + ' + this.DRUM_VOICE_COUNT + ' drum voices');
+  },
+  
+  createSynthVoice: function(ctx, bus) {
+    // Create voice nodes ONCE
+    var osc1 = ctx.createOscillator();
+    var osc2 = ctx.createOscillator();
+    var filter = ctx.createBiquadFilter();
+    var vca = ctx.createGain();
+    
+    // Configure
+    osc1.type = 'sawtooth';
+    osc2.type = 'square';
+    filter.type = 'lowpass';
+    filter.frequency.value = 8000;
+    filter.Q.value = 2;
+    vca.gain.value = 0;
+    
+    // Connect: osc -> filter -> vca -> bus
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(vca);
+    vca.connect(bus);
+    
+    // Start oscillators (they run continuously)
+    osc1.start();
+    osc2.start();
+    
+    return {
+      osc1: osc1,
+      osc2: osc2,
+      filter: filter,
+      vca: vca,
+      isActive: false,
+      noteOn: function(freq, velocity, t) {
+        this.isActive = true;
+        this.osc1.frequency.setTargetAtTime(freq, t, 0.001);
+        this.osc2.frequency.setTargetAtTime(freq * 1.005, t, 0.001);
+        this.vca.gain.cancelScheduledValues(t);
+        this.vca.gain.setTargetAtTime(velocity * 0.3, t, 0.005);
+      },
+      noteOff: function(t) {
+        this.isActive = false;
+        this.vca.gain.setTargetAtTime(0, t, 0.05);
+      },
+      panic: function(t) {
+        this.isActive = false;
+        this.vca.gain.cancelScheduledValues(t);
+        this.vca.gain.setValueAtTime(0, t);
+      }
+    };
+  },
+  
+  createDrumVoice: function(ctx, bus) {
+    // Create voice nodes ONCE
+    var osc = ctx.createOscillator();
+    var noise = ctx.createBufferSource();
+    var noiseGain = ctx.createGain();
+    var filter = ctx.createBiquadFilter();
+    var vca = ctx.createGain();
+    
+    // Configure
+    osc.type = 'sine';
+    filter.type = 'lowpass';
+    filter.frequency.value = 1000;
+    vca.gain.value = 0;
+    noiseGain.gain.value = 0;
+    
+    // Create noise buffer
+    var bufferSize = ctx.sampleRate * 0.5;
+    var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    var data = buffer.getChannelData(0);
+    for (var i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    noise.buffer = buffer;
+    noise.loop = true;
+    
+    // Connect
+    osc.connect(filter);
+    noise.connect(noiseGain);
+    noiseGain.connect(filter);
+    filter.connect(vca);
+    vca.connect(bus);
+    
+    // Start
+    osc.start();
+    noise.start();
+    
+    return {
+      osc: osc,
+      noise: noise,
+      noiseGain: noiseGain,
+      filter: filter,
+      vca: vca,
+      isActive: false,
+      trigger: function(type, velocity, t) {
+        this.isActive = true;
+        this.vca.gain.cancelScheduledValues(t);
+        
+        if (type === 'kick') {
+          this.osc.frequency.setValueAtTime(150, t);
+          this.osc.frequency.exponentialRampToValueAtTime(50, t + 0.05);
+          this.vca.gain.setValueAtTime(velocity * 0.8, t);
+          this.vca.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+        } else if (type === 'snare') {
+          this.noiseGain.gain.setValueAtTime(velocity * 0.5, t);
+          this.noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+          this.osc.frequency.setValueAtTime(200, t);
+          this.vca.gain.setValueAtTime(velocity * 0.3, t);
+          this.vca.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+        } else if (type === 'hat') {
+          this.noiseGain.gain.setValueAtTime(velocity * 0.3, t);
+          this.noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+        } else {
+          this.vca.gain.setValueAtTime(velocity * 0.4, t);
+          this.vca.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+        }
+      },
+      panic: function(t) {
+        this.isActive = false;
+        this.vca.gain.cancelScheduledValues(t);
+        this.vca.gain.setValueAtTime(0, t);
+        this.noiseGain.gain.cancelScheduledValues(t);
+        this.noiseGain.gain.setValueAtTime(0, t);
+      }
+    };
+  },
+  
+  // Get next available synth voice (round-robin)
+  nextSynth: function() {
+    var voice = this.synthVoices[this.nextSynthVoice];
+    this.nextSynthVoice = (this.nextSynthVoice + 1) % this.SYNTH_VOICE_COUNT;
+    return voice;
+  },
+  
+  // Get next available drum voice (round-robin)
+  nextDrum: function() {
+    var voice = this.drumVoices[this.nextDrumVoice];
+    this.nextDrumVoice = (this.nextDrumVoice + 1) % this.DRUM_VOICE_COUNT;
+    return voice;
+  },
+  
+  // Panic: stop all voices
+  panic: function() {
+    var t = this.ctx.currentTime;
+    for (var i = 0; i < this.synthVoices.length; i++) {
+      this.synthVoices[i].panic(t);
+    }
+    for (var i = 0; i < this.drumVoices.length; i++) {
+      this.drumVoices[i].panic(t);
+    }
+  }
+};
+
+// Initialize PooledEngine when device is ready
+function initPooledEngine() {
+  if (device && device.ctx && device.master) {
+    PooledEngine.init(device.ctx, device.master);
+  }
+}
+
+
 Groovebox.prototype.init=function(){
   if(this.ctx){
     if(this.ctx.state==="suspended") return this.ctx.resume();
@@ -1081,6 +1292,7 @@ Groovebox.prototype.init=function(){
   this.applyKnob("filter"); this.applyKnob("res"); this.applyKnob("swing");
   this.applySongSection(sectionAt(this.song,0).section);
   if(ctx.state==="suspended") return ctx.resume();
+  initPooledEngine();
   return Promise.resolve();
 };
 Groovebox.prototype.makeImpulse=function(dur,decay){
