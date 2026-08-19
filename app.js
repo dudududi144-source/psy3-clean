@@ -3339,13 +3339,8 @@ function updateLoading(percent) {
 }
 
 function hideLoading() {
-  var overlay = document.getElementById('loadingOverlay');
-  if (overlay) {
-    overlay.style.opacity = '0';
-    setTimeout(function() {
-      overlay.style.display = 'none';
-    }, 500);
-  }
+  // loadingOverlay was removed, this is a no-op
+  // Kept for backwards compatibility
 }
 
 
@@ -3596,3 +3591,32 @@ var PatternBanks = {
 
 // Load banks on startup
 PatternBanks.loadAll();
+
+
+/* ============================================================
+   INITIALIZATION (must be at the end, after all functions defined)
+   ============================================================ */
+
+// Initialize UI when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', safeInitUi);
+} else {
+  safeInitUi();
+}
+
+// Initialize MIDI input
+if (typeof initMIDIInput === 'function') {
+  initMIDIInput();
+}
+
+// Initialize TrackControl
+if (typeof TrackControl !== 'undefined' && TrackControl.init) {
+  // TrackControl.init will be called after device is ready
+}
+
+// Initialize PooledEngine
+if (typeof initPooledEngine === 'function') {
+  // initPooledEngine will be called after device is ready
+}
+
+console.log('PSY3 PRO initialized');
