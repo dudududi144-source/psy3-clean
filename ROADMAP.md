@@ -199,6 +199,99 @@ Now we build the professional product around it.
 
 ---
 
+
+---
+
+## Phase A: AUDIO QUALITY (Commercial Grade)
+
+### Goal: Surpass OscillatorNode toys — commercial-grade sound
+
+- [x] A1. PooledEngine — Zero GC Architecture (20 synth + 24 drum voices)
+- [ ] A2. PolyBLEP oscillators — band-limited
+- [ ] A3. ZDF State-Variable Filter — zero-delay feedback
+- [ ] A4. Brickwall limiter — threshold -1dB, 20:1
+- [ ] A5. Oversampled lowpass — anti-aliasing
+- [ ] A6. Per-voice envelopes — analog-style ADSR
+- [ ] A7. tanh soft-clip — output stage
+
+### Status: 1/7 COMPLETE
+
+---
+
+## Phase B: CREATIVE BRAIN
+
+### Goal: Autonomous creation — not just play, but create
+
+- [ ] B1. Grammar System — Bass/Melodic/Rhythm
+- [ ] B2. CandidateGenerator — 5 candidates/bar
+- [ ] B3. ADAPTIVE mode — learns from performance
+- [ ] B4. Chord Progressions — generative
+- [ ] B5. Arpeggiator — UP/DOWN/RANDOM
+- [ ] B6. Pattern Banks A-D — localStorage
+
+### Status: NOT STARTED
+
+---
+
+## Phase C: PRO I/O
+
+### Goal: Professional export and integration
+
+- [ ] C1. WAV Export — offline rendering
+- [ ] C2. MIDI Export — Standard MIDI File
+- [ ] C3. MIDI Out — notes + MIDI Clock
+- [ ] C4. Stem Export — per-track WAV
+- [ ] C5. Project Save/Load — .psy.json
+- [ ] C6. Live Recording — MediaRecorder
+
+### Status: NOT STARTED
+
+---
+
+## Phase D: PRODUCT QUALITY
+
+### Goal: Commercial product end-to-end
+
+- [ ] D1. Per-Track Control — Mute/Solo/Volume/Pan
+- [ ] D2. Session Persistence — full restore
+- [ ] D3. Testing — 100+ tests
+- [ ] D4. Help Overlay — ? key
+- [ ] D5. 3D Spectrum — visualizer
+- [ ] D6. Documentation — architecture + user guide
+
+### Status: NOT STARTED
+
+---
+
+## Commercial Roadmap Tracking
+
+| Phase | Status | Progress |
+|-------|--------|----------|
+| Phase A: Audio Quality | 1/7 | PooledEngine done |
+| Phase B: Creative Brain | 0/6 | NOT STARTED |
+| Phase C: Pro I/O | 0/6 | NOT STARTED |
+| Phase D: Product Quality | 0/6 | NOT STARTED |
+
+---
+
+## Score Tracking
+
+| Category | Current | Target |
+|----------|---------|--------|
+| Architecture | 70 | 95 |
+| Audio quality | 50 | 90 |
+| Voice management | 60 | 95 |
+| FX breadth | 60 | 85 |
+| Creative brain | 40 | 90 |
+| I/O | 50 | 95 |
+| Testing | 30 | 90 |
+| UX | 75 | 90 |
+| Documentation | 70 | 90 |
+| Performance | 65 | 95 |
+
+**Current score: ~57/100**
+**Target score: ~92/100**
+
 ## Design System Reference
 
 ### Colors:
