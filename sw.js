@@ -1,14 +1,15 @@
 // PSY3 PRO Service Worker (Phase 4.7)
 // Offline support for PWA
 
-var CACHE_NAME = 'psy3-pro-v2';
+var CACHE_NAME = 'psy3-pro-v3';
 var ASSETS = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './favicon.svg'
 ];
 
-// Install: cache assets (but NOT app.js - always fetch fresh)
+// Install: cache assets
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_NAME).then(function(cache) {
@@ -34,9 +35,20 @@ self.addEventListener('activate', function(event) {
   self.clients.claim();
 });
 
-// Fetch: network-first for app.js, cache-first for others
+// Fetch: filter out unsupported schemes, network-first for app.js
 self.addEventListener('fetch', function(event) {
   var url = event.request.url;
+  
+  // Skip non-http(s) requests (chrome-extension, data, etc.)
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return;
+  }
+  
+  // Skip cross-origin requests
+  var requestUrl = new URL(url);
+  if (requestUrl.origin !== location.origin) {
+    return;
+  }
   
   // Always fetch app.js from network (cache-busting)
   if (url.indexOf('app.js') !== -1) {
@@ -57,6 +69,7 @@ self.addEventListener('fetch', function(event) {
         return response;
       }
       return fetch(event.request).then(function(response) {
+        // Don't cache non-successful responses
         if (!response || response.status !== 200 || response.type !== 'basic') {
           return response;
         }
