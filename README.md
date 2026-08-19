@@ -1,72 +1,123 @@
-# PSY3 PRO — Hyperspace Psytrance Workstation
+# PSY3 PRO - Hyperspace Psytrance Workstation
 
-> Professional psytrance production instrument. One file. Zero server. Infinite groove.
+Professional psytrance production instrument. One file. Zero server. Infinite groove.
+
+## Live Demo
+
+https://dudududi144-source.github.io/psy3-clean/
 
 ## Features
 
-### Panels
-- Transport — PLAY, STOP, REC, VARIATE, UNDO, REDO, BPM slider
-- Display — LCD display with status
-- Step Sequencer — 16-step sequencer with sound preview
-- Mixer — 6-channel mixer (KICK, BASS, LEAD, ARP, PAD, PERC)
-- FX Chain — FILTER, DELAY, REVERB, DRIVE knobs
-- Performance Pads — 8 performance pads
-- XY Pad — Filter control (X: cutoff, Y: resonance)
-- Preset Browser — 10 factory presets with search
-- Pattern Editor — CLEAR, RANDOM, REVERSE, SHIFT, DOUBLE, HALF
-- Automation — LFO Rate, LFO Depth, Envelope
+### Sound Engine
+- Groovebox engine - Professional psytrance synthesis
+- 6 parts - KICK, BASS, PERC, LEAD, ARP, PAD
+- 16-step sequencer - With part colors and mute buttons
+- Song arranger - Multiple sections with transitions
+- Real-time visualizer - 64-bar frequency spectrum
 
-### Synthesis
-- Actual synthesis — Oscillators, filter, envelope
-- Drum synthesis — Kick, snare, hi-hat
-- 10 factory presets — PSYTRANCE LEAD, ACID BASS, TRANCE PAD, TECHNO STAB, PROGRESSIVE ARP, DARK PSY BASS, GOA LEAD, FULL ON STAB, AMBIENT PAD, PERC LOOP
+### Controls
+- 7 knobs - BPM, FILTER, RESO, DRIVE, DELAY, REVERB, SWING
+- 8 performance pads - Trigger melodic patterns
+- Transport - PLAY, VARIATE, NEXT SEC
+- Timeline - Visual song section navigation
 
-### Systems
-- Undo/Redo — 50-step history
-- Sequencer Playback — 16-step playback with step highlighting
-- Automation — LFO modulation of filter
-- MIDI Output — Web MIDI API support
-- Buffer Pool — Pre-allocated buffers (no GC)
-- Voice Pool — Pre-allocated voices (no GC)
+### Features
+- Preset system - Save/load device state
+- Pattern editor - Clear, random, reverse, shift, double, half, invert
+- Song editor - Add, remove, move, duplicate sections
+- MIDI input - Web MIDI API with CC/note mapping
+- MIDI learn - Map controllers to parameters
+- Undo/Redo - 50-step history
+- Settings persistence - localStorage
 
-## Quick Start
+### Mobile
+- Touch-optimized - 44px+ touch targets
+- Stacked layout - Portrait mode optimization
+- Bottom navigation - PLAY, KNOBS, SEQ, PADS
+- Swipe gestures - Left/right to navigate sections
+- PWA - Installable app with offline support
 
-Just open index.html in any modern browser. Or serve locally:
+## Keyboard Shortcuts
 
-    npx serve .
+| Key | Action |
+|-----|--------|
+| SPACE | Play / Stop |
+| A, W, S, E, D, F, T, G | Trigger pads 1-8 |
+| Ctrl+Z | Undo |
+| Ctrl+Shift+Z | Redo |
+| Ctrl+S | Quick save preset |
 
-Or use the live version:
+## MIDI Support
 
-    https://dudududi144-source.github.io/psy3-clean/
+- Web MIDI API integration
+- CC mapping via MIDI Learn
+- Note mapping for pad triggers
+- Auto-detect MIDI controllers
+- Hot-plug support
 
-## Presets
+## Pattern Editor Functions
 
-| # | Preset | Style |
-|---|--------|-------|
-| 1 | PSYTRANCE LEAD 01 | Lead |
-| 2 | ACID BASS 01 | Bass |
-| 3 | TRANCE PAD 01 | Pad |
-| 4 | TECHNO STAB 01 | Stab |
-| 5 | PROGRESSIVE ARP 01 | Arp |
-| 6 | DARK PSY BASS 01 | Bass |
-| 7 | GOA LEAD 01 | Lead |
-| 8 | FULL ON STAB 01 | Stab |
-| 9 | AMBIENT PAD 01 | Pad |
-| 10 | PERC LOOP 01 | Perc |
+| Function | Description |
+|----------|-------------|
+| patternClear(part) | Clear pattern for a part (or all) |
+| patternRandom(part) | Randomize pattern |
+| patternReverse(part) | Reverse pattern |
+| patternShift(part, dir) | Shift pattern left/right |
+| patternDouble(part) | Double first 8 steps to second 8 |
+| patternHalf(part) | Clear second 8 steps |
+| patternInvert(part) | Invert pattern |
 
-## Version History
+## Song Editor Functions
 
-| Version | Date | Milestone |
-|---------|------|-----------|
-| v1.0 | 2026-08-18 | Initial release |
-| v2.0 | 2026-08-18 | PSY3 PRO design system |
-| v3.0 | 2026-08-18 | Complete UI (all panels) |
-| v4.0 | 2026-08-18 | Panel connections |
-| v5.0 | 2026-08-18 | Undo/Redo + Mixer |
-| v6.0 | 2026-08-18 | Sequencer playback + Presets |
-| v7.0 | 2026-08-18 | CRITICAL: Device initialization |
-| v8.0 | 2026-08-18 | Actual synthesis + Pattern editor |
-| v9.0 | 2026-08-18 | Automation + MIDI output |
+| Function | Description |
+|----------|-------------|
+| songAddSection(name) | Add a new section |
+| songRemoveSection(index) | Remove a section |
+| songMoveSection(from, to) | Move a section |
+| songDuplicateSection(index) | Duplicate a section |
+| songGetInfo() | Get song info |
+
+## Architecture
+
+psy3-clean/
+  index.html       - HTML + CSS (design system)
+  app.js           - Groovebox engine + UI logic
+  manifest.json    - PWA manifest
+  sw.js            - Service worker (offline)
+  ROADMAP.md       - Development roadmap
+  README.md        - This file
+
+## Design System
+
+### Colors
+- Background: #06080c (deep), #0a0c12 (primary), #0f1118 (panel)
+- Accents: orange #ffb454, cyan #3fa9bc, green #b8e05a, red #ff4757, purple #a78bfa
+- Parts: kick #ff2e88, bass #ff8a3c, perc #ffd166, lead #06d6a0, arp #118ab2, pad #a8e6cf
+- LCD: #b8e05a (green phosphor)
+
+### Typography
+- UI: system-ui, -apple-system, Segoe UI, sans-serif
+- Mono: SF Mono, Cascadia Code, Consolas, monospace
+
+## Browser Support
+
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+## Development
+
+### Local Development
+
+Serve locally:
+  npx serve .
+
+Or use Python:
+  python -m http.server 8000
+
+### Deployment
+Deployed to GitHub Pages. Push to main branch to update.
 
 ## License
 
@@ -74,4 +125,4 @@ MIT
 
 ---
 
-PSY3 PRO — Professional psytrance production instrument.
+PSY3 PRO - Professional psytrance production instrument.
