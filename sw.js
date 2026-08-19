@@ -1,15 +1,14 @@
 // PSY3 PRO Service Worker (Phase 4.7)
 // Offline support for PWA
 
-var CACHE_NAME = 'psy3-pro-v1';
+var CACHE_NAME = 'psy3-pro-v2';
 var ASSETS = [
   './',
   './index.html',
-  './app.js',
   './manifest.json'
 ];
 
-// Install: cache assets
+// Install: cache assets (but NOT app.js - always fetch fresh)
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_NAME).then(function(cache) {
@@ -35,8 +34,23 @@ self.addEventListener('activate', function(event) {
   self.clients.claim();
 });
 
-// Fetch: serve from cache, fallback to network
+// Fetch: network-first for app.js, cache-first for others
 self.addEventListener('fetch', function(event) {
+  var url = event.request.url;
+  
+  // Always fetch app.js from network (cache-busting)
+  if (url.indexOf('app.js') !== -1) {
+    event.respondWith(
+      fetch(event.request).then(function(response) {
+        return response;
+      }).catch(function() {
+        return caches.match(event.request);
+      })
+    );
+    return;
+  }
+  
+  // Cache-first for other assets
   event.respondWith(
     caches.match(event.request).then(function(response) {
       if (response) {
