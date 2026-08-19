@@ -669,9 +669,85 @@ body {
     display: none;
   }
 }
+
+/* ============================================================
+   PERFORMANCE OPTIMIZATIONS (Phase 5.4)
+   ============================================================ */
+
+.knob-dial {
+  will-change: transform;
+}
+
+.transport button {
+  will-change: transform;
+}
+
+.pads button {
+  will-change: transform, background-color;
+}
+
+.seq-row .steps button {
+  will-change: background-color, box-shadow;
+}
+
+.lcd-steps .ls {
+  will-change: background-color, box-shadow;
+}
+
+/* Use transform for animations instead of layout properties */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 </style>
 </head>
 <body>
+
+  <!-- Loading Overlay (Phase 5.2) -->
+  <div id="loadingOverlay" style="
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #06080c;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity 0.5s ease;
+  ">
+    <div style="
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 24px;
+      letter-spacing: 6px;
+      color: #ffb454;
+      margin-bottom: 16px;
+    ">PSY3<span style="color:#3fa9bc;font-size:14px">PRO</span></div>
+    <div id="loadingText" style="
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: #4a5266;
+    ">INITIALIZING AUDIO ENGINE...</div>
+    <div style="
+      width: 200px;
+      height: 2px;
+      background: #14171f;
+      margin-top: 24px;
+      border-radius: 1px;
+      overflow: hidden;
+    ">
+      <div id="loadingBar" style="
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, #ffb454, #3fa9bc);
+        transition: width 0.3s ease;
+      "></div>
+    </div>
+  </div>
+
 <div class="chassis">
   <div class="cheek l"></div>
   <div class="cheek r"></div>
@@ -686,18 +762,18 @@ body {
   </header>
   
   <div class="status-bar">
-    <div id="status">READY</div>
-    <div id="engState">stopped</div>
+    <div id="status" role="status" aria-live="polite">READY</div>
+    <div id="engState" role="status" aria-live="polite">stopped</div>
   </div>
   
   <div class="transport">
-    <button id="playBtn">PLAY</button>
-    <button id="variateBtn">VARIATE</button>
-    <button id="nextSecBtn">NEXT SEC</button>
+    <button id="playBtn" role="button" aria-label="Play or stop the music">PLAY</button>
+    <button id="variateBtn" role="button" aria-label="Generate a new variation">VARIATE</button>
+    <button id="nextSecBtn" role="button" aria-label="Jump to next section">NEXT SEC</button>
   </div>
   
   <div class="display">
-    <div id="lcd1" class="lcd-line">READY</div>
+    <div id="lcd1" class="lcd-line" role="log" aria-live="polite">READY</div>
     <div id="lcd2" class="lcd-line">PSY3 PRO</div>
     <div id="nowPlaying" class="lcd-line"></div>
     <div id="lcdSteps" class="lcd-steps"></div>
@@ -707,7 +783,7 @@ body {
   <div id="seq" class="seq"></div>
   <div id="pads" class="pads"></div>
   <div id="timeline" class="timeline"></div>
-  <canvas id="viz" class="viz"></canvas>
+  <canvas id="viz" class="viz" role="img" aria-label="Audio visualizer"></canvas>
   <div id="selfTest" class="self-test">SELF TEST: PENDING</div>
 </div>
 
