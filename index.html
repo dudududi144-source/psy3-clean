@@ -511,6 +511,164 @@ body {
 ::-webkit-scrollbar-track { background: var(--bg-inset); }
 ::-webkit-scrollbar-thumb { background: var(--text-dim); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+/* ============================================================
+   MOBILE OPTIMIZATIONS (Phase 4.1, 4.2, 4.5)
+   ============================================================ */
+
+/* Touch-optimized controls: 44px+ touch targets */
+@media (max-width: 768px) {
+  .transport button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 16px;
+    font-size: 12px;
+  }
+  
+  .knob-dial {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .pads button {
+    height: 48px;
+    min-height: 44px;
+  }
+  
+  .seq-row .steps button {
+    max-width: 24px;
+    min-width: 20px;
+    min-height: 20px;
+  }
+  
+  .seq-row .mute {
+    min-width: 32px;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .timeline .tl-sec {
+    min-width: 44px;
+    min-height: 32px;
+  }
+}
+
+/* Stacked layout for portrait mode */
+@media (max-width: 480px) and (orientation: portrait) {
+  .chassis {
+    padding: var(--space-sm);
+  }
+  
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-xs);
+  }
+  
+  .transport {
+    flex-direction: column;
+  }
+  
+  .transport button {
+    width: 100%;
+  }
+  
+  .knobs {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .pads {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-xs);
+  }
+  
+  .pads button {
+    height: 44px;
+    font-size: 10px;
+  }
+  
+  .display {
+    padding: var(--space-sm);
+  }
+  
+  .lcd-line {
+    font-size: 11px;
+  }
+  
+  .lcd-line:first-child {
+    font-size: 13px;
+  }
+  
+  .lcd-steps .ls {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .viz {
+    height: 36px;
+  }
+}
+
+/* Reduced animations on mobile */
+@media (max-width: 768px) {
+  * {
+    transition-duration: 0.05s !important;
+  }
+  
+  .knob-dial:hover,
+  .transport button:hover,
+  .pads button:hover {
+    transform: none;
+  }
+}
+
+/* Bottom navigation bar for mobile */
+@media (max-width: 768px) {
+  .mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-around;
+    background: var(--bg-panel);
+    border-top: 1px solid var(--border-dark);
+    padding: var(--space-sm) 0;
+    z-index: 100;
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.4);
+  }
+  
+  .mobile-nav button {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    padding: var(--space-sm) var(--space-md);
+    cursor: pointer;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .mobile-nav button.active {
+    color: var(--accent-orange);
+  }
+  
+  .chassis {
+    margin-bottom: 60px;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-nav {
+    display: none;
+  }
+}
 </style>
 </head>
 <body>
