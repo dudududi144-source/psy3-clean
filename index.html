@@ -8,7 +8,7 @@
 <title>PSY3 PRO - Hyperspace Psytrance Workstation</title>
 <style>
 /* ============================================================
-   PSY3 PRO - Professional Design System
+   PSY3 PRO - Professional Design System v2.0
    Inspired by: Ableton, Elektron, Teenage Engineering
    ============================================================ */
 
@@ -71,6 +71,10 @@ body {
   overflow-x: hidden;
 }
 
+/* ============================================================
+   CHASSIS
+   ============================================================ */
+
 .chassis {
   position: relative;
   width: min(1100px, 100%);
@@ -122,6 +126,10 @@ body {
 .screw.bl { bottom: 10px; left: 10px; }
 .screw.br { bottom: 10px; right: 10px; }
 
+/* ============================================================
+   HEADER
+   ============================================================ */
+
 .topbar {
   display: flex;
   align-items: baseline;
@@ -154,6 +162,10 @@ body {
   text-transform: uppercase;
   color: var(--text-dim);
 }
+
+/* ============================================================
+   STATUS BAR
+   ============================================================ */
 
 .status-bar {
   display: flex;
@@ -188,6 +200,10 @@ body {
 }
 #engState.ok { color: var(--accent-green); }
 
+/* ============================================================
+   TRANSPORT
+   ============================================================ */
+
 .transport {
   display: flex;
   gap: var(--space-sm);
@@ -220,6 +236,10 @@ body {
   color: var(--bg-deep);
   box-shadow: 0 0 20px rgba(255,180,84,0.4);
 }
+
+/* ============================================================
+   DISPLAY - LCD Screen
+   ============================================================ */
 
 .display {
   background: linear-gradient(180deg, #080a0e, #050709);
@@ -262,6 +282,10 @@ body {
   background: var(--text-lcd);
   box-shadow: 0 0 8px rgba(184,224,90,0.6);
 }
+
+/* ============================================================
+   KNOBS
+   ============================================================ */
 
 .knobs {
   display: flex;
@@ -309,6 +333,10 @@ body {
 }
 .knob-val { font-family: var(--font-mono); font-size: 10px; color: var(--accent-cyan); }
 
+/* ============================================================
+   SEQUENCER
+   ============================================================ */
+
 .seq {
   margin-bottom: var(--space-md);
   padding: var(--space-md);
@@ -352,6 +380,10 @@ body {
 .seq-row .steps button:hover { background: linear-gradient(180deg, #2a2e36, #22262e); }
 .seq-row .steps button.on { box-shadow: 0 0 6px currentColor; }
 
+/* ============================================================
+   PADS - Fixed size (not huge squares)
+   ============================================================ */
+
 .pads {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -359,7 +391,7 @@ body {
   margin-bottom: var(--space-md);
 }
 .pads button {
-  aspect-ratio: 1.4;
+  height: 52px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-dark);
   background: linear-gradient(180deg, #242830, #1a1e24);
@@ -370,13 +402,20 @@ body {
   transition: all 0.08s;
   box-shadow: var(--shadow-raised);
 }
-.pads button:hover { background: linear-gradient(180deg, #2c3038, #242830); transform: translateY(-1px); }
+.pads button:hover {
+  background: linear-gradient(180deg, #2c3038, #242830);
+  transform: translateY(-1px);
+}
 .pads button:active, .pads button.hit {
   transform: translateY(1px) scale(0.96);
   background: var(--accent-purple);
   color: var(--bg-deep);
   box-shadow: 0 0 16px rgba(167,139,250,0.5);
 }
+
+/* ============================================================
+   TIMELINE
+   ============================================================ */
 
 .timeline {
   display: flex;
@@ -408,6 +447,10 @@ body {
 .timeline .tl-sec:hover { background: linear-gradient(180deg, #2a2e36, #22262e); color: var(--text-secondary); }
 .timeline .tl-sec.active { border-color: var(--accent-cyan); color: var(--accent-cyan); box-shadow: 0 0 8px rgba(63,169,188,0.3); }
 
+/* ============================================================
+   VISUALIZER
+   ============================================================ */
+
 .viz {
   width: 100%;
   height: 56px;
@@ -417,6 +460,10 @@ body {
   margin-bottom: var(--space-md);
   box-shadow: var(--shadow-inset);
 }
+
+/* ============================================================
+   SELF TEST
+   ============================================================ */
 
 .self-test {
   font-family: var(--font-mono);
@@ -429,6 +476,10 @@ body {
 }
 .self-test.err { color: var(--accent-red); }
 
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
 @media (max-width: 768px) {
   body { padding: var(--space-sm); }
   .chassis { padding: var(--space-md); border-radius: var(--radius-lg); }
@@ -439,6 +490,7 @@ body {
   .transport button { flex: 1; min-width: 80px; padding: 10px 12px; }
   .knobs { gap: var(--space-sm); }
   .knob-dial { width: 44px; height: 44px; }
+  .pads button { height: 44px; }
 }
 
 @media (max-width: 480px) {
@@ -446,7 +498,7 @@ body {
   .lcd-line:first-child { font-size: 14px; }
   .lcd-steps .ls { width: 10px; height: 10px; }
   .seq-row .steps button { max-width: 20px; }
-  .pads button { aspect-ratio: 1.2; }
+  .pads button { height: 40px; font-size: 10px; }
   .viz { height: 40px; }
 }
 
