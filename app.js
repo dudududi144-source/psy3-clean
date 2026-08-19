@@ -2016,3 +2016,107 @@ function songGetInfo() {
     seed: device.seed
   };
 }
+
+
+/* ============================================================
+   SWIPE GESTURES (Phase 4.4)
+   ============================================================ */
+
+var swipeState = {
+  startX: 0,
+  startY: 0,
+  startTime: 0
+};
+
+function initSwipeGestures() {
+  var chassis = document.querySelector('.chassis');
+  if (!chassis) return;
+  
+  chassis.addEventListener('touchstart', function(e) {
+    if (e.touches.length === 1) {
+      swipeState.startX = e.touches[0].clientX;
+      swipeState.startY = e.touches[0].clientY;
+      swipeState.startTime = Date.now();
+    }
+  }, { passive: true });
+  
+  chassis.addEventListener('touchend', function(e) {
+    if (e.changedTouches.length === 1) {
+      var endX = e.changedTouches[0].clientX;
+      var endY = e.changedTouches[0].clientY;
+      var deltaX = endX - swipeState.startX;
+      var deltaY = endY - swipeState.startY;
+      var deltaTime = Date.now() - swipeState.startTime;
+      
+      // Only process quick swipes (< 300ms)
+      if (deltaTime < 300) {
+        // Horizontal swipe
+        if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY)) {
+          if (deltaX > 0) {
+            // Swipe right: previous section
+            if (device && device.seekToBar) {
+              var currentBar = Math.floor(device.absStep / 16);
+              if (currentBar > 0) {
+                device.seekToBar(currentBar - 1);
+                setStatus('Section: previous', 'ok');
+              }
+            }
+          } else {
+            // Swipe left: next section
+            if (device && device.jumpSection) {
+              device.jumpSection();
+              setStatus('Section: next', 'ok');
+            }
+          }
+        }
+      }
+    }
+  }, { passive: true });
+}
+
+// Initialize swipe gestures after UI is ready
+function initMobileFeatures() {
+  initSwipeGestures();
+  initMobileNav();
+}
+
+// Mobile navigation
+function initMobileNav() {
+  var navPlay = document.getElementById('navPlay');
+  var navKnobs = document.getElementById('navKnobs');
+  var navSeq = document.getElementById('navSeq');
+  var navPads = document.getElementById('navPads');
+  
+  if (navPlay) {
+    navPlay.addEventListener('click', function() {
+      if (device) {
+        if (device.isPlaying) {
+          device.stop();
+        } else {
+          device.play();
+        }
+      }
+    });
+  }
+  
+  if (navKnobs) {
+    navKnobs.addEventListener('click', function() {
+      var knobs = document.getElementById('knobs');
+      if (knobs) knobs.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+  
+  if (navSeq) {
+    navSeq.addEventListener('click', function() {
+      var seq = document.getElementById('seq');
+      if (seq) seq.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+  
+  if (navPads) {
+    navPads.addEventListener('click', function() {
+      var pads = document.getElementById('pads');
+      if (pads) pads.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+}
