@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 22 - status dashboard live; Pages verified built
+## Status: Session 23 - commercial UI polish (visible fixes shipped)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -545,6 +545,21 @@ Answered 'where do we stand?' with a published page:
 - **GitHub Pages verified**: API reports status `built`, source `main` `/`; the live app URL returned HTTP 200 (~16KB) - the demo link in the README is real, not aspirational.
 - **status.html** added at repo root: self-contained dark dashboard (no dependencies) showing phases, session ledger, verified features, honest backlog, module map, and links to ENGINEERING.md/README/ROADMAP. Served at `/status.html` by the existing Pages setup.
 - README updated: demo line now states Pages verified + links the dashboard.
+
+
+## Session 23 changes (this commit) - commercial UI polish (visible fixes)
+
+A real UI QA pass found and fixed actual brokenness:
+
+1. **Visualizer rendered broken**: the canvas buffer was never resized (the only code that sized it, `drawViz()`, was dead), so it drew into a default 300x150 buffer stretched/cropped by CSS - blurry bars with the bottom two-thirds invisible. Fixed: buffer matches CSS size per frame; dead `drawViz` removed (referenced only in the explanatory comment now).
+2. **Transport overflow**: 8 buttons in one `flex:1` row clipped labels (e.g. BRAIN: MANUAL). Now `flex-wrap` + balanced 150px basis; labels readable, rows balanced.
+3. **No playhead / no quarter accents**: `.cur` and `.q` classes were applied by JS but had zero CSS rules. Added both (cyan playhead highlight, amber quarter-note accents).
+4. **REC gave no visible state**: REC button now turns red with a pulsing glow and a label change while recording (wired in startRecording/stopRecording).
+5. **Preset panel used off-palette inline styles**: migrated to design-system classes (`.preset-panel/.preset-item/.preset-name/.mini-btn/.preset-input/.preset-empty`).
+6. **PLAY always rewound to bar 0** after STOP - now resumes from the stopped position (documented behavior change; grid/timeline/LCD already track absStep).
+7. **Users would not have seen any of this** without a cache bust: script tags v8 -> v9 and service worker cache v5 -> v6 (old caches purge on activation).
+
+Verification: esprima parse of ui/editor/sw; structural assertions (dead code gone, buffer fix present, classes wired on both CSS and JS sides, v9 x11, v6 cache, no leftover inline panel styles); regressions asserted (WAV export, live recording, projects, brain button). Static verification only - a visual smoke test is recommended (hard refresh / incognito to bypass any old cache).
 
 
 ## Phase plan
