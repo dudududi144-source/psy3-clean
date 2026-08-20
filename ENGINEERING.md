@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Phase 2 - Session 9: genre presets wired (FULL-ON / DARK-PSY / PROGRESSIVE)
+## Status: Phase 2 - Session 10: master chain complete (limiter) + genre drums
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -268,6 +268,43 @@ Six config params remain unused by the voice code: `kickDecay, kickPunch, hatFre
 
 - All 6 edited files parse (esprima); 24 structural markers pass (one marker 'failure' during the session was my own typo - `setGenre=function(){` vs the actual `setGenre=function(name){` - re-verified correct).
 - Static verification only. Runtime smoke: click GENRE mid-play -> bass/lead character and kick depth change immediately; reload restores genre; undo restores it too.
+
+
+## Session 10 changes (this commit) — master-chain completion + genre drums
+
+### 1. Brickwall limiter wired into the master chain
+
+The `BrickwallLimiter` object shipped in `src/dsp.js` but was never connected. Now the chain is:
+
+`master -> autoFilter -> djFilter -> drivePre -> shaper -> drivePost -> comp(-14dB/5:1) ->` **`BrickwallLimiter(-1dB, 20:1, hard knee, 1ms attack, 50ms release) -> makeup(1.0)`** `-> analyser -> destination`
+
+- The analyser stays LAST, so `getEnergy()`, selfTest and the viz measure the final (limited) output.
+- Guarded: if `BrickwallLimiter` is missing the chain falls back to the old comp->analyser connection.
+- The legacy never-called `initBrickwallLimiter()` / `initSoftClipOutput()` functions remain as dead code; removal deferred to a cleanup pass so this commit stays minimal.
+
+### 2. Genre drums — the session-9 known gap is closed
+
+All six previously-unused config params are now live in the drum voices (per-note, like the pitched voices):
+
+| Param | Voice | Mapping | FULL-ON default = old hardcoded value |
+|---|---|---|---|
+| `kickDecay` | kick body | gain ramp + osc stop (`kd+0.03`) | 0.10 -> identical ramp/stop |
+| `kickPunch` | kick click | click gain level | 0.35 -> identical |
+| `hatFreq` | shaker | HP cutoff = `hatFreq+200` | 8000 -> 8200 (old value) |
+| `hatFreq` | open hat | HP cutoff = `hatFreq-800` | 8000 -> 7200 (old value) |
+| `hatDecay` | shaker / open hat | `max(0.012, hatDecay+0.005)` / `max(0.03, hatDecay*5)` | 0.04 -> 0.045 / 0.2 (old values) |
+| `percTune` | clap/snare | BP frequency multiplier (1500/1900/185 * tune) | 1.0 -> identical |
+| `percDecay` | clap/snare | decay time scale `(percDecay/0.08)` | 0.08 -> scale 1.0 (identical) |
+
+Also fixed: `cfg()`'s `percDecay` fallback was `.4` (inconsistent with every preset); now `.08`.
+
+Per-function cfg use/declaration matrix re-verified for all 10 voice functions (9 now read cfg via `getCfg()`, crash stays cfg-free as it uses a pre-rendered buffer). FULL-ON reproduces the pre-change drum sound exactly by construction (arithmetic above); DARK-PSY gets deeper kick (120->45Hz was already wired, now +longer decay, darker hats), PROGRESSIVE tighter/brighter.
+
+### Verification / honesty
+
+- AST parse of all 3 edited files; 23 structural markers pass; cfg matrix PASS.
+- The limiter changes peak behavior by design (peaks clamped near -1dB) - loudness/safety improvement, not verifiable without listening.
+- Static verification only. Runtime smoke: play at high drive -> no clipping artifacts; switch genres -> drum character changes (kick depth/length, hat brightness, clap/snare tuning).
 
 
 ## Phase plan
