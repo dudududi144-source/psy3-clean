@@ -37,6 +37,21 @@ function buildKnobs(){
         startKnobDrag(def.name,e.clientY||0);
       });
       dial.addEventListener("dblclick",function(){ device.setKnob(def.name,KNOB_DEFAULTS[def.name]); });
+      if(def.name==="filter"){
+        // Phase 2: DJ-filter mode toggle (LP/HP) under the filter knob.
+        var fm=document.createElement("div");
+        fm.className="knob-name";
+        fm.style.cssText="cursor:pointer;user-select:none;letter-spacing:1px;";
+        fm.textContent="LP";
+        fm.title="Toggle DJ filter mode: LP (default) / HP";
+        fm.addEventListener("click",function(){
+          if(device&&typeof device.toggleFilterMode==="function"){
+            device.toggleFilterMode();
+            fm.textContent=device.filterMode;
+          }
+        });
+        wrap.appendChild(fm);
+      }
       // Phase 0b: right-click = MIDI Learn this knob's parameter
       // (dblclick keeps its existing reset-to-default role)
       dial.addEventListener("contextmenu",function(e){
