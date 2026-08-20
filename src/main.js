@@ -94,6 +94,16 @@ if (typeof Groovebox !== 'undefined' && Groovebox.prototype.scheduleStep) {
       }
     }
     
+    // Phase 3 GENERATIVE mode: reseed the arp phrase each bar (deterministic per
+    // seed+variation+bar). MANUAL: nothing; ADAPTIVE: grammar-driven kicks above.
+    if (this.brainMode === 'GENERATIVE' && step === 0) {
+      if (this.patterns && this.patterns.arp && typeof makeArpPhrase === 'function' && typeof rngFor === 'function') {
+        var gRng = rngFor(this.seed, "gen:" + this.variation + ":" + Math.floor(absStep / 16));
+        var phrase = makeArpPhrase(gRng);
+        for (var ga = 0; ga < 16; ga++) { this.patterns.arp[ga] = phrase[ga]; }
+      }
+    }
+    
     // Call original
     if (originalScheduleStep) {
       return originalScheduleStep.call(this, absStep, t);
