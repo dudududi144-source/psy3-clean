@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Phase 5 - Session 18: offline PWA (real precache + icons)
+## Status: Phase 3 complete - Session 19: brain wired (learning, fitness, modes) - ALL PHASES DONE
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -483,6 +483,39 @@ Two README/manifest promises were void until now:
 - sw.js parses (esprima); APP_SHELL asserted to contain all 11 module files; icon PNG magic asserted; manifest references verified against uploaded filenames.
 - The per-asset `cache.add().catch()` guard means one missing asset won't block SW install - deliberate resilience, logged to console.
 - Static + HTTP verification only. Runtime smoke: load once, then reload with network disabled -> app boots from cache; PWA install prompt appears (icons resolve).
+
+
+## Session 19 changes (this commit) - Phase 3 complete: the brain is alive
+
+Three first-audit findings closed:
+
+### 1. Learning was dead: `updateGrammars` never existed
+
+`scheduleStep` called `updateGrammars("kick",...)` / `("bass",...)` behind typeof guards since the PSY6 copy - but the function was never defined, so all three grammars stayed frozen on their priors forever. Now:
+
+- `updateGrammars(kind,step,value)` defined, bridging to `grammarTracker.trackKick/trackBass/trackMelody` (bass grammar learns real bass intervals, rhythm grammar learns kick placement).
+- **Melodic learning added** on both lead paths (theme + takeover): every played lead note feeds the melodic interval grammar.
+
+### 2. Fitness was candidate-independent
+
+Old `scoreCandidate` took ~80% of the score from global grammar stats (identical for all 5 candidates) and rewarded raw onset count - selection was effectively "pick the busiest". Replaced with a fully candidate-dependent fitness:
+
+1. Bass interval-path likelihood under the learned bass grammar (Markov chain probability).
+2. Melodic interval likelihood under the learned melodic grammar.
+3. Density shaped toward ~50% (psy grooves), penalizing walls of sound and near-empty bars.
+4. Four-on-the-floor anchors rewarded. 5. Small contour bonus (de-weighted from the old +10).
+
+### 3. Brain modes were unreachable
+
+- `brainMode` now initializes in the constructor (`MANUAL`).
+- **BRAIN transport button** cycles MANUAL -> GENERATIVE -> ADAPTIVE (label updates; `setBrainMode` already handled status/analytics).
+- **GENERATIVE behavior implemented** (it had none): per-bar deterministic arp-phrase reseed via `rngFor(seed, "gen:<variation>:<bar>")` - evolves audibly, reproducible per seed. ADAPTIVE keeps its grammar-driven kick generation (fixed to `patterns.kick` in session 7). MANUAL = pure user patterns.
+
+### Verification / honesty
+
+- AST parse of all edited files; assertions: single definition of updateGrammars, both melodic-learning call sites, original kick/bass call sites intact, old fitness removed, GENERATIVE branch present, ctor field + button wiring; session 1-18 regressions sampled (BarPlan, ADAPTIVE write, MIDI-out untouched).
+- Offline exports stay quiet-brained: clones get brainMode MANUAL from the constructor.
+- Static verification only. Runtime smoke: switch to GENERATIVE -> arp evolves per bar; play for a while in ADAPTIVE -> kick patterns drift toward learned rhythm; grammar confidence rises with play time.
 
 
 ## Phase plan
