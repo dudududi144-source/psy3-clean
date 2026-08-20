@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Phase 4 - Session 16: preset manager UI (audio I/O + persistence UI complete)
+## Status: Phase 4 complete - Session 17: projects (.psy.json)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -440,6 +440,29 @@ Conclusion: README "MIDI Out - LEAD notes + MIDI Clock" satisfied; no rebuild.
 - AST parse of edited JS; structural assertions (genre round-trip, UI wiring, panel markup) + read-only audit assertions on the MIDI-out stream (0xF8/0xFA/0xFC bytes, audioToPerf, suppressMidi guards).
 - Two pipeline incidents this session, both recovered transparently: (1) first run aborted on an over-strict self-assert (expected trailing comma on the genre field that the insert intentionally omits) - fixed the assert, not the code; (2) this doc entry initially failed to attach because the parallel stream had already moved the status line - re-anchored.
 - Static verification only. Runtime smoke: PRESETS panel opens; save a named preset; LOAD applies (knobs/BPM/genre); DEL removes; with a MIDI output connected, playing sends lead notes + clock.
+
+
+## Session 17 changes (this commit) - Phase 4 complete: projects (.psy.json)
+
+The last README phase-4 item had zero code references since the first audit. Now:
+
+### Project format
+
+`{format:"psy3-project", v:1, name, timestamp, seed, variation, bpm, swing, knobVals, mutes, genre, patterns, sectionPatterns (BarPlan), patternEdited (takeover flags)}`. The arrangement is **not stored** - `buildSong(seed)` rebuilds it deterministically, keeping files small and honest.
+
+### Implementation
+
+- `buildProjectObject(name)`: single source of truth for the snapshot (deep copies).
+- `saveProject(name)`: pretty-printed JSON Blob -> `downloadBlob` (session-13 helper) -> `<safe_name>.psy.json`; filename sanitized to `[\w-]`.
+- `loadProjectFromFile(file)`: FileReader + JSON parse + format validation (`format` and `patterns` required) with explicit error statuses for wrong/corrupt files.
+- `applyProject(proj)`: **commitUndo() before applying** (one Ctrl+Z returns to the pre-load state), then seed/variation/bpm/swing, genre via `setGenre`, knobVals (+applyKnob each), mutes, patterns, sectionPatterns, takeover flags, song rebuild, full UI refresh (grid/timeline/LCD) and guarded `refreshPartGains`.
+- UI: SAVE PROJECT / LOAD PROJECT buttons + hidden file input inside the existing preset panel; project name taken from the panel's name input (default `psy3-project`).
+
+### Verification / honesty
+
+- AST parse of edited JS; structural assertions (format marker, undo-before-load, validation path, filename construction, wiring, markup) + session 1-16 regressions (preset manager, genre round-trip, WAV export, live recording, banks v3, undo BarPlan state).
+- Known limitation: no in-app project library (filesystem is the library, by design); versioning is `v:1` with explicit format check, so future format changes can migrate.
+- Static verification only. Runtime smoke: SAVE PROJECT downloads a .psy.json; edit something; LOAD PROJECT restores it (undo returns to the edited state); a non-project JSON shows the error status.
 
 
 ## Phase plan
