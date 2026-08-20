@@ -58,7 +58,7 @@ is listed under "Known Gaps" — deliberately, without claiming otherwise.
 ### Phase D: Product Quality
 | Item | Real status |
 |---|---|
-| D1 Per-track control | Mutes work; TrackControl (vol/pan/sends) exists but is **never initialized** |
+| D1 Per-track control | Mutes work; TrackControl **removed (S21)** - was a double-routing landmine |
 | D2 Session persistence | **Done (S3)** |
 | D3 Testing | **Zero automated tests.** Static (AST) verification only so far. |
 | D4 Help overlay | Done (? key) |
@@ -72,7 +72,7 @@ is listed under "Known Gaps" — deliberately, without claiming otherwise.
 3. ChordEngine audible wiring; Arpeggiator wiring or removal.
 4. SMF export, stem export.
 5. TrackControl: wire it properly or delete it (double-routing landmine documented S3).
-6. Dead DSP objects (PolyBLEP/ZDF/Oversampled/ADSR): wire or delete.
+6. ~~Dead DSP objects~~ **resolved (S21)**: PolyBLEP/ZDF/Oversampled/ADSR deleted; only the wired limiter remains.
 7. Pad-key vs shortcut conflict (A/W/D); keymap separation.
 8. Pattern operations: UI exposure + per-section scope.
 9. Song editor UI. Cross-browser testing. Performance measurement.
