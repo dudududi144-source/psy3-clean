@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Phase 0 (Emergency Stabilization) — Session 2 complete
+## Status: Phase 0 (Emergency Stabilization) — Session 3 complete
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -80,6 +80,26 @@ Goal: make MIDI Learn functional end-to-end (README: "MIDI In - Notes + CC (auto
 - Static verification only (esprima parse + structural assertions). Runtime smoke test required:
   right-click FILTER knob -> move a hardware CC -> knob follows; Escape cancels. Learned mappings
   persist until reload (ccMap persistence is Phase 4).
+
+
+## Session 3 changes (this commit)
+
+Goal: close the remaining Phase 0 crash/consistency items; make documented persistence and undo actually work.
+
+| # | Fix | Verification |
+|---|-----|--------------|
+| 1 | **Double UI init removed**: the tail `safeInitUi` wiring duplicated the mid-file one; with an end-of-body script both fired, so `initUi()` ran twice (duplicate knobs/pads/seq rows, two click handlers on PLAY = one click toggled transport twice, two rAF loops). Tail block removed | `safeInitUi` appears exactly 3x in code (def + one listener + one immediate call) |
+| 2 | **Undo/Redo wired**: `commitUndo()` helper added; called on step edits, on manual VARIATE, and once at boot (baseline). `getDeviceState` now snapshots `patterns` (previously missing, so undo could never restore edits); `applyDeviceState` restores them and refreshes the grid. Before this session `UndoRedo.push` had zero callers - Ctrl+Z was a silent no-op | push has callers; snapshot includes patterns; AST parse |
+| 3 | **Crash guards**: `loadPreset` and `applyDeviceState` called `device.refreshPartGains(device.ctx.currentTime)` with no ctx check (TypeError before first play). All 4 callsites of that expression are now guarded | string check over comment-stripped code |
+| 4 | **selfTest honesty**: hardcoded `{ok:true,rms:0.1,peak:0.5}` replaced with real structural checks (7 sections, totalBars>0, arp pattern length, themes.A, voice factory); live RMS measured only when ctx+analyser exist; failures reported via `reason` (already consumed by UI) | fake literal absent from code; UI contract (ok/rms/peak/reason) preserved |
+| 5 | **Session restore wired**: `loadSettings()` existed but was never called; now invoked at device creation (try/catch) and rebuilds patterns/song from the restored seed for consistency. `saveSettings()` now also runs on preset save (Ctrl+S) | exactly one boot call site; rebuild lines present |
+| 6 | **Dead ritual blocks removed** (empty `if`s saying "will be called after device is ready"); replaced by documented decisions: `TrackControl.init` must NOT be called (double-routes partGains, ~+6dB, bypasses BASS/PAD ducking); `PooledEngine.init` already runs inside `device.init()`; pool-vs-per-note engine decision is Phase 2 | string check |
+
+### Honest notes
+
+- Undo granularity: one snapshot per step edit / manual variate. Pattern ops (clear/random/shift/...) and song ops do not push snapshots yet - Phase 1 command pattern covers this properly.
+- Settings snapshot does not include step edits; pattern persistence belongs to preset format v2 (Phase 4). Restoring a seed rebuilds the seed-derived arrangement.
+- Static verification only (esprima parse + 42 structural checks, all pass). Runtime smoke: edit ARP steps -> Ctrl+Z restores; reload page -> BPM/knobs restored; SELF TEST line shows OK.
 
 
 ## Phase plan
