@@ -1,10 +1,11 @@
-// PSY3 PRO Service Worker v5 (Phase 5)
-// Real offline support: the app shell is precached and served cache-first
-// with background refresh (stale-while-revalidate) for same-origin GETs.
-// Previous versions never cached anything ("skip caching entirely"), so the
-// README offline claim was void until now.
+// PSY3 PRO Service Worker v8 (session 25)
+// Update strategy fix: NAVIGATIONS are network-first, so an online visit
+// always shows the latest build immediately. The previous cache-first design
+// served returning users a stale UI one visit behind - the reason real users
+// could not see shipped changes. Assets stay stale-while-revalidate, and the
+// app still boots offline from the precached shell.
 
-var CACHE_NAME = 'psy3-pro-v7'; // session 24: hyperspace identity
+var CACHE_NAME = 'psy3-pro-v8';
 var APP_SHELL = [
   'index.html',
   'src/core.js', 'src/pools.js', 'src/midi.js', 'src/theory.js', 'src/song.js',
@@ -17,7 +18,6 @@ var APP_SHELL = [
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_NAME).then(function(cache) {
-      // One missing asset must not kill the whole install.
       return Promise.all(APP_SHELL.map(function(u) {
         return cache.add(u).catch(function(e) { console.log('SW precache failed:', u, e); });
       }));
@@ -45,6 +45,22 @@ self.addEventListener('fetch', function(event) {
   if (req.method !== 'GET') return;
   var url = new URL(req.url);
   if (url.origin !== location.origin) return;
+
+  // Navigations: network-first, cache fallback (offline boot).
+  if (req.mode === 'navigate') {
+    event.respondWith(
+      fetch(req).then(function(res) {
+        var copy = res.clone();
+        caches.open(CACHE_NAME).then(function(cache) { cache.put('index.html', copy); });
+        return res;
+      }).catch(function() {
+        return caches.match('index.html');
+      })
+    );
+    return;
+  }
+
+  // Assets: stale-while-revalidate.
   var key = cacheKeyFor(req.url);
   event.respondWith(
     caches.open(CACHE_NAME).then(function(cache) {
