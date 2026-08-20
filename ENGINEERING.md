@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Phase 0 (Emergency Stabilization) — Session 1 complete
+## Status: Phase 0 (Emergency Stabilization) — Session 2 complete
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -59,6 +59,28 @@ Surgical edits only; file re-verified with esprima AST after each edit
 Verified by **static analysis only** (esprima parse + structural assertions).
 No browser runtime test in this session. Required manual smoke test: SPACE stops
 transport; MIDI device enumerates and C2..G2 trigger pads; error banner shows on fault.
+
+## Session 2 changes (this commit)
+
+Goal: make MIDI Learn functional end-to-end (README: "MIDI In - Notes + CC (auto-learn)").
+
+| # | Fix | Verification |
+|---|-----|--------------|
+| 1 | `applyMIDIParam` rewritten: all knob params route through `device.setKnob()` - the exact UI code path. The old version referenced nodes that were never created (delayMix/reverbMix) and a different filter node than the knobs use (autoFilter vs djFilter), so delay/reverb learn silently no-op'd. `resonance` kept as alias for `res`; `volume` stays a direct (guarded) master-gain write | AST parse + zero delayMix/reverbMix refs remain in code |
+| 2 | MIDI Learn trigger: **right-click any knob** learns its parameter (dblclick keeps its existing reset-to-default role) | `MIDILearn.start()` now has a caller; contextmenu handler present |
+| 3 | User feedback: status banner on learn start / CC mapped / cancel; learned param captured before `stop()` clears it | string checks |
+| 4 | **Escape cancels MIDI learn** (KeyboardShortcuts) | clause present after enable check |
+| 5 | `MIDIInput.init` idempotent (`requested` guard); re-armed on first pointerdown for browsers gating MIDI permission behind a gesture | guard + `{ once: true }` listener present |
+
+### Behavioral notes (honest)
+
+- BPM via MIDI CC now follows the UI knob range (120-165), not the old never-wired 60-200 mapping.
+- Genre presets (DARK-PSY / PROGRESSIVE) remain unreachable **by decision** this session: wiring them
+  requires voices to read config per-note (audio-layer surgery) - scheduled to Phase 2.
+- Static verification only (esprima parse + structural assertions). Runtime smoke test required:
+  right-click FILTER knob -> move a hardware CC -> knob follows; Escape cancels. Learned mappings
+  persist until reload (ccMap persistence is Phase 4).
+
 
 ## Phase plan
 
