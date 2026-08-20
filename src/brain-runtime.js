@@ -598,11 +598,15 @@ Groovebox.prototype.play=function(){
     self.updateDelayTime();
     // Web Worker replaced with setInterval (CSP fix)
     self.timerId=setInterval(function(){self.scheduler();},25);
+    // Phase 4: MIDI transport start + clock grid origin
+    if(typeof MIDIOut!=="undefined"&&MIDIOut.port){ MIDIOut.transportStart(); }
+    self._nextClock=self.ctx.currentTime+0.06;
   });
 };
 Groovebox.prototype.stop=function(){
   this.isPlaying=false;
   if(this.timerId){ if(this.timerId.stop)this.timerId.stop();else clearInterval(this.timerId); this.timerId=null; }
+  if(typeof MIDIOut!=="undefined"&&MIDIOut.port){ MIDIOut.transportStop(); } // Phase 4: MIDI transport stop
 };
 Groovebox.prototype.scheduler=function(){
   try{
@@ -611,6 +615,11 @@ Groovebox.prototype.scheduler=function(){
       var t=this.nextNoteTime;
       if(step%2===1) t+=this.swing*this.stepDur()*0.5;
       this.scheduleStep(this.absStep,t);
+      // Phase 4: 24ppq MIDI clock - 6 ticks per 16th on the unswung grid
+      if(typeof MIDIOut!=="undefined"&&MIDIOut.port&&MIDIOut.clockEnabled){
+        var csd=this.stepDur();
+        for(var ck=0;ck<6;ck++){ MIDIOut.clock(audioToPerf(this.ctx,this.nextNoteTime+csd*ck/6)); }
+      }
       this.uiQueue.push({step:step,time:this.nextNoteTime});
       this.nextNoteTime+=this.stepDur();
       this.absStep++;
@@ -760,6 +769,10 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
         var liv=(lprev!=null)?Math.abs(lmidi-lprev):0;
         var lslide=(liv===2||liv===3)&&lprev!=null;
         v.leadNote(t,lmidi,{acc:laccSteps,slide:lslide,fromMidi:lprev,gate:(lpe.dur||1)*sd*0.92}); // Phase 2: edited motifs sustain too
+        if(typeof MIDIOut!=="undefined"&&MIDIOut.port&&!this.suppressMidi){ // Phase 4: LEAD notes out (takeover)
+          MIDIOut.noteOn(lmidi,laccSteps>=2?120:(laccSteps>=1?100:80),audioToPerf(this.ctx,t));
+          MIDIOut.noteOff(lmidi,audioToPerf(this.ctx,t+(lpe.dur||1)*sd*0.92));
+        }
         this.lastLeadMidi=lmidi;
       }
     } else {
@@ -779,6 +792,10 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
           var iv=(prevMidi!=null)?Math.abs(ev.midi-prevMidi):0;
           var slide=(iv===2||iv===3)&&prevMidi!=null;
           v.leadNote(t,ev.midi,{acc:accSteps,slide:slide,fromMidi:prevMidi,gate:ev.dur*sd*0.92}); // Phase 2: sustain the written length
+          if(typeof MIDIOut!=="undefined"&&MIDIOut.port&&!this.suppressMidi){ // Phase 4: LEAD notes out
+            MIDIOut.noteOn(ev.midi,accSteps>=2?120:(accSteps>=1?100:80),audioToPerf(this.ctx,t));
+            MIDIOut.noteOff(ev.midi,audioToPerf(this.ctx,t+ev.dur*sd*0.92));
+          }
           this.lastLeadMidi=ev.midi;
         }
         this._leadStepAcc+=(ev?ev.dur:1);
