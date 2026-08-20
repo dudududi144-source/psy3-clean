@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Phase 4 - Session 15: MIDI Out + MIDI Clock (audio I/O complete)
+## Status: Phase 4 - Session 16: preset manager UI (audio I/O + persistence UI complete)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -410,6 +410,36 @@ Last audio-I/O README promise closed: "MIDI Out - LEAD notes + MIDI Clock" (unti
 - AST parse of all 4 edited files; structural assertions (single clock loop, two noteOn/noteOff pairs, port wiring, suppress flags) + sessions 1-14 regressions (recTap, renderWav, extCtx init, BarPlan, duck, takeover, genre).
 - Clock jitter: messages are timestamped by the browser MIDI layer from the performance-clock mapping; sub-ms drift vs the audio clock is possible (typical for Web MIDI bridges; documented).
 - Static verification only. Runtime smoke: connect a hardware synth, play -> lead notes + clock sync visible; stop -> transport stops; WAV export -> hardware stays silent.
+
+
+## Session 16 changes (this commit) - preset manager UI + audit of the MIDI-out stream
+
+(The parallel workstream labeled its MIDI-out delivery "Session 15"; this entry documents my verification of it plus the new persistence UI, under Session 16.)
+
+### 1. Audited the parallel-stream MIDI Out + Clock (read-only; verified correct)
+
+- `MIDIOut` (midi.js): first-output selection via `pickPort`, hot-plug via `onstatechange`, `send/noteOn/noteOff/clock/transportStart(0xFA)/transportStop(0xFC)`, all try-guarded.
+- `audioToPerf(ctx,t)`: correct audio-time -> `performance.now()` mapping with non-negative clamp; falls back to untimed send if `performance` is unavailable.
+- Scheduler emits 24ppq clock (6 ticks per 16th on the unswung grid - correct for MIDI clock), timestamped.
+- LEAD notes out on both theme and takeover paths: velocity from accent (120/100/80), note-off at gate end.
+- **Offline safety**: `suppressMidi` defaults false in the constructor, set true on WAV-export clones (editor.js) - no MIDI leakage during offline renders; the clock loop lives in `scheduler()`, which never runs offline.
+- Vestige noted, untouched (owned by that stream): `self._nextClock` is set in `play()` but the clock loop derives ticks from `nextNoteTime` directly. Harmless.
+
+Conclusion: README "MIDI Out - LEAD notes + MIDI Clock" satisfied; no rebuild.
+
+### 2. Preset Manager UI (dead functions finally surfaced)
+
+`savePreset/loadPreset/deletePreset/listPresets` had **zero callers since the PSY6 copy** (first-audit finding). Now:
+
+- PRESETS transport button toggles a panel: name input + SAVE, list rows with LOAD / DEL.
+- **Genre travels with presets**: `savePreset` stores `genre`; `loadPreset` applies it via `setGenre` (guarded). Older presets without the field load unchanged.
+- Reuses the previously-verified storage path (`psy3_presets`); session-3 `loadPreset` ctx guard intact.
+
+### Verification / honesty
+
+- AST parse of edited JS; structural assertions (genre round-trip, UI wiring, panel markup) + read-only audit assertions on the MIDI-out stream (0xF8/0xFA/0xFC bytes, audioToPerf, suppressMidi guards).
+- Two pipeline incidents this session, both recovered transparently: (1) first run aborted on an over-strict self-assert (expected trailing comma on the genre field that the insert intentionally omits) - fixed the assert, not the code; (2) this doc entry initially failed to attach because the parallel stream had already moved the status line - re-anchored.
+- Static verification only. Runtime smoke: PRESETS panel opens; save a named preset; LOAD applies (knobs/BPM/genre); DEL removes; with a MIDI output connected, playing sends lead notes + clock.
 
 
 ## Phase plan
