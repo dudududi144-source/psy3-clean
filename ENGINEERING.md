@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Phase 2 complete - Session 12: BarPlan (per-section patterns)
+## Status: Phase 4 started - Session 13: WAV export (offline rendering)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -353,6 +353,25 @@ The last Phase-2 editing feature: each song section can now own its pattern grid
 - BASS/LEAD takeover flags stay global: once you edit bass anywhere, bass becomes pattern-driven in all sections (unedited sections read the global seeded gallop). Per-section bass STYLE (offbeat/pedal) is superseded by design once patterns take over.
 - Pattern ops (clear/random/shift/...) still act on the global patterns object, not per-section - documented limitation; section-scoped ops are a follow-up.
 - Static verification only (AST parse + structural assertions, incl. all session 1-11 regressions). Runtime smoke: edit ARP in DROP, seek to BREAK -> grid differs; playback plays each section's own steps; save/load bank A preserves per-section edits; undo restores them.
+
+
+## Session 13 changes (this commit) - Phase 4 begins: WAV export (offline rendering)
+
+The README promised "WAV Export - Offline rendering" since day one; until now there was no `OfflineAudioContext`, encoder, or download path anywhere. Now:
+
+### Implementation
+
+- `Groovebox.init(extCtx)` accepts an external context. Live behavior unchanged (no arg -> `new AudioContext()`); the brickwall limiter stays live-only (its singleton is ctx-bound).
+- `renderWav(bars)` (editor.js): builds a **disposable Groovebox clone** (deep-copied patterns, sectionPatterns/BarPlan, takeover flags, knobVals, mutes, genre, bpm, swing), initializes it on a 44.1kHz stereo `OfflineAudioContext`, schedules `bars*16` steps starting at the playhead bar, renders, encodes, downloads. The live device and its audio graph are never touched. +2.5s tail for delay/reverb release. Busy-guard prevents overlapping renders.
+- `encodeWav`: canonical RIFF/WAVE 16-bit PCM interleaved encoder. `downloadBlob` handles the anchor click + object-URL cleanup.
+- Triggers: **R key** (the README documented shortcut) and a new **EXPORT** transport button; both export 4 bars (API clamps 1-32).
+
+### Verification / honesty
+
+- AST parse of all edited files; structural assertions (RIFF header, clone deep-copies, limiter live-only guard, BarPlan state copied, sessions 1-12 regressions).
+- Known side effect: export scheduling runs the prototype hook (`grammarTracker.trackKick`), so the (currently inert) rhythm grammar observes exported bars. Acceptable; documented.
+- Export quality note: offline path uses the glue compressor without the brickwall stage (limiter is live-only) - peaks behave slightly differently than live monitoring.
+- Static verification only. Runtime smoke: press R mid-song -> file downloads; filename reflects BPM/bar/count; content plays back as the section at the playhead.
 
 
 ## Phase plan
