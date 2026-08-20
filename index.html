@@ -752,6 +752,26 @@ body {
   <div id="selfTest" class="self-test">SELF TEST: PENDING</div>
 </div>
 
+<script>
+// Session 25 build guard: when the build token changes, purge stale caches and
+// service workers once, so returning users never stay stuck on an old version.
+(function(){
+  var BUILD = "s25-v10";
+  try {
+    var seen = localStorage.getItem("psy3_build");
+    if (seen !== BUILD) {
+      localStorage.setItem("psy3_build", BUILD);
+      if ("caches" in window) {
+        caches.keys().then(function(ks){ ks.forEach(function(k){ caches.delete(k); }); });
+      }
+      if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+        navigator.serviceWorker.getRegistrations().then(function(rs){ rs.forEach(function(r){ r.unregister(); }); });
+      }
+      if (seen) { location.reload(); }
+    }
+  } catch (e) {}
+})();
+</script>
 <script src="src/core.js?v=10"></script>
 <script src="src/pools.js?v=10"></script>
 <script src="src/midi.js?v=10"></script>
