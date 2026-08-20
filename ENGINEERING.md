@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 26 - arrangement editor (the song is now changeable)
+## Status: Session 27 - lost timeline CSS found & restored + perf + forced refresh
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -619,6 +619,29 @@ User directive: the device felt 'too templated and fixed'; they wanted changeabl
 - esprima parse of both edited JS files; anchors asserted (single occurrences); undo/project song paths asserted present.
 - Static verification only. Smoke test: click a section, +8b/-8b changes the strip width and the LCD bar counts; DUP/DEL/ADD/move update playback order; RESET restores the original; Ctrl+Z steps back.
 - Known scope: per-section pattern content still shares the global grid via BarPlan takeover; fully independent per-section pattern banks are a later item.
+
+
+## Session 27 changes (this commit) - incident found: the session-24 timeline was never deployed
+
+### The verified root cause of 'it doesn't work / looks the same'
+
+User kept seeing the old UI despite pushes. Forensics (blob-level):
+
+- Current index.html blob == session-26 commit blob, and it **does not contain** the session-24 timeline CSS: no `.timeline-wrap` rule, no `.tl-playhead`, no `.tl-label/.tl-bars/.tl-energy`, no `.tl-sec.cur`; the ORIGINAL pre-session-24 timeline CSS (`min-width:48px;height:28px;font-size:7px`) was still in place.
+- Meanwhile session-24 identity CSS (flashIn/logoShift/section-flash) and session-26 markup were present - the timeline CSS was lost in a **multi-cell edit race**: session 24 edited index.html across cells; the pushed copy was based on a branch of edits that never included the timeline block replacement. The JS kept generating the new markup (flex-grow, labels, energy strips, playhead) into CSS that styled none of it. Result: a 'dead' centerpiece.
+
+### Fixes shipped
+
+1. **Timeline CSS restored + hardened**: full session-24 block re-added; playhead alignment fixed properly via a `.tl-inner` positioning wrapper (playhead % now matches the sections exactly, no padding drift).
+2. **uiLoop performance**: per-frame `$(...)` lookups and canvas sizing replaced with cached refs + resize-driven sizing (was ~4 DOM lookups + layout read at 60fps).
+3. **Build token s25-v10 -> s27-v12 + scripts v12 + SW v10**: forces the one-time purge/reload so every returning user actually receives this fix.
+
+### Process correction (recorded so it does not repeat)
+
+- Same-file edits must be made on ONE in-memory copy and pushed atomically; never across cells that re-fetch remotely mid-session.
+- Every push is now verified by CONTENT MARKERS on the served blob (not just HTTP 200). This incident was caught exactly because the previous pushes were only checked partially.
+
+Static verification: esprima parse of ui/sw; marker assertions pre-push; live re-check after push.
 
 
 ## Phase plan
