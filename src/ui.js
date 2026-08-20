@@ -362,6 +362,7 @@ function initUi(){
   var pb=$("playBtn"); if(pb) pb.addEventListener("click",togglePlay);
   var vb=$("variateBtn"); if(vb) vb.addEventListener("click",function(){ device.variate(false); trackEvent("variate",{}); });
   var nb=$("nextSecBtn"); if(nb) nb.addEventListener("click",function(){ device.jumpSection(); trackEvent("jump_section",{}); });
+  var gb=$("genreBtn"); if(gb) gb.addEventListener("click",function(){ if(device&&typeof device.cycleGenre==="function") device.cycleGenre(); }); // Phase 2: genre presets
   refreshSeqUi();
   device.updateLcd();
   uiLoop();
