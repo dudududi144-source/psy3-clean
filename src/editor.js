@@ -180,7 +180,8 @@ function saveSettings() {
     seed: device.seed,
     variation: device.variation,
     knobVals: device.knobVals,
-    mutes: device.mutes
+    mutes: device.mutes,
+    genre: device.genre || 'FULL-ON' // Phase 2
   };
   localStorage.setItem('psy3_settings', JSON.stringify(settings));
 }
@@ -205,6 +206,8 @@ function loadSettings() {
     device.patternEdited = { bass:false, lead:false }; // Phase 2: reseed restores arrangement control
     device.song = buildSong(device.seed);
     device._barCacheKey = -1;
+    // Phase 2: restore genre preset (setGenre guards LCD/status if UI not up yet)
+    if (settings.genre && typeof device.setGenre === 'function') device.setGenre(settings.genre);
     console.log('Settings loaded');
   } catch (e) {
     console.log('Settings load failed: ' + e);
@@ -221,6 +224,7 @@ function getDeviceState() {
     variation: device.variation,
     knobVals: JSON.parse(JSON.stringify(device.knobVals)),
     mutes: JSON.parse(JSON.stringify(device.mutes)),
+    genre: device.genre||"FULL-ON", // Phase 2: sound preset in undo state
     // Phase 0c: patterns were missing from the snapshot, so undo could
     // never restore step edits. Deep copy (JSON-safe data).
     patterns: JSON.parse(JSON.stringify(device.patterns)),
@@ -240,6 +244,8 @@ function applyDeviceState(state) {
   for (var key in device.knobVals) {
     device.applyKnob(key);
   }
+  // Phase 2: restore genre without side effects (no status/analytics during undo)
+  if (state.genre) { device.genre = state.genre; STYLE.name = state.genre; }
   // Phase 0c: restore patterns snapshot + refresh grid; guard ctx
   // (undo before first play previously threw TypeError on null ctx).
   if (state.patterns) {
