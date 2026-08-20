@@ -123,7 +123,8 @@ function savePreset(name) {
     seed: device.seed,
     variation: device.variation,
     knobVals: JSON.parse(JSON.stringify(device.knobVals)),
-    mutes: JSON.parse(JSON.stringify(device.mutes))
+    mutes: JSON.parse(JSON.stringify(device.mutes)),
+    genre: device.genre || 'FULL-ON' // Phase 4: sound preset travels with the preset
   };
   var presets = JSON.parse(localStorage.getItem('psy3_presets') || '[]');
   var existingIdx = presets.findIndex(function(p) { return p.name === name; });
@@ -155,6 +156,7 @@ function loadPreset(name) {
   for (var key in device.knobVals) {
     device.applyKnob(key);
   }
+  if (preset.genre && typeof device.setGenre === 'function') device.setGenre(preset.genre); // Phase 4
   if (device.ctx) device.refreshPartGains(device.ctx.currentTime); // Phase 0c: ctx guard
   setStatus('Preset loaded: ' + preset.name, 'ok');
   trackEvent('preset_loaded', { name: preset.name });
@@ -987,4 +989,47 @@ function stopRecording(){
 }
 function toggleRecording(){
   if(typeof device!=="undefined"&&device&&device.recorder){ stopRecording(); } else { startRecording(); }
+}
+
+
+/* ============================================================
+   PRESET MANAGER UI (Phase 4)
+   savePreset/loadPreset/deletePreset/listPresets existed with ZERO
+   callers since the PSY6 copy (flagged in the first audit). Now
+   surfaced: PRESETS transport button -> panel with save/load/delete.
+   ============================================================ */
+function renderPresetList(){
+  var host=$("presetList"); if(!host) return;
+  host.innerHTML="";
+  var names=(typeof listPresets==="function")?listPresets():[];
+  if(!names.length){
+    var d=document.createElement("div");
+    d.textContent="no presets yet";
+    d.style.cssText="opacity:.5;font-size:10px;padding:6px;";
+    host.appendChild(d);
+    return;
+  }
+  for(var i=0;i<names.length;i++){
+    (function(nm){
+      var row=document.createElement("div");
+      row.style.cssText="display:flex;gap:6px;align-items:center;padding:3px 0;";
+      var lab=document.createElement("div");
+      lab.textContent=nm;
+      lab.style.cssText="flex:1;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
+      var lb=document.createElement("button"); lb.textContent="LOAD";
+      lb.style.cssText="font-size:9px;padding:2px 8px;cursor:pointer;";
+      lb.addEventListener("click",function(){ if(typeof loadPreset==="function") loadPreset(nm); });
+      var db=document.createElement("button"); db.textContent="DEL";
+      db.style.cssText="font-size:9px;padding:2px 8px;cursor:pointer;";
+      db.addEventListener("click",function(){ if(typeof deletePreset==="function"){ deletePreset(nm); renderPresetList(); } });
+      row.appendChild(lab); row.appendChild(lb); row.appendChild(db);
+      host.appendChild(row);
+    })(names[i]);
+  }
+}
+function togglePresetPanel(){
+  var p=$("presetPanel"); if(!p) return;
+  var isOpen=(p.style.display==="block");
+  p.style.display=isOpen?"none":"block";
+  if(!isOpen&&typeof renderPresetList==="function") renderPresetList();
 }
