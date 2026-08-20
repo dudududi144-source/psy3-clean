@@ -227,7 +227,8 @@ function getDeviceState() {
     knobVals: JSON.parse(JSON.stringify(device.knobVals)),
     mutes: JSON.parse(JSON.stringify(device.mutes)),
     genre: device.genre||"FULL-ON", // Phase 2: sound preset in undo state
-    sectionPatterns: JSON.parse(JSON.stringify(device.sectionPatterns||{})), // Phase 2 BarPlan
+    sectionPatterns: JSON.parse(JSON.stringify(device.sectionPatterns||{})),
+    song: JSON.parse(JSON.stringify(device.song)), // Session 26: arrangement belongs in the undo state // Phase 2 BarPlan
     // Phase 0c: patterns were missing from the snapshot, so undo could
     // never restore step edits. Deep copy (JSON-safe data).
     patterns: JSON.parse(JSON.stringify(device.patterns)),
@@ -250,6 +251,11 @@ function applyDeviceState(state) {
   // Phase 2: restore genre without side effects (no status/analytics during undo)
   if (state.genre) { device.genre = state.genre; STYLE.name = state.genre; }
   device.sectionPatterns = JSON.parse(JSON.stringify(state.sectionPatterns||{})); // Phase 2 BarPlan
+  if (state.song) {
+    device.song = JSON.parse(JSON.stringify(state.song)); // Session 26: restore arrangement
+    device._barCacheKey = -1;
+    if (typeof renderTimelineFor === "function") renderTimelineFor(device);
+  }
   // Phase 0c: restore patterns snapshot + refresh grid; guard ctx
   // (undo before first play previously threw TypeError on null ctx).
   if (state.patterns) {
@@ -415,71 +421,120 @@ function patternInvert(part) {
 
 
 /* ============================================================
-   SONG EDITOR (Phase 3.3)
+   ARRANGEMENT EDITOR (session 26)
+   The arrangement stops being a fixed template. Sections can be
+   added, removed, moved, duplicated and resized. Every section
+   uses one of the seven canonical names so it keeps a valid
+   mode/theme/bass-style/parts mapping, and every mutation
+   reindexes sectionStarts/totalBars (the old helpers never did,
+   which would have broken sectionAt() and playback).
    ============================================================ */
 
-function songAddSection(sectionName) {
-  if (!device || !device.song) return;
-  var newSection = {
-    name: sectionName || 'NEW',
-    bars: 4,
-    type: 'drop'
+var SECTION_NAMES=["INTRO","BUILD","DROP","BREAK","RISER","DROP2","OUTRO"];
+
+function songSectionDefaults(name,bars){
+  var table={
+    INTRO:  {themeKey:"transition",mode:"intro",bassStyle:"pedal"},
+    BUILD:  {themeKey:"transition",mode:"drop",bassStyle:"gallop"},
+    DROP:   {themeKey:"A",mode:"drop",bassStyle:"gallop"},
+    BREAK:  {themeKey:"B",mode:"break",bassStyle:"pedal"},
+    RISER:  {themeKey:"transition",mode:"riser",bassStyle:"offbeat"},
+    DROP2:  {themeKey:"A2",mode:"drop2",bassStyle:"gallop"},
+    OUTRO:  {themeKey:"transition",mode:"intro",bassStyle:"pedal"}
   };
-  device.song.sections.push(newSection);
-  if (typeof renderTimelineFor === 'function') {
-    renderTimelineFor(device);
-  }
-  setStatus('Section added: ' + newSection.name, 'ok');
+  var t=table[name]||table.DROP;
+  return {name:name,bars:bars||8,themeKey:t.themeKey,mode:t.mode,bassStyle:t.bassStyle,rootOffset:0};
 }
 
-function songRemoveSection(index) {
-  if (!device || !device.song) return;
-  if (index >= 0 && index < device.song.sections.length) {
-    var removed = device.song.sections.splice(index, 1);
-    if (typeof renderTimelineFor === 'function') {
-      renderTimelineFor(device);
+function songReindex(){
+  if(!device||!device.song) return;
+  var s=device.song, cursor=0;
+  s.sectionStarts=[];
+  for(var i=0;i<s.sections.length;i++){ s.sectionStarts.push(cursor); cursor+=s.sections[i].bars; }
+  s.totalBars=cursor;
+  device._barCacheKey=-1;
+}
+
+function songAddSection(sectionName,afterIdx){
+  if(!device||!device.song) return;
+  var nm=SECTION_NAMES.indexOf(sectionName)>=0?sectionName:"DROP";
+  var sec=songSectionDefaults(nm,8);
+  var at=(typeof afterIdx==="number"&&afterIdx>=0&&afterIdx<device.song.sections.length)?afterIdx+1:device.song.sections.length;
+  device.song.sections.splice(at,0,sec);
+  songReindex();
+  if(typeof renderTimelineFor==="function") renderTimelineFor(device);
+  if(typeof setStatus==="function") setStatus("Section added: "+nm,"ok");
+}
+
+function songRemoveSection(index){
+  if(!device||!device.song) return;
+  var secs=device.song.sections;
+  if(secs.length<=1){ if(typeof setStatus==="function") setStatus("Cannot remove the last section","err"); return; }
+  if(index>=0&&index<secs.length){
+    var removed=secs.splice(index,1)[0];
+    songReindex();
+    if(typeof renderTimelineFor==="function") renderTimelineFor(device);
+    if(typeof setStatus==="function") setStatus("Section removed: "+removed.name,"ok");
+  }
+}
+
+function songMoveSection(fromIndex,toIndex){
+  if(!device||!device.song) return;
+  var secs=device.song.sections;
+  if(fromIndex>=0&&fromIndex<secs.length&&toIndex>=0&&toIndex<secs.length&&fromIndex!==toIndex){
+    var sec=secs.splice(fromIndex,1)[0];
+    secs.splice(toIndex,0,sec);
+    songReindex();
+    if(typeof renderTimelineFor==="function") renderTimelineFor(device);
+    if(typeof setStatus==="function") setStatus("Section moved","ok");
+  }
+}
+
+function songDuplicateSection(index){
+  if(!device||!device.song) return;
+  var secs=device.song.sections;
+  if(index>=0&&index<secs.length){
+    var copy=JSON.parse(JSON.stringify(secs[index])); // same canonical name -> valid mappings
+    secs.splice(index+1,0,copy);
+    songReindex();
+    if(typeof renderTimelineFor==="function") renderTimelineFor(device);
+    if(typeof setStatus==="function") setStatus("Section duplicated: "+copy.name,"ok");
+  }
+}
+
+function songResizeSection(index,delta){
+  if(!device||!device.song) return;
+  var secs=device.song.sections;
+  if(index>=0&&index<secs.length){
+    var b=Math.max(4,Math.min(64,secs[index].bars+delta));
+    if(b!==secs[index].bars){
+      secs[index].bars=b;
+      songReindex();
+      if(typeof renderTimelineFor==="function") renderTimelineFor(device);
+      if(typeof setStatus==="function") setStatus(secs[index].name+" -> "+b+" bars","ok");
     }
-    setStatus('Section removed: ' + removed[0].name, 'ok');
   }
 }
 
-function songMoveSection(fromIndex, toIndex) {
-  if (!device || !device.song) return;
-  var sections = device.song.sections;
-  if (fromIndex >= 0 && fromIndex < sections.length && toIndex >= 0 && toIndex < sections.length) {
-    var section = sections.splice(fromIndex, 1)[0];
-    sections.splice(toIndex, 0, section);
-    if (typeof renderTimelineFor === 'function') {
-      renderTimelineFor(device);
-    }
-    setStatus('Section moved', 'ok');
+function songReset(){
+  if(!device) return;
+  if(typeof buildSong==="function"){
+    device.song=buildSong(device.seed);
+    device._barCacheKey=-1;
+    if(typeof renderTimelineFor==="function") renderTimelineFor(device);
+    if(typeof setStatus==="function") setStatus("Arrangement reset from seed","ok");
   }
 }
 
-function songDuplicateSection(index) {
-  if (!device || !device.song) return;
-  if (index >= 0 && index < device.song.sections.length) {
-    var original = device.song.sections[index];
-    var copy = JSON.parse(JSON.stringify(original));
-    copy.name = original.name + ' COPY';
-    device.song.sections.splice(index + 1, 0, copy);
-    if (typeof renderTimelineFor === 'function') {
-      renderTimelineFor(device);
-    }
-    setStatus('Section duplicated', 'ok');
-  }
-}
-
-function songGetInfo() {
-  if (!device || !device.song) return null;
+function songGetInfo(){
+  if(!device||!device.song) return null;
   return {
     sections: device.song.sections.length,
-    totalBars: device.song.sections.reduce(function(sum, s) { return sum + s.bars; }, 0),
+    totalBars: device.song.totalBars,
     bpm: device.bpm,
     seed: device.seed
   };
 }
-
 
 /* ============================================================
    SWIPE GESTURES (Phase 4.4)
@@ -1061,7 +1116,8 @@ function buildProjectObject(name){
     genre:device.genre||"FULL-ON",
     patterns:JSON.parse(JSON.stringify(device.patterns)),
     sectionPatterns:JSON.parse(JSON.stringify(device.sectionPatterns||{})),
-    patternEdited:JSON.parse(JSON.stringify(device.patternEdited||{bass:false,lead:false}))
+    patternEdited:JSON.parse(JSON.stringify(device.patternEdited||{bass:false,lead:false})),
+    song:JSON.parse(JSON.stringify(device.song))
   };
 }
 function saveProject(name){
@@ -1083,6 +1139,7 @@ function applyProject(proj){
   device.mutes=JSON.parse(JSON.stringify(proj.mutes));
   device.patterns=JSON.parse(JSON.stringify(proj.patterns));
   device.sectionPatterns=JSON.parse(JSON.stringify(proj.sectionPatterns||{}));
+  if(proj.song){ device.song=JSON.parse(JSON.stringify(proj.song)); device._barCacheKey=-1; if(typeof renderTimelineFor==="function") renderTimelineFor(device); } // Session 26
   device.patternEdited=JSON.parse(JSON.stringify(proj.patternEdited||{bass:false,lead:false}));
   for(var key in device.knobVals){ device.applyKnob(key); }
   if(typeof buildSong==="function"){ device.song=buildSong(device.seed); device._barCacheKey=-1; }
