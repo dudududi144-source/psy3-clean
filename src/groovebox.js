@@ -77,6 +77,20 @@ Groovebox.prototype.cycleGenre=function(){
   var cur=names.indexOf(this.genre||"FULL-ON");
   this.setGenre(names[(cur+1)%names.length]);
 };
+Groovebox.prototype.patternsFor=function(sectionName){
+  // Phase 2 BarPlan: sections that were edited own their pattern set;
+  // unedited sections fall back to the global (seeded) patterns.
+  return (this.sectionPatterns&&this.sectionPatterns[sectionName])||this.patterns;
+};
+Groovebox.prototype.activePatterns=function(){
+  // Grid-edit target: the pattern set of the section at the playhead.
+  // First edit on a section clones the global baseline (lazy ownership).
+  var info=sectionAt(this.song,Math.floor(this.absStep/16));
+  var name=info.section.name;
+  if(!this.sectionPatterns) this.sectionPatterns={};
+  if(!this.sectionPatterns[name]) this.sectionPatterns[name]=JSON.parse(JSON.stringify(this.patterns));
+  return this.sectionPatterns[name];
+};
 Groovebox.prototype.cfg=function(){
   // Phase 2: genre presets reachable via device.setGenre()/cycleGenre().
   var gs=(this.genre&&GENRE_SOUND_CONFIG[this.genre])||window._genreSound||GENRE_SOUND_CONFIG["FULL-ON"];
