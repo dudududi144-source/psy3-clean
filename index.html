@@ -602,6 +602,27 @@ body {
   .section-flash { font-size: 26px; letter-spacing: 6px; }
 }
 
+/* Session 28: per-part loop-length badge (polyrhythm) */
+.loop-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  min-width: 30px;
+  padding: 4px 5px;
+  margin-right: 2px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-dark);
+  background: var(--bg-inset);
+  color: var(--accent-purple);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.12s ease;
+}
+
+.loop-badge:hover {
+  background: var(--bg-raised);
+  box-shadow: 0 0 8px rgba(167,139,250,0.35);
+}
+
 /* ============================================================
    ARRANGEMENT EDITOR (session 26)
    ============================================================ */
@@ -844,7 +865,7 @@ body {
 // Session 25 build guard: when the build token changes, purge stale caches and
 // service workers once, so returning users never stay stuck on an old version.
 (function(){
-  var BUILD = "s27-v12"; // session 27: force one-time purge so returning users see updates
+  var BUILD = "s28-v13"; // session 28: polyrhythm loop lengths // session 27: force one-time purge so returning users see updates
   try {
     var seen = localStorage.getItem("psy3_build");
     if (seen !== BUILD) {
@@ -860,17 +881,17 @@ body {
   } catch (e) {}
 })();
 </script>
-<script src="src/core.js?v=12"></script>
-<script src="src/pools.js?v=12"></script>
-<script src="src/midi.js?v=12"></script>
-<script src="src/theory.js?v=12"></script>
-<script src="src/song.js?v=12"></script>
-<script src="src/groovebox.js?v=12"></script>
-<script src="src/dsp.js?v=12"></script>
-<script src="src/brain-runtime.js?v=12"></script>
-<script src="src/ui.js?v=12"></script>
-<script src="src/editor.js?v=12"></script>
-<script src="src/main.js?v=12"></script>
+<script src="src/core.js?v=13"></script>
+<script src="src/pools.js?v=13"></script>
+<script src="src/midi.js?v=13"></script>
+<script src="src/theory.js?v=13"></script>
+<script src="src/song.js?v=13"></script>
+<script src="src/groovebox.js?v=13"></script>
+<script src="src/dsp.js?v=13"></script>
+<script src="src/brain-runtime.js?v=13"></script>
+<script src="src/ui.js?v=13"></script>
+<script src="src/editor.js?v=13"></script>
+<script src="src/main.js?v=13"></script>
 <script>
 // Register service worker
 if ('serviceWorker' in navigator) {
