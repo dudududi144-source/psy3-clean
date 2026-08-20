@@ -278,113 +278,16 @@ var CandidateGenerator = {
 
 
 
-/* ============================================================
-   PER-TRACK CONTROL (from PSY6-ULTIMATE)
-   Mute/Solo, Volume, FX Mode, Pan, Delay/Reverb sends
-   ============================================================ */
+// Session 21 cleanup: TrackControl removed. It was never initialized, and its
+// init() would double-route every partGain (~+6dB and bypassing the BASS/PAD
+// duck bus). Mutes live in device.mutes + applySongSection; per-track
+// volume/pan/sends must be rebuilt on the live routing if ever wanted.
 
-var TrackControl = {
-  tracks: ['KICK', 'BASS', 'PERC', 'LEAD', 'ARP', 'PAD'],
-  
-  init: function() {
-    if (!device || !device.partGains) return;
-    
-    for (var i = 0; i < this.tracks.length; i++) {
-      var track = this.tracks[i];
-      
-      // Create pan node for each track
-      if (device.ctx && device.ctx.createStereoPanner) {
-        var panner = device.ctx.createStereoPanner();
-        panner.pan.value = 0; // Center
-        if (device.partGains[track]) {
-          device.partGains[track].connect(panner);
-          panner.connect(device.master);
-        }
-        device.trackPanners = device.trackPanners || {};
-        device.trackPanners[track] = panner;
-      }
-      
-      // Create delay send for each track
-      if (device.ctx) {
-        var delaySend = device.ctx.createGain();
-        delaySend.gain.value = 0;
-        if (device.partGains[track] && device.delayIn) {
-          device.partGains[track].connect(delaySend);
-          delaySend.connect(device.delayIn);
-        }
-        device.trackDelaySends = device.trackDelaySends || {};
-        device.trackDelaySends[track] = delaySend;
-      }
-      
-      // Create reverb send for each track
-      if (device.ctx) {
-        var reverbSend = device.ctx.createGain();
-        reverbSend.gain.value = 0;
-        if (device.partGains[track] && device.reverbIn) {
-          device.partGains[track].connect(reverbSend);
-          reverbSend.connect(device.reverbIn);
-        }
-        device.trackReverbSends = device.trackReverbSends || {};
-        device.trackReverbSends[track] = reverbSend;
-      }
-    }
-    
-    console.log('TrackControl initialized for ' + this.tracks.length + ' tracks');
-  },
-  
-  // Mute a track
-  mute: function(track) {
-    if (device && device.mutes) {
-      device.mutes[track] = device.mutes[track] ? 0 : 1;
-      if (device.ctx) device.refreshPartGains(device.ctx.currentTime);
-      var statusEl = document.getElementById('status');
-      if (statusEl) {
-        statusEl.textContent = track + (device.mutes[track] ? ' MUTED' : ' UNMUTED');
-        statusEl.className = device.mutes[track] ? 'err' : 'ok';
-      }
-    }
-  },
-  
-  // Set track volume
-  setVolume: function(track, volume) {
-    if (device && device.partGains && device.partGains[track]) {
-      device.partGains[track].gain.setTargetAtTime(volume, device.ctx.currentTime, 0.01);
-    }
-  },
-  
-  // Set track pan
-  setPan: function(track, pan) {
-    if (device && device.trackPanners && device.trackPanners[track]) {
-      device.trackPanners[track].pan.setTargetAtTime(pan, device.ctx.currentTime, 0.01);
-    }
-  },
-  
-  // Set track delay send
-  setDelaySend: function(track, amount) {
-    if (device && device.trackDelaySends && device.trackDelaySends[track]) {
-      device.trackDelaySends[track].gain.setTargetAtTime(amount, device.ctx.currentTime, 0.01);
-    }
-  },
-  
-  // Set track reverb send
-  setReverbSend: function(track, amount) {
-    if (device && device.trackReverbSends && device.trackReverbSends[track]) {
-      device.trackReverbSends[track].gain.setTargetAtTime(amount, device.ctx.currentTime, 0.01);
-    }
-  }
-};
 // Phase 2 cleanup: initSoftClipOutput() / initBrickwallLimiter() removed.
 // Both were never called. The limiter is wired directly in Groovebox.init()
 // (session 10); the drive stage already uses its own WaveShaper.
-var PolyBLEPOscillator = {
-  create: function(ctx, type) {
-    // For now, use standard OscillatorNode as fallback
-    // AudioWorklet implementation would go here
-    var osc = ctx.createOscillator();
-    osc.type = type || 'sawtooth';
-    return osc;
-  }
-};
+// Session 21 cleanup: PolyBLEPOscillator removed (zero callers; a createOscillator stub).
+
 
 
 
