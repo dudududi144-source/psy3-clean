@@ -166,24 +166,26 @@ body {
 
 .transport {
   display: flex;
-  gap: var(--space-md);
+  flex-wrap: wrap;
+  gap: var(--space-sm);
   margin-bottom: var(--space-lg);
 }
 
 .transport button {
-  flex: 1;
-  padding: var(--space-lg);
-  border-radius: var(--radius-lg);
+  flex: 1 1 150px;
+  padding: 13px 8px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-dark);
   background: linear-gradient(180deg, #2a2e38, #1c2028);
   color: var(--text-primary);
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   cursor: pointer;
   transition: all 0.15s ease;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .transport button:hover {
