@@ -438,16 +438,20 @@ var ChordEngine = {
 
 
 
-Groovebox.prototype.init=function(){
+Groovebox.prototype.init=function(extCtx){
+  // Phase 4: extCtx = OfflineAudioContext for WAV export (disposable instance).
   if(this.ctx){
-    if(this.ctx.state==="suspended") return this.ctx.resume();
+    if(this.ctx.state==="suspended"&&this.ctx.resume) return this.ctx.resume();
     return Promise.resolve();
   }
-  var AC=window.AudioContext||window.webkitAudioContext;
-  if(!AC) return Promise.reject(new Error("Web Audio API not supported"));
+  var ctx=extCtx;
+  if(!ctx){
+    var AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC) return Promise.reject(new Error("Web Audio API not supported"));
+    ctx=new AC();
+  }
   var self=this;
-  this.ctx=new AC();
-  var ctx=this.ctx;
+  this.ctx=ctx;
   this.master=ctx.createGain(); this.master.gain.value=0.9;
   this.autoFilter=ctx.createBiquadFilter(); this.autoFilter.type="lowpass";
   this.autoFilter.Q.value=0.8; this.autoFilter.frequency.value=16000;
@@ -468,7 +472,7 @@ Groovebox.prototype.init=function(){
   this.drivePost.connect(this.comp);
   // Phase 2: brickwall limiter (-1dB, 20:1, hard knee) after the glue comp.
   // Analyser stays LAST, so meters/selfTest measure the final output.
-  if(typeof BrickwallLimiter!=="undefined"&&BrickwallLimiter.init){
+  if(!extCtx&&typeof BrickwallLimiter!=="undefined"&&BrickwallLimiter.init){ // live only: limiter singleton is ctx-bound
     this.comp.connect(BrickwallLimiter.init(ctx,this.analyser));
   }else{
     this.comp.connect(this.analyser);
@@ -509,7 +513,7 @@ Groovebox.prototype.init=function(){
   this.updateDrive();
   this.applyKnob("filter"); this.applyKnob("res"); this.applyKnob("swing");
   this.applySongSection(sectionAt(this.song,0).section);
-  if(ctx.state==="suspended") return ctx.resume();
+  if(ctx.state==="suspended"&&ctx.resume) return ctx.resume(); // defensive: offline ctx never suspends
   return Promise.resolve();
 };
 Groovebox.prototype.makeImpulse=function(dur,decay){
