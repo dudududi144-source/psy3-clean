@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Phase 2 - Session 8: BASS/LEAD takeover (all 6 rows live)
+## Status: Phase 2 - Session 8 complete: BASS/LEAD takeover + lead gates + HPF DJ filter
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -228,6 +228,22 @@ All 6 sequencer rows are now visible, and BASS/LEAD become editable WITHOUT brea
 - All 4 edited files parse (esprima); 26 structural/semantic markers pass (the single reported failure was a wrong-scope check in the harness - the ADAPTIVE hook lives in main.js, verified intact on remote).
 - Arrangement code paths preserved verbatim inside else branches (bass styles, theme cache/cursor logic).
 - Static verification only. Runtime smoke: BASS/LEAD rows appear dimmed; click a BASS step -> row brightens and the edited note plays; Ctrl+Z restores; bank save/load round-trips takeover state.
+
+
+## Session 8b changes (this commit) — on top of the BASS/LEAD takeover
+
+Context: five takeover commits (patternEdited flags, scheduler takeover with arrangement else-branches, 6-row UI with ghost UX, banks v2, docs) landed from a parallel workstream after session 7. Session 8b builds on that state; all takeover mechanics re-verified intact after these edits.
+
+| # | Change | Verification |
+|---|--------|--------------|
+| 1 | **Lead gate**: `leadNote()` supports `opts.gate` (seconds). Theme path passes `ev.dur*sd*0.92`; takeover path passes `(lpe.dur||1)*sd*0.92`. Without a gate the legacy fixed 240ms envelope is reproduced exactly (arp/pad/pad-trigger sounds unchanged); filter-close ramp and oscillator stop scale with the gate | AST parse; both envelope branches present; legacy ramp string intact |
+| 2 | **HPF DJ filter mode**: `filterMode` LP (default; exactly the legacy curve `80*225^(v^2)`) / HP (`20*1000^((1-v)^2)` - sweeps the lows out, the DJ half psy sets need). BiquadFilter type switches at runtime; UI label-button under the FILTER knob (click toggles, shows current mode); `toggleFilterMode()` prototype method with status + analytics | parse; both curves and type-switch strings present; default LP = zero behavior change until toggled |
+
+### Honest notes
+
+- Lead sustain changes the sonic character of themes **by design**: notes now hold for their written length instead of a fixed 240ms. This cannot be verified without a listening test.
+- Takeover-edited lead notes sustain too (dur taken from the edited entries).
+- Static verification only (29 structural/semantic markers, all pass). Runtime smoke: toggle LP/HP and sweep the filter; long theme notes should sustain; edited BASS/LEAD rows still take over on first edit.
 
 
 ## Phase plan
