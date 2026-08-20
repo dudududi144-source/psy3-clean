@@ -103,6 +103,17 @@ function updateRowGhost(part){
   r.style.opacity=ghost?"0.45":"1";
   r.title=ghost?part+" is arrangement-driven \u2014 click a step to take over":"";
 }
+var PART_LOOP_OPTIONS=[2,3,4,6,8,12,16]; // Session 28: polyrhythm loop lengths
+function cyclePartLen(part,el){
+  if(!device.partLen) device.partLen={KICK:16,BASS:16,PERC:16,LEAD:16,ARP:16,PAD:16};
+  var cur=device.partLen[part]||16;
+  var idx=PART_LOOP_OPTIONS.indexOf(cur);
+  var next=PART_LOOP_OPTIONS[(idx+1)%PART_LOOP_OPTIONS.length];
+  device.partLen[part]=next;
+  if(el) el.textContent="\u00D7"+next;
+  if(typeof setStatus==="function") setStatus(part+" loop: "+next+" steps","ok");
+  if(typeof commitUndo==="function") commitUndo();
+}
 function buildSeq(){
   var root=$("seq"); if(!root) return;
   var SEQ_EDIT=["KICK","BASS","PERC","LEAD","ARP","PAD"]; // Phase 2: all 6 rows; BASS/LEAD start dimmed (arrangement-driven) until first edit takes over
@@ -131,7 +142,11 @@ function buildSeq(){
           stepColEls[ss].push(b);
         })(s);
       }
-      row.appendChild(mute); row.appendChild(lab); row.appendChild(steps);
+      var lp=document.createElement("button"); lp.className="loop-badge";
+      lp.textContent="\u00D7"+((device.partLen&&device.partLen[part])||16);
+      lp.title="Loop length (polyrhythm) - click to cycle 2/3/4/6/8/12/16";
+      lp.addEventListener("click",function(){ cyclePartLen(part,lp); });
+      row.appendChild(mute); row.appendChild(lp); row.appendChild(lab); row.appendChild(steps);
       updateRowGhost(part);
       root.appendChild(row);
     })(SEQ_EDIT[pi]);
