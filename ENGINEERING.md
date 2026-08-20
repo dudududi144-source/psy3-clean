@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Phase 4 complete - Session 17: projects (.psy.json)
+## Status: Phase 5 - Session 18: offline PWA (real precache + icons)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -463,6 +463,26 @@ The last README phase-4 item had zero code references since the first audit. Now
 - AST parse of edited JS; structural assertions (format marker, undo-before-load, validation path, filename construction, wiring, markup) + session 1-16 regressions (preset manager, genre round-trip, WAV export, live recording, banks v3, undo BarPlan state).
 - Known limitation: no in-app project library (filesystem is the library, by design); versioning is `v:1` with explicit format check, so future format changes can migrate.
 - Static verification only. Runtime smoke: SAVE PROJECT downloads a .psy.json; edit something; LOAD PROJECT restores it (undo returns to the edited state); a non-project JSON shows the error status.
+
+
+## Session 18 changes (this commit) - Phase 5: offline PWA actually works
+
+Two README/manifest promises were void until now:
+
+1. **sw.js cached nothing** - install skipped caching, fetch went network-first with a cache fallback that was never populated ("Offline support (service worker)" was fiction).
+2. **manifest.json referenced `icon-192.png` / `icon-512.png` that did not exist in the repo** - installability was broken.
+
+### Changes
+
+- **sw.js v5**: precaches the full app shell (index.html, all 11 `src/*.js`, manifest, favicon, both icons) per-asset fault-tolerant; activates by deleting older cache versions; fetch serves same-origin GETs **cache-first with background refresh** (stale-while-revalidate). Cache keys for code assets ignore `?v=N` queries, so future cache-bust bumps don't orphan the precache.
+- **Icons generated**: real PNGs (512/192, dark background, neon rings/triangle motif) matching the manifest theme color; PNG magic verified before upload.
+- **index.html**: script tags bumped `?v=7` -> `?v=8` (11 tags asserted before/after).
+
+### Verification / honesty
+
+- sw.js parses (esprima); APP_SHELL asserted to contain all 11 module files; icon PNG magic asserted; manifest references verified against uploaded filenames.
+- The per-asset `cache.add().catch()` guard means one missing asset won't block SW install - deliberate resilience, logged to console.
+- Static + HTTP verification only. Runtime smoke: load once, then reload with network disabled -> app boots from cache; PWA install prompt appears (icons resolve).
 
 
 ## Phase plan
