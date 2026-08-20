@@ -19,6 +19,7 @@ var KNOB_DEFS=[
 var KNOB_DEFAULTS={bpm:(145-120)/45,filter:1,res:0.15,drive:0.15,delay:0.35,reverb:0.30,swing:0,duck:0.75}; // Phase 2: straight default
 function pctFmt(v){ return Math.round(v*100)+"%"; }
 var knobEls={};
+var KNOB_COLORS={bpm:"#ffb454",filter:"#3fa9bc",res:"#3fa9bc",drive:"#ff8a3c",delay:"#a78bfa",reverb:"#a78bfa",swing:"#b8e05a",duck:"#ff2e88"};
 function buildKnobs(){
   var row=$("knobs"); if(!row) return;
   for(var i=0;i<KNOB_DEFS.length;i++){
@@ -29,6 +30,9 @@ function buildKnobs(){
       dial.appendChild(ind);
       var nm=document.createElement("div"); nm.className="knob-name"; nm.textContent=def.label;
       var val=document.createElement("div"); val.className="knob-val";
+      // Session 24: knobs color-coded by function group
+      var kc=KNOB_COLORS[def.name]||"#ffb454";
+      ind.style.background=kc; ind.style.boxShadow="0 0 8px "+kc; nm.style.color=kc;
       wrap.appendChild(dial); wrap.appendChild(nm); wrap.appendChild(val);
       row.appendChild(wrap);
       knobEls[def.name]={dial:dial,val:val,def:def};
@@ -196,6 +200,11 @@ function setCurStep(s){
   var ls=$("lcdSteps");
   if(ls&&ls.children)
     for(var k=0;k<ls.children.length;k++) ls.children[k].className="ls"+(k===s?" on":"");
+  // Session 24: quarter-note pulse on the LCD panel - the chassis breathes with the kick
+  if(s>=0&&s%4===0){
+    var dp=document.querySelector(".display");
+    if(dp){ dp.classList.remove("beat"); void dp.offsetWidth; dp.classList.add("beat"); }
+  }
 }
 var PAD_DEGS=[0,2,4,5,7,9,11,14];
 function buildPads(){
@@ -260,6 +269,14 @@ function uiLoop(){
   while(device.uiQueue.length&&device.uiQueue[0].time<=now){ s=device.uiQueue.shift().step; }
   if(device.isPlaying&&s>=0) setCurStep(s);
   var canvas=$("viz"); if(!canvas) return;
+  // Session 24: arrangement playhead rides the timeline strip
+  var ph=$("tlPlayhead");
+  if(ph&&device.song){
+    var totalBars=device.song.totalBars||176;
+    var barPos=(device.absStep/16)%totalBars;
+    ph.style.left=(barPos/totalBars*100)+"%";
+    ph.style.opacity=device.isPlaying?"1":"0.25";
+  }
   // Session 23 fix: keep the drawing buffer matched to the CSS size. It was
   // never resized (only the dead drawViz did that), so the viz rendered into
   // a default 300x150 buffer stretched/cropped by CSS - blurry, half-visible.
@@ -278,6 +295,11 @@ function uiLoop(){
   }
 }
 var KEYMAP={a:0,w:1,s:2,e:3,d:4,f:5,t:6,g:7};
+var TL_COLORS={INTRO:"#3fa9bc",BUILD:"#ffb454",DROP:"#ff2e88",BREAK:"#a78bfa",RISER:"#ffd166",DROP2:"#ff2e88",OUTRO:"#3fa9bc"};
+var TL_ENERGY={INTRO:0.30,BUILD:0.55,DROP:1.00,BREAK:0.25,RISER:0.70,DROP2:1.00,OUTRO:0.30};
+// Session 24: the arrangement is the instrument's signature - it now looks like one.
+// Section width is proportional to bar count; colors + energy strip encode the
+// psytrance arc (IN BU DR BR RI DR OU); a glowing playhead rides the strip.
 function renderTimelineFor(dev){
   var el=$("timeline"); if(!el||!dev.song) return;
   el.innerHTML="";
@@ -285,11 +307,20 @@ function renderTimelineFor(dev){
   for(var i=0;i<song.sections.length;i++){
     (function(idx){
       var sec=song.sections[idx];
+      var col=TL_COLORS[sec.name]||"#3fa9bc";
       var d=document.createElement("div");
       d.className="tl-sec";
-      d.style.width=Math.max(24,sec.bars*2.4)+"px";
-      d.textContent=sec.name.slice(0,2);
+      d.dataset.base="tl-sec";
+      d.style.flexGrow=String(sec.bars);
+      d.style.setProperty("--sec",col);
+      d.style.background="linear-gradient(180deg,"+col+"26,"+col+"0d 65%,transparent)";
       d.title=sec.name+" ("+sec.bars+" bars, theme "+sec.themeKey+")";
+      var lab=document.createElement("span"); lab.className="tl-label"; lab.textContent=sec.name;
+      var bars=document.createElement("span"); bars.className="tl-bars"; bars.textContent=sec.bars+"b";
+      var en=document.createElement("i"); en.className="tl-energy";
+      en.style.opacity=String(TL_ENERGY[sec.name]!=null?TL_ENERGY[sec.name]:0.5);
+      en.style.background=col;
+      d.appendChild(lab); d.appendChild(bars); d.appendChild(en);
       d.addEventListener("click",function(){ dev.seekToBar(song.sectionStarts[idx]); });
       el.appendChild(d);
     })(i);
@@ -297,7 +328,18 @@ function renderTimelineFor(dev){
 }
 function updateTimelineUi(idx){
   var el=$("timeline"); if(!el) return;
-  for(var i=0;i<el.children.length;i++) el.children[i].className="tl-sec"+(i===idx?" cur":"");
+  for(var i=0;i<el.children.length;i++){
+    var c=el.children[i];
+    c.className=(c.dataset&&c.dataset.base?c.dataset.base:"tl-sec")+(i===idx?" cur":"");
+  }
+  // Session 24: section-change flash banner (DROP hits like a drop should)
+  var fl=$("sectionFlash");
+  if(fl&&typeof device!=="undefined"&&device&&device.song&&device.song.sections[idx]){
+    var nm=device.song.sections[idx].name;
+    fl.textContent=nm;
+    fl.style.color=TL_COLORS[nm]||"#3fa9bc";
+    fl.classList.remove("show"); void fl.offsetWidth; fl.classList.add("show");
+  }
 }
 
 /* ═══ PATTERN BANKS UI (Phase 2) ═══
