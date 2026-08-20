@@ -952,3 +952,38 @@ function renderWav(bars){
     console.log("WAV export failed:",e);
   });
 }
+
+
+/* ============================================================
+   LIVE RECORDING (Phase 4) - MediaRecorder off the post-master tap
+   README promise: "Live Recording - MediaRecorder". Records the
+   final bus (post-limiter) to webm audio; REC button toggles.
+   ============================================================ */
+function startRecording(){
+  if(typeof device==="undefined"||!device||!device.ctx){ if(typeof setStatus==="function") setStatus("AUDIO NOT STARTED","err"); return; }
+  if(device.recorder){ if(typeof setStatus==="function") setStatus("ALREADY RECORDING","err"); return; }
+  if(!device.recTap||typeof MediaRecorder==="undefined"){ if(typeof setStatus==="function") setStatus("RECORDING NOT SUPPORTED","err"); return; }
+  var mime=(MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported("audio/webm"))?"audio/webm":"";
+  try{ device.recorder=new MediaRecorder(device.recTap.stream, mime?{mimeType:mime}:undefined); }
+  catch(e){ if(typeof setStatus==="function") setStatus("RECORDING NOT SUPPORTED","err"); return; }
+  device.recChunks=[];
+  device.recorder.ondataavailable=function(e){ if(e.data&&e.data.size) device.recChunks.push(e.data); };
+  device.recorder.onstop=function(){
+    var blob=new Blob(device.recChunks,{type:device.recorder.mimeType||"audio/webm"});
+    var secs=Math.max(1,Math.round((Date.now()-device.recStarted)/1000));
+    if(typeof downloadBlob==="function") downloadBlob(blob,"psy3-live-"+Math.round(device.bpm)+"bpm-"+secs+"s.webm");
+    if(typeof setStatus==="function") setStatus("RECORDED "+secs+"s","ok");
+    if(typeof trackEvent==="function") trackEvent("live_recording",{seconds:secs});
+    device.recorder=null; device.recChunks=[];
+  };
+  device.recStarted=Date.now();
+  device.recorder.start(1000); // 1s chunks: safe against tab throttling
+  if(typeof setStatus==="function") setStatus("RECORDING... press REC to stop","ok");
+  if(typeof trackEvent==="function") trackEvent("recording_started",{});
+}
+function stopRecording(){
+  if(typeof device!=="undefined"&&device&&device.recorder&&device.recorder.state!=="inactive"){ device.recorder.stop(); }
+}
+function toggleRecording(){
+  if(typeof device!=="undefined"&&device&&device.recorder){ stopRecording(); } else { startRecording(); }
+}
