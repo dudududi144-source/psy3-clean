@@ -96,8 +96,9 @@ function makeNoiseBuffer(ctx){
   return buffer;
 }
 
-function makeVoices(ctx,outMap,sends,noiseBuf,cfg){
+function makeVoices(ctx,outMap,sends,noiseBuf,getCfg){ // Phase 2: getCfg() thunk => live genre config per note
   function kick(t){
+    var cfg=getCfg(); // Phase 2: live genre config
     var o=ctx.createOscillator(),g=ctx.createGain();
     o.type="sine";
     o.frequency.setValueAtTime(cfg.kickStart||150,t);
@@ -115,6 +116,7 @@ function makeVoices(ctx,outMap,sends,noiseBuf,cfg){
     cs.start(t); cs.stop(t+0.02);
   }
   function bassNote(t,midi,dur){
+    var cfg=getCfg(); // Phase 2: live genre config
     var f=mtof(midi);
     var o=ctx.createOscillator(); o.type=cfg.bassWave; o.frequency.value=f;
     var flt=ctx.createBiquadFilter(); flt.type="lowpass"; flt.Q.value=cfg.bassRes;
@@ -130,6 +132,7 @@ function makeVoices(ctx,outMap,sends,noiseBuf,cfg){
     o.start(t); o.stop(t+dur+0.03);
   }
   function leadNote(t,midi,opts){
+    var cfg=getCfg(); // Phase 2: live genre config
     opts=opts||{};
     var f=mtof(midi);
     var o1=ctx.createOscillator(),o2=ctx.createOscillator();
@@ -170,6 +173,7 @@ function makeVoices(ctx,outMap,sends,noiseBuf,cfg){
     o1.start(t); o2.start(t); o1.stop(t+(gate>0?gate+0.03:0.26)); o2.stop(t+(gate>0?gate+0.03:0.26));
   }
   function arpNote(t,midi,acc){
+    var cfg=getCfg(); // Phase 2: live genre config
     var f=mtof(midi);
     var o=ctx.createOscillator(); o.type="sawtooth"; o.frequency.value=f;
     var flt=ctx.createBiquadFilter(); flt.type="lowpass"; flt.Q.value=cfg.arpRes;
@@ -187,6 +191,7 @@ function makeVoices(ctx,outMap,sends,noiseBuf,cfg){
     o.start(t); o.stop(t+0.15);
   }
   function padChord(t,midis,dur){
+    var cfg=getCfg(); // Phase 2: live genre config
     var flt=ctx.createBiquadFilter(); flt.type="lowpass"; flt.Q.value=1.1;
     flt.frequency.value=cfg.padCut;
     var lfo=ctx.createOscillator(); lfo.frequency.value=0.13;
