@@ -702,6 +702,12 @@ var KeyboardShortcuts = {
       return;
     }
     
+    // R: WAV export - 4 bars from the playhead (Phase 4; README shortcut promise)
+    if (key === 'r' && !e.ctrlKey && !e.metaKey) {
+      if (typeof renderWav === 'function') renderWav(4);
+      return;
+    }
+    
     // ?: Help overlay
     if (key === '?') {
       toggleHelp();
@@ -869,3 +875,80 @@ var PatternBanks = {
     }
   }
 };
+
+/* ============================================================
+   WAV EXPORT (Phase 4) - offline rendering
+   Renders `bars` bars from the playhead through a DISPOSABLE
+   Groovebox clone on an OfflineAudioContext (live device and its
+   graph are never touched), encodes 16-bit PCM WAV, downloads.
+   Delivers the README promise: "WAV Export - Offline rendering".
+   ============================================================ */
+var __wavBusy=false;
+function encodeWav(audioBuffer){
+  var numCh=audioBuffer.numberOfChannels, sr=audioBuffer.sampleRate, len=audioBuffer.length;
+  var bytes=44+len*numCh*2;
+  var ab=new ArrayBuffer(bytes), v=new DataView(ab);
+  function wstr(off,s){ for(var i=0;i<s.length;i++) v.setUint8(off+i,s.charCodeAt(i)); }
+  wstr(0,"RIFF"); v.setUint32(4,bytes-8,true); wstr(8,"WAVE"); wstr(12,"fmt ");
+  v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,numCh,true);
+  v.setUint32(24,sr,true); v.setUint32(28,sr*numCh*2,true); v.setUint16(32,numCh*2,true); v.setUint16(34,16,true);
+  wstr(36,"data"); v.setUint32(40,len*numCh*2,true);
+  var chs=[],c,i;
+  for(c=0;c<numCh;c++) chs.push(audioBuffer.getChannelData(c));
+  var off=44;
+  for(i=0;i<len;i++){
+    for(c=0;c<numCh;c++){
+      var x=Math.max(-1,Math.min(1,chs[c][i]));
+      v.setInt16(off, x<0 ? x*0x8000 : x*0x7FFF, true); off+=2;
+    }
+  }
+  return new Blob([ab],{type:"audio/wav"});
+}
+function downloadBlob(blob,name){
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); if(a.parentNode) a.parentNode.removeChild(a); },1000);
+}
+function renderWav(bars){
+  bars=Math.max(1,Math.min(32,bars||4));
+  if(__wavBusy){ if(typeof setStatus==="function") setStatus("EXPORT ALREADY RUNNING","err"); return Promise.resolve(); }
+  if(typeof device==="undefined"||!device){ return Promise.resolve(); }
+  if(typeof OfflineAudioContext==="undefined"){ if(typeof setStatus==="function") setStatus("OFFLINE RENDER NOT SUPPORTED","err"); return Promise.resolve(); }
+  __wavBusy=true;
+  if(typeof setStatus==="function") setStatus("RENDERING "+bars+" BARS...","ok");
+  var sr=44100;
+  var g=new Groovebox(); // disposable clone: live device untouched
+  g.seed=device.seed; g.song=device.song;
+  g.patterns=JSON.parse(JSON.stringify(device.patterns));
+  g.sectionPatterns=JSON.parse(JSON.stringify(device.sectionPatterns||{})); // BarPlan
+  g.patternEdited=JSON.parse(JSON.stringify(device.patternEdited||{bass:false,lead:false}));
+  g.knobVals=JSON.parse(JSON.stringify(device.knobVals));
+  g.mutes=JSON.parse(JSON.stringify(device.mutes));
+  g.genre=device.genre||"FULL-ON";
+  g.bpm=device.bpm; g.swing=device.swing;
+  var baseBar=Math.floor((device.absStep||0)/16);
+  var sd=60/g.bpm/4;
+  var total=bars*16*sd+2.5; // tail for delay/reverb release
+  var octx=new OfflineAudioContext(2,Math.ceil(sr*total),sr);
+  return g.init(octx).then(function(){
+    g.updateDelayTime(); // dotted-eighth delay at the export BPM
+    g.applyKnob("filter"); g.applyKnob("res");
+    var start=0.05, n=bars*16;
+    for(var i=0;i<n;i++){
+      g.scheduleStep(baseBar*16+i, start+i*sd);
+    }
+    return octx.startRendering();
+  }).then(function(buf){
+    var blob=encodeWav(buf);
+    downloadBlob(blob,"psy3-"+Math.round(g.bpm)+"bpm-bar"+(baseBar+1)+"-"+bars+"bars.wav");
+    if(typeof setStatus==="function") setStatus("WAV EXPORTED: "+bars+" BARS","ok");
+    if(typeof trackEvent==="function") trackEvent("wav_export",{bars:bars});
+    __wavBusy=false;
+    return blob;
+  }).catch(function(e){
+    __wavBusy=false;
+    if(typeof setStatus==="function") setStatus("EXPORT FAILED","err");
+    console.log("WAV export failed:",e);
+  });
+}
