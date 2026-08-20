@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Phase 4 started - Session 13: WAV export (offline rendering)
+## Status: Phase 4 - Session 14: live recording (MediaRecorder)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -372,6 +372,24 @@ The README promised "WAV Export - Offline rendering" since day one; until now th
 - Known side effect: export scheduling runs the prototype hook (`grammarTracker.trackKick`), so the (currently inert) rhythm grammar observes exported bars. Acceptable; documented.
 - Export quality note: offline path uses the glue compressor without the brickwall stage (limiter is live-only) - peaks behave slightly differently than live monitoring.
 - Static verification only. Runtime smoke: press R mid-song -> file downloads; filename reflects BPM/bar/count; content plays back as the section at the playhead.
+
+
+## Session 14 changes (this commit) - Phase 4: live recording (MediaRecorder)
+
+Second README promise closed this phase: "Live Recording - MediaRecorder" (until now the string MediaRecorder appeared nowhere in the codebase).
+
+### Implementation
+
+- **Recording tap**: `Groovebox.init` adds `ctx.createMediaStreamDestination()` and connects the **analyser** to it - i.e. the recording captures the final master chain **post-limiter**. Guarded by feature detection, so OfflineAudioContext export clones skip it automatically.
+- **Recorder engine** (editor.js): `startRecording/stopRecording/toggleRecording` wrap MediaRecorder with 1-second chunks (robust against background throttling), mime negotiation (`audio/webm` when supported), download-on-stop named `psy3-live-<bpm>-<seconds>s.webm`, busy/state guards and analytics.
+- **UI**: REC transport button toggles recording; status line shows state and duration.
+- Recorder state fields (`recorder/recChunks/recStarted`) live on the constructor.
+
+### Verification / honesty
+
+- AST parse of all 4 edited JS files; structural assertions (tap wiring single, MediaRecorder construction, chunk size, button wiring) + session 1-13 regressions (extCtx init, limiter live-only, WAV export, BarPlan, duck, takeover, genre).
+- Output format is **webm/opus** (MediaRecorder's native container), not WAV - matches the README item's wording; WAV remains covered by the offline export path.
+- Static verification only. Runtime smoke: press PLAY then REC -> status shows RECORDING; press REC again -> webm downloads and plays back the live mix.
 
 
 ## Phase plan
