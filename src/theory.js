@@ -103,14 +103,15 @@ function makeVoices(ctx,outMap,sends,noiseBuf,getCfg){ // Phase 2: getCfg() thun
     o.type="sine";
     o.frequency.setValueAtTime(cfg.kickStart||150,t);
     o.frequency.exponentialRampToValueAtTime(cfg.kickEnd||55,t+0.04);
+    var kd=cfg.kickDecay||0.10; // Phase 2: genre-driven kick body decay
     g.gain.setValueAtTime(1.0,t);
-    g.gain.exponentialRampToValueAtTime(0.001,t+0.10);
+    g.gain.exponentialRampToValueAtTime(0.001,t+kd);
     o.connect(g); g.connect(outMap.KICK);
-    o.start(t); o.stop(t+0.13);
+    o.start(t); o.stop(t+kd+0.03);
     var cs=ctx.createBufferSource(); cs.buffer=noiseBuf;
     var bp=ctx.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=3000; bp.Q.value=1.2;
     var cg=ctx.createGain();
-    cg.gain.setValueAtTime(0.35,t);
+    cg.gain.setValueAtTime((cfg.kickPunch!=null?cfg.kickPunch:0.35),t); // Phase 2: genre-driven click level
     cg.gain.exponentialRampToValueAtTime(0.001,t+0.015);
     cs.connect(bp); bp.connect(cg); cg.connect(outMap.KICK);
     cs.start(t); cs.stop(t+0.02);
@@ -215,50 +216,58 @@ function makeVoices(ctx,outMap,sends,noiseBuf,getCfg){ // Phase 2: getCfg() thun
     lfo.start(t); lfo.stop(t+dur+2.6);
   }
   function clap(t,v){
+    var cfg=getCfg(); // Phase 2: live genre config
     for(var k=0;k<3;k++){
       var tt=t+k*0.009;
       var cs=ctx.createBufferSource(); cs.buffer=noiseBuf;
-      var bp=ctx.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=1500; bp.Q.value=1.8;
+      var pdS=(cfg.percDecay||0.08)/0.08; // Phase 2: genre decay scale (1.0 at FULL-ON)
+      var bp=ctx.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=1500*(cfg.percTune||1.0); bp.Q.value=1.8; // Phase 2
       var g=ctx.createGain();
       g.gain.setValueAtTime((v||0.8)*(k===2?1:0.7),tt);
-      g.gain.exponentialRampToValueAtTime(0.001,tt+0.03+(k===2?0.05:0));
+      g.gain.exponentialRampToValueAtTime(0.001,tt+(0.03+(k===2?0.05:0))*pdS);
       cs.connect(bp); bp.connect(g); g.connect(outMap.PERC);
       if(sends.reverb){ var sr2=ctx.createGain(); sr2.gain.value=0.2; g.connect(sr2); sr2.connect(sends.reverb); }
-      cs.start(tt); cs.stop(tt+0.09);
+      cs.start(tt); cs.stop(tt+Math.max(0.03,0.09*pdS));
     }
   }
   function shaker(t,v){
+    var cfg=getCfg(); // Phase 2: live genre config
     var cs=ctx.createBufferSource(); cs.buffer=noiseBuf;
-    var hp=ctx.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=8200;
+    var hp=ctx.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=(cfg.hatFreq||8000)+200; // Phase 2
+    var hd=Math.max(0.012,(cfg.hatDecay||0.04)+0.005); // Phase 2
     var g=ctx.createGain();
     g.gain.setValueAtTime(0.22*v,t);
-    g.gain.exponentialRampToValueAtTime(0.001,t+0.045);
+    g.gain.exponentialRampToValueAtTime(0.001,t+hd);
     cs.connect(hp); hp.connect(g); g.connect(outMap.PERC);
-    cs.start(t); cs.stop(t+0.05);
+    cs.start(t); cs.stop(t+hd+0.005);
   }
   function openhat(t,v){
+    var cfg=getCfg(); // Phase 2: live genre config
     var cs=ctx.createBufferSource(); cs.buffer=noiseBuf;
-    var hp=ctx.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=7200;
+    var hp=ctx.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=(cfg.hatFreq||8000)-800; // Phase 2
+    var od=Math.max(0.03,(cfg.hatDecay||0.04)*5); // Phase 2
     var g=ctx.createGain();
     g.gain.setValueAtTime(0.35*v,t);
-    g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
+    g.gain.exponentialRampToValueAtTime(0.001,t+od);
     cs.connect(hp); hp.connect(g); g.connect(outMap.PERC);
-    cs.start(t); cs.stop(t+0.21);
+    cs.start(t); cs.stop(t+od+0.01);
   }
   function snare(t,v){
+    var cfg=getCfg(); // Phase 2: live genre config
     var cs=ctx.createBufferSource(); cs.buffer=noiseBuf;
-    var bp=ctx.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=1900; bp.Q.value=0.9;
+    var pdS=(cfg.percDecay||0.08)/0.08; // Phase 2: genre decay scale (1.0 at FULL-ON)
+    var bp=ctx.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=1900*(cfg.percTune||1.0); bp.Q.value=0.9; // Phase 2
     var g=ctx.createGain();
     g.gain.setValueAtTime(0.7*v,t);
-    g.gain.exponentialRampToValueAtTime(0.001,t+0.12);
+    g.gain.exponentialRampToValueAtTime(0.001,t+0.12*pdS);
     cs.connect(bp); bp.connect(g); g.connect(outMap.PERC);
-    cs.start(t); cs.stop(t+0.13);
-    var o=ctx.createOscillator(); o.type="triangle"; o.frequency.value=185;
+    cs.start(t); cs.stop(t+0.13*pdS+0.005);
+    var o=ctx.createOscillator(); o.type="triangle"; o.frequency.value=185*(cfg.percTune||1.0); // Phase 2
     var og=ctx.createGain();
     og.gain.setValueAtTime(0.4*v,t);
-    og.gain.exponentialRampToValueAtTime(0.001,t+0.05);
+    og.gain.exponentialRampToValueAtTime(0.001,t+0.05*pdS);
     o.connect(og); og.connect(outMap.PERC);
-    o.start(t); o.stop(t+0.06);
+    o.start(t); o.stop(t+0.06*pdS+0.005);
   }
   var crashBuf=(function(){
     var len=Math.floor(ctx.sampleRate*1.2);
