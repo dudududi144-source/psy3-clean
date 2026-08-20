@@ -166,6 +166,15 @@ var originalHitPad = null;
 // Hook into scheduleStep to track kick and generate
 var originalScheduleStep = null;
 
+// Phase 3: the missing learning hook. scheduleStep has called this since the
+// PSY6 copy but it was never defined, so all grammars stayed frozen on priors.
+function updateGrammars(kind,step,value){
+  if(typeof grammarTracker==="undefined") return;
+  if(kind==="kick"){ grammarTracker.trackKick(step); }
+  else if(kind==="bass"){ grammarTracker.trackBass(value); }
+  else if(kind==="lead"||kind==="melody"){ grammarTracker.trackMelody(value); }
+}
+
 // Initialize brain mode
 var brainMode = 'MANUAL'; // MANUAL, GENERATIVE, ADAPTIVE
 
@@ -219,17 +228,39 @@ var CandidateGenerator = {
     return candidate;
   },
   scoreCandidate: function(candidate, currentState) {
+    // Phase 3: candidate-dependent fitness. The old version scored ~80% from
+    // global grammar stats (identical for every candidate) and rewarded raw
+    // density - selection was effectively "pick the busiest pattern".
     var score = 0;
-    score += Grammars.bass.confidence() * 0.3;
-    score += Grammars.melodic.confidence() * 0.3;
-    score += Grammars.rhythm.confidence() * 0.2;
-    var rhythmVariety = 0;
-    for (var i = 0; i < candidate.rhythmPattern.length; i++) {
-      if (candidate.rhythmPattern[i]) rhythmVariety++;
+    var q, rowSum, total;
+    // (1) Bass: likelihood of the candidate's interval path under the learned grammar.
+    var iv = (currentState && currentState.lastBassInterval) || 0;
+    for (var b = 0; b < candidate.bassNotes.length; b++) {
+      var from = ((iv % 12) + 12) % 12;
+      var to = ((candidate.bassNotes[b] % 12) + 12) % 12;
+      var row = Grammars.bass.transitions[from];
+      rowSum = 0;
+      for (q = 0; q < 12; q++) rowSum += row[q];
+      score += (row[to] / rowSum) * 6;
+      iv = candidate.bassNotes[b];
     }
-    score += rhythmVariety * 2;
+    // (2) Melody: likelihood of each candidate interval under the learned grammar.
+    total = 0;
+    for (q = 0; q < 25; q++) total += Grammars.melodic.intervals[q];
+    for (var m = 0; m < candidate.melodyNotes.length; m++) {
+      var idx = Math.max(0, Math.min(24, candidate.melodyNotes[m] + 12));
+      score += (Grammars.melodic.intervals[idx] / total) * 4;
+    }
+    // (3) Rhythm: target ~50% density; penalize walls of sound and near-empty bars.
+    var on = 0;
+    for (var r = 0; r < candidate.rhythmPattern.length; r++) if (candidate.rhythmPattern[r]) on++;
+    var density = on / candidate.rhythmPattern.length;
+    score += 8 - Math.abs(density - 0.5) * 20;
+    // (4) Reward four-on-the-floor anchors.
+    for (var k = 0; k < candidate.rhythmPattern.length; k += 4) if (candidate.rhythmPattern[k]) score += 1.5;
+    // (5) Small contour-alignment bonus (kept, de-weighted).
     var contour = Grammars.melodic.contourTendency();
-    if (contour !== 'neutral') score += 10;
+    if (contour === 'up' || contour === 'down') score += 2;
     return score;
   },
   selectBest: function(candidates) {
@@ -769,6 +800,7 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
         var liv=(lprev!=null)?Math.abs(lmidi-lprev):0;
         var lslide=(liv===2||liv===3)&&lprev!=null;
         v.leadNote(t,lmidi,{acc:laccSteps,slide:lslide,fromMidi:lprev,gate:(lpe.dur||1)*sd*0.92}); // Phase 2: edited motifs sustain too
+        if(typeof updateGrammars==="function") updateGrammars("lead",step,lmidi); // Phase 3: melodic learning (takeover)
         if(typeof MIDIOut!=="undefined"&&MIDIOut.port&&!this.suppressMidi){ // Phase 4: LEAD notes out (takeover)
           MIDIOut.noteOn(lmidi,laccSteps>=2?120:(laccSteps>=1?100:80),audioToPerf(this.ctx,t));
           MIDIOut.noteOff(lmidi,audioToPerf(this.ctx,t+(lpe.dur||1)*sd*0.92));
@@ -792,6 +824,7 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
           var iv=(prevMidi!=null)?Math.abs(ev.midi-prevMidi):0;
           var slide=(iv===2||iv===3)&&prevMidi!=null;
           v.leadNote(t,ev.midi,{acc:accSteps,slide:slide,fromMidi:prevMidi,gate:ev.dur*sd*0.92}); // Phase 2: sustain the written length
+          if(typeof updateGrammars==="function") updateGrammars("lead",step,ev.midi); // Phase 3: melodic learning
           if(typeof MIDIOut!=="undefined"&&MIDIOut.port&&!this.suppressMidi){ // Phase 4: LEAD notes out
             MIDIOut.noteOn(ev.midi,accSteps>=2?120:(accSteps>=1?100:80),audioToPerf(this.ctx,t));
             MIDIOut.noteOff(ev.midi,audioToPerf(this.ctx,t+ev.dur*sd*0.92));
