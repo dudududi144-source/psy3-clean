@@ -6,7 +6,9 @@
 
 ## Live Demo
 
-**https://dudududi144-source.github.io/psy3-clean/** (requires GitHub Pages enabled)
+**https://dudududi144-source.github.io/psy3-clean/** (GitHub Pages: verified built)
+
+**Project status dashboard:** https://dudududi144-source.github.io/psy3-clean/status.html
 
 ## Features (each line verified against the code)
 
