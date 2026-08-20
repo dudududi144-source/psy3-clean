@@ -15,6 +15,9 @@ function Groovebox(){
   this.bpm=145; this.swing=0; // Phase 2: psytrance is straight; swing available via knob
   this.seed=1337; this.variation=1;
   this.patterns=makePatterns(this.seed);
+  // Phase 2 takeover flags: BASS/LEAD are arrangement-driven until the user
+  // edits their pattern rows; first edit switches them to pattern-driven.
+  this.patternEdited={bass:false,lead:false};
   this.song=buildSong(this.seed);
   this._barCacheKey=-1;
   this._lastSecIdx=-1;
