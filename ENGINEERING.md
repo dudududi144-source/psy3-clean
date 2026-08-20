@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 27 - lost timeline CSS found & restored + perf + forced refresh
+## Status: Session 28 - polyrhythm per-part loop lengths (OP-Z-style)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -642,6 +642,25 @@ User kept seeing the old UI despite pushes. Forensics (blob-level):
 - Every push is now verified by CONTENT MARKERS on the served blob (not just HTTP 200). This incident was caught exactly because the previous pushes were only checked partially.
 
 Static verification: esprima parse of ui/sw; marker assertions pre-push; live re-check after push.
+
+
+## Session 28 changes (this commit) - polyrhythm: per-part loop lengths (OP-Z-style)
+
+Premium-gap item from the session-27 roast, delivered: every pattern-driven part can now loop at its own length, creating evolving polyrhythms (the OP-Z signature move).
+
+### Implementation
+
+- **State**: `device.partLen = {KICK:16, BASS:16, PERC:16, LEAD:16, ARP:16, PAD:16}` (constructor).
+- **Scheduler**: all six pattern-driven reads in `scheduleStep` now index by `absStep % (partLen[PART]||16)` instead of the fixed 16-step grid (kick, takeover bass, perc, takeover lead, arp, pad). Theme-driven lead and arrangement bass are untouched. Default all-16 = **bit-identical behavior** to before.
+- **UI**: new `\u00D7N` loop badge per sequencer row (after the mute button); click cycles 2/3/4/6/8/12/16 with status feedback + undo snapshot.
+- **Persistence**: loop lengths included in undo/redo state and `.psy.json` projects.
+- Cache: scripts v13, build token s28-v13, SW v11.
+
+### Verification / honesty
+
+- All edited files parse (esprima); all six scheduler index anchors replaced exactly once; defaults prove backward compatibility.
+- Musical note: lengths that don't divide 16 (3/6) drift across the bar - intended polyrhythm; the pre-drop silence gate stays bar-aligned (section logic unchanged).
+- Static verification only. Smoke: click an ARP row badge to \u00D73 while playing -> the arp phrase rotates against the kick; undo restores \u00D716.
 
 
 ## Phase plan
