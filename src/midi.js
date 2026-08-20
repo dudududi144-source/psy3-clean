@@ -94,6 +94,7 @@ var MIDIInput = {
     }
     navigator.requestMIDIAccess({ sysex: false }).then(function(access) {
       self.access = access;
+      if(typeof MIDIOut!=="undefined"){ MIDIOut.pickPort(access); } // Phase 4: MIDI out
       var inputs = access.inputs.values();
       for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
         self.inputs.push(input.value);
@@ -103,6 +104,11 @@ var MIDIInput = {
         console.log('MIDI input connected: ' + input.value.name);
       }
       access.onstatechange = function(event) {
+        // Phase 4: hot-plug MIDI outputs too
+        if (event.port.type === 'output' && event.port.state === 'connected' && typeof MIDIOut!=="undefined" && !MIDIOut.port) {
+          MIDIOut.port = event.port;
+          if(typeof setStatus==="function") setStatus("MIDI OUT: "+event.port.name,"ok");
+        }
         if (event.port.type === 'input' && event.port.state === 'connected') {
           self.inputs.push(event.port);
           event.port.onmidimessage = function(e) {
@@ -201,3 +207,39 @@ function triggerMIDIAction(action, velocity) {
       console.log('MIDI Learn: unknown action ' + action);
   }
 }
+
+/* ============================================================
+   MIDI OUT + CLOCK (Phase 4)
+   README promise: "MIDI Out - LEAD notes + MIDI Clock".
+   Emits LEAD notes from the scheduler, 24ppq MIDI clock, and
+   transport bytes (Start 0xFA on play, Stop 0xFC on stop).
+   Timestamps are translated from AudioContext time to the Web
+   MIDI performance clock. Offline export clones set suppressMidi.
+   ============================================================ */
+function audioToPerf(ctx,t){
+  if(typeof performance==="undefined") return undefined;
+  return performance.now()+Math.max(0,(t-ctx.currentTime))*1000;
+}
+var MIDIOut = {
+  port: null,
+  clockEnabled: true,
+  pickPort: function(access){
+    if(this.port) return;
+    var outs=access.outputs.values();
+    var o=outs.next();
+    if(o&&!o.done){
+      this.port=o.value;
+      console.log('MIDI output selected: '+this.port.name);
+      if(typeof setStatus==="function") setStatus("MIDI OUT: "+this.port.name,"ok");
+    }
+  },
+  send: function(bytes,when){
+    if(!this.port) return;
+    try{ if(when!=null){ this.port.send(bytes,when); } else { this.port.send(bytes); } }catch(e){}
+  },
+  clock: function(when){ this.send([0xF8],when); },
+  transportStart: function(){ this.send([0xFA]); },
+  transportStop: function(){ this.send([0xFC]); },
+  noteOn: function(note,vel,when){ this.send([0x90,note&0x7F,Math.max(1,vel&0x7F)],when); },
+  noteOff: function(note,when){ this.send([0x80,note&0x7F,0],when); }
+};
