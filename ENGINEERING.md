@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Phase 2 - Session 10: master chain complete (limiter) + genre drums
+## Status: Phase 2 - Session 11: dead code excised + controllable sidechain
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -305,6 +305,31 @@ Per-function cfg use/declaration matrix re-verified for all 10 voice functions (
 - AST parse of all 3 edited files; 23 structural markers pass; cfg matrix PASS.
 - The limiter changes peak behavior by design (peaks clamped near -1dB) - loudness/safety improvement, not verifiable without listening.
 - Static verification only. Runtime smoke: play at high drive -> no clipping artifacts; switch genres -> drum character changes (kick depth/length, hat brightness, clap/snare tuning).
+
+
+## Session 11 changes (this commit) — dead-code excision + controllable sidechain
+
+### 1. Verified-dead code removed (rule: wire it or delete it)
+
+- `PooledEngine` (banner + object) + `initPooledEngine()` + its call in `Groovebox.init()`: the pool allocated 44 always-on silent voices (oscillators running, connected to master at gain 0) and was never triggered by any note path - pure DSP/CPU waste. Zero callers verified before removal.
+- `triggerDrumWithPool` / `triggerSynthWithPool` / `panicAllVoices`: zero callers, removed.
+- `initSoftClipOutput()` / `initBrickwallLimiter()`: never called; limiter is wired directly in `Groovebox.init()` since session 10, drive stage uses its own tanh WaveShaper. Removed.
+- `SoftClip` object + stale 'Initialize PooledEngine' comment in dsp.js: removed.
+- Post-removal scan strips BOTH `//` and `/* */` comments, then asserts zero references for all 8 symbols.
+(First pipeline attempt aborted itself when a `/* */` banner mention was detected - the guard worked as designed.)
+
+### 2. Sidechain depth is now a user control
+
+- New `DUCK` knob (8th knob): maps v to duck depth `1 - v*0.8` (v=0 -> no ducking, v=1 -> deep 0.2).
+- `device.duckDepth` default 0.40 = exactly the previous hardcoded value (legacy sound preserved).
+- Kick-triggered duck automation in `scheduleStep` reads `duckDepth`; release timing unchanged.
+- Persisted via knobVals (presets/settings/undo automatically) and learnable via MIDI CC.
+
+### Verification / honesty
+
+- All 5 edited files parse; dead-symbol scan clean; limiter/genre/gates/HPF/takeover regressions asserted.
+- Removing the silent pool changes no audible signal (voices never triggered, gain 0).
+- Static verification only. Runtime smoke: DUCK knob audible on bass/pad pumping; knob restores with presets.
 
 
 ## Phase plan
