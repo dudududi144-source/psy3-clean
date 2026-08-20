@@ -569,6 +569,46 @@ body {
 }
 
 /* ============================================================
+   ARRANGEMENT EDITOR (session 26)
+   ============================================================ */
+
+.arranger-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  align-items: center;
+  margin-top: calc(-1 * var(--space-md));
+  margin-bottom: var(--space-lg);
+  padding: var(--space-sm);
+  background: var(--bg-raised);
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-md);
+}
+
+.arranger-bar .arr-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-right: 4px;
+}
+
+#arrSelInfo {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent-cyan);
+  margin-left: auto;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.tl-sec.sel {
+  outline: 1px dashed var(--accent-orange);
+  outline-offset: -1px;
+}
+
+/* ============================================================
    PRESET PANEL + MINI BUTTONS (session 23: design-system parity)
    ============================================================ */
 
@@ -748,6 +788,18 @@ body {
     <div id="timeline" class="timeline"></div>
     <div id="tlPlayhead" class="tl-playhead"></div>
   </div>
+  <div class="arranger-bar" id="arrangerBar">
+    <span class="arr-label">ARRANGE</span>
+    <button id="arrMinus8" class="mini-btn" title="Remove 8 bars from the selected section">-8b</button>
+    <button id="arrPlus8" class="mini-btn" title="Add 8 bars to the selected section">+8b</button>
+    <button id="arrLeft" class="mini-btn" title="Move the selected section left">&#9664;</button>
+    <button id="arrRight" class="mini-btn" title="Move the selected section right">&#9654;</button>
+    <button id="arrDup" class="mini-btn" title="Duplicate the selected section">DUP</button>
+    <button id="arrDel" class="mini-btn" title="Delete the selected section">DEL</button>
+    <button id="arrAdd" class="mini-btn" title="Add a section after the selected one (cycles DROP/BREAK/BUILD/RISER/DROP2/INTRO/OUTRO)">ADD</button>
+    <button id="arrReset" class="mini-btn" title="Rebuild the original arrangement from the seed">RESET</button>
+    <span id="arrSelInfo"></span>
+  </div>
   <canvas id="viz" class="viz"></canvas>
   <div id="selfTest" class="self-test">SELF TEST: PENDING</div>
 </div>
@@ -772,17 +824,17 @@ body {
   } catch (e) {}
 })();
 </script>
-<script src="src/core.js?v=10"></script>
-<script src="src/pools.js?v=10"></script>
-<script src="src/midi.js?v=10"></script>
-<script src="src/theory.js?v=10"></script>
-<script src="src/song.js?v=10"></script>
-<script src="src/groovebox.js?v=10"></script>
-<script src="src/dsp.js?v=10"></script>
-<script src="src/brain-runtime.js?v=10"></script>
-<script src="src/ui.js?v=10"></script>
-<script src="src/editor.js?v=10"></script>
-<script src="src/main.js?v=10"></script>
+<script src="src/core.js?v=11"></script>
+<script src="src/pools.js?v=11"></script>
+<script src="src/midi.js?v=11"></script>
+<script src="src/theory.js?v=11"></script>
+<script src="src/song.js?v=11"></script>
+<script src="src/groovebox.js?v=11"></script>
+<script src="src/dsp.js?v=11"></script>
+<script src="src/brain-runtime.js?v=11"></script>
+<script src="src/ui.js?v=11"></script>
+<script src="src/editor.js?v=11"></script>
+<script src="src/main.js?v=11"></script>
 <script>
 // Register service worker
 if ('serviceWorker' in navigator) {
