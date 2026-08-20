@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Phase 4 - Session 14: live recording (MediaRecorder)
+## Status: Phase 4 - Session 15: MIDI Out + MIDI Clock (audio I/O complete)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -390,6 +390,26 @@ Second README promise closed this phase: "Live Recording - MediaRecorder" (until
 - AST parse of all 4 edited JS files; structural assertions (tap wiring single, MediaRecorder construction, chunk size, button wiring) + session 1-13 regressions (extCtx init, limiter live-only, WAV export, BarPlan, duck, takeover, genre).
 - Output format is **webm/opus** (MediaRecorder's native container), not WAV - matches the README item's wording; WAV remains covered by the offline export path.
 - Static verification only. Runtime smoke: press PLAY then REC -> status shows RECORDING; press REC again -> webm downloads and plays back the live mix.
+
+
+## Session 15 changes (this commit) - Phase 4: MIDI Out + MIDI Clock
+
+Last audio-I/O README promise closed: "MIDI Out - LEAD notes + MIDI Clock" (until now the codebase had MIDI **input** only - zero output code, no clock bytes).
+
+### Implementation
+
+- **MIDIOut module** (midi.js): port auto-selection (first available output, hot-plug via `onstatechange`), `send/clock/transportStart/transportStop/noteOn/noteOff` helpers, try-guarded.
+- **Audio-to-MIDI time translation**: `audioToPerf(ctx,t)` maps AudioContext scheduling time onto the Web MIDI performance clock (`performance.now()` domain).
+- **MIDI Clock**: 24ppq emitted from the live scheduler - 6 ticks per 16th on the **unswung** grid, within the existing 200ms lookahead window. Clock lives only in `scheduler()`, which never runs during offline export - no extra guard needed there.
+- **Transport**: Start (0xFA) on `play()`, Stop (0xFC) on `stop()`.
+- **LEAD notes out**: both scheduler lead paths (theme + takeover) send Note On (velocity mapped from accent steps: 80/100/120) and Note Off at the same gate used by the audio envelope (`dur*sd*0.92`).
+- **Offline safety**: `suppressMidi` field; export clones set it true so WAV rendering never leaks notes/clock to hardware.
+
+### Verification / honesty
+
+- AST parse of all 4 edited files; structural assertions (single clock loop, two noteOn/noteOff pairs, port wiring, suppress flags) + sessions 1-14 regressions (recTap, renderWav, extCtx init, BarPlan, duck, takeover, genre).
+- Clock jitter: messages are timestamped by the browser MIDI layer from the performance-clock mapping; sub-ms drift vs the audio clock is possible (typical for Web MIDI bridges; documented).
+- Static verification only. Runtime smoke: connect a hardware synth, play -> lead notes + clock sync visible; stop -> transport stops; WAV export -> hardware stays silent.
 
 
 ## Phase plan
