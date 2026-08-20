@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Phase 1 (Modularization) - Session 4: Phase 1a complete
+## Status: Phase 1 (Modularization) - Session 5: Phase 1b complete (physical file split)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -121,6 +121,37 @@ Goal: consolidate ALL top-level executable statements into a single marked BOOT 
 
 - `Groovebox.prototype.*` assignments are technically executable statements; they are intentionally left in place (they execute nothing at load time beyond binding methods). In Phase 1b they move into the engine module file.
 - Static verification only (esprima + 39 structural/semantic checks, all pass). Runtime smoke: page loads, PLAY works, SELF TEST shows OK, MIDI device enumerates.
+
+
+## Session 5 changes (this commit) — Phase 1b complete
+
+The 3.6k-line `app.js` monolith is now physically split into 9 files under `src/`, loaded in order by `index.html`. **`app.js` was deleted after the split** — its exact contents live on in the split files.
+
+| File | Lines | Contents |
+|---|---|---|
+| `src/core.js` | 30 | debounce/throttle utilities |
+| `src/pools.js` | 120 | BufferPool, VoicePool, UndoRedo + doUndo/doRedo |
+| `src/midi.js` | 203 | MIDILearn, MIDIInput, initMIDIInput, applyMIDIParam, triggerMIDIAction |
+| `src/theory.js` | 282 | `$`, scales/theory, RNG, makePatterns, makeNoiseBuffer, makeVoices |
+| `src/song.js` | 239 | sections/themes/bass-styles/energy curves, STYLE, GENRE_SOUND_CONFIG |
+| `src/engine.js` | 1464 | Groovebox ctor + all prototype methods, PooledEngine, DSP objects, Grammars, CandidateGenerator, TrackControl, ChordEngine |
+| `src/ui.js` | 315 | knobs/seq/pads/viz/timeline, initUi/safeInitUi, transport UI |
+| `src/editor.js` | 842 | Arpeggiator, presets/settings/state, pattern & song ops, mobile, KeyboardShortcuts, PatternBanks |
+| `src/main.js` | 170 | the Phase 1a BOOT block (all 16 top-level executable statements) |
+
+### Verification (the important part)
+
+- **Byte-exact equivalence**: concatenating the 9 files in load order reproduces the pre-split `app.js` **byte for byte** (`concat == original` evaluated True). Nothing was lost, added, or reordered.
+- Each file parses standalone (esprima); files 1-8 contain zero immediate-execution statements (function/var declarations and `Groovebox.prototype.*` bindings only) — the Phase 1a invariant, re-verified per file.
+- `src/main.js` contains exactly the 16 boot statements; all boot dependencies (Grammars, hitPad, Groovebox, loadSettings, KEYMAP, KeyboardShortcuts, PatternBanks, MIDIInput) are declared in earlier files; function declarations hoist per-file and resolve at runtime.
+- All session 1-4 regression markers verified over the concatenation.
+- Push order kept the site working at every commit: src files first, then index.html switch-over, then app.js deletion.
+
+### Honest notes
+
+- This is a **contiguous** split (boundaries at natural section lines), not a layer-pure regrouping — `src/engine.js` still mixes engine + brain code, and theory/voices share a file. Layer-pure modules (moving declarations across file order) need a dependency-order proof + runtime test = Phase 1c/2.
+- `src/engine.js` at 1464 lines is the next decomposition target.
+- Static verification only. Runtime smoke test required: page loads, PLAY works, knobs/pads respond, MIDI enumerates, SELF TEST shows OK.
 
 
 ## Phase plan
