@@ -365,6 +365,7 @@ function initUi(){
   var nb=$("nextSecBtn"); if(nb) nb.addEventListener("click",function(){ device.jumpSection(); trackEvent("jump_section",{}); });
   var gb=$("genreBtn"); if(gb) gb.addEventListener("click",function(){ if(device&&typeof device.cycleGenre==="function") device.cycleGenre(); }); // Phase 2: genre presets
   var xb=$("exportBtn"); if(xb) xb.addEventListener("click",function(){ if(typeof renderWav==="function") renderWav(4); }); // Phase 4: WAV export
+  var rb=$("recBtn"); if(rb) rb.addEventListener("click",function(){ if(typeof toggleRecording==="function") toggleRecording(); }); // Phase 4: live recording
   refreshSeqUi();
   device.updateLcd();
   uiLoop();
