@@ -10,6 +10,7 @@ function Groovebox(){
   this.partGains={}; this.duck=null;
   this.noiseBuf=null; this.voices=null;
   this.pendingSeekBar=null;
+  this.recorder=null; this.recChunks=[]; this.recStarted=0; // Phase 4: live recording state
   this.isPlaying=false; this.absStep=0; this.nextNoteTime=0; this.timerId=null;
   this.uiQueue=[];
   this.bpm=145; this.swing=0; // Phase 2: psytrance is straight; swing available via knob
