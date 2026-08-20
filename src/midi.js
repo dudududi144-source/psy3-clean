@@ -175,7 +175,7 @@ function applyMIDIParam(param, value) {
   }
 
   if (param === 'resonance') param = 'res'; // legacy alias
-  var known = { bpm:1, filter:1, res:1, drive:1, delay:1, reverb:1, swing:1 };
+  var known = { bpm:1, filter:1, res:1, drive:1, delay:1, reverb:1, swing:1, duck:1 }; // Phase 2: duck learnable
   if (known[param]) {
     device.setKnob(param, value);
   } else {
