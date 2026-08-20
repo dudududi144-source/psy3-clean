@@ -84,9 +84,11 @@ if (typeof Groovebox !== 'undefined' && Groovebox.prototype.scheduleStep) {
       var best = CandidateGenerator.generateNextBar(currentState, null);
       
       // Apply generated rhythm to kick pattern
-      if (best && best.rhythmPattern && this.patterns && this.patterns.KICK) {
+      // Phase 2 fix: patterns use lowercase keys (makePatterns); the uppercase
+      // KICK key never existed, so this write silently no-op'd.
+      if (best && best.rhythmPattern && this.patterns && this.patterns.kick) {
         for (var i = 0; i < 16; i++) {
-          this.patterns.KICK[i] = best.rhythmPattern[i];
+          this.patterns.kick[i] = best.rhythmPattern[i];
         }
         refreshSeqUi();
       }
