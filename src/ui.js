@@ -13,9 +13,10 @@ var KNOB_DEFS=[
   {name:"drive",label:"DRIVE",fmt:pctFmt},
   {name:"delay",label:"DELAY",fmt:pctFmt},
   {name:"reverb",label:"REVERB",fmt:pctFmt},
-  {name:"swing",label:"SWING",fmt:pctFmt}
+  {name:"swing",label:"SWING",fmt:pctFmt},
+  {name:"duck",label:"DUCK",fmt:pctFmt} // Phase 2: sidechain depth
 ];
-var KNOB_DEFAULTS={bpm:(145-120)/45,filter:1,res:0.15,drive:0.15,delay:0.35,reverb:0.30,swing:0}; // Phase 2: straight default
+var KNOB_DEFAULTS={bpm:(145-120)/45,filter:1,res:0.15,drive:0.15,delay:0.35,reverb:0.30,swing:0,duck:0.75}; // Phase 2: straight default
 function pctFmt(v){ return Math.round(v*100)+"%"; }
 var knobEls={};
 function buildKnobs(){
