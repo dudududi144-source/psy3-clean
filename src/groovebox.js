@@ -18,6 +18,7 @@ function Groovebox(){
   // Phase 2 takeover flags: BASS/LEAD are arrangement-driven until the user
   // edits their pattern rows; first edit switches them to pattern-driven.
   this.patternEdited={bass:false,lead:false};
+  this.sectionPatterns={}; // Phase 2 BarPlan: per-section overrides (lazy ownership via activePatterns)
   this.song=buildSong(this.seed);
   this._barCacheKey=-1;
   this._lastSecIdx=-1;
