@@ -171,12 +171,11 @@ if (typeof initMIDIInput === 'function') {
 }
 
 // Phase 0c: two empty "will be called after device is ready" if-blocks
-// were removed here. Decisions, documented instead of ritually deferred:
-//  - TrackControl.init is intentionally NOT called: it would double-route
-//    every partGain (already connected to master/duck), adding ~6dB and
-//    bypassing ducking for BASS/PAD. Revisit in Phase 2 with single routing.
-//  - PooledEngine.init IS already called inside device.init(). The pool is
-//    allocated but unused by the live (per-note) engine — Phase 2 decides
-//    between wiring the pool properly or removing it.
+// were removed here. Outcomes, kept accurate by later sessions:
+//  - TrackControl: removed entirely (session 21) - never initialized, and
+//    its init() would double-route every partGain (~+6dB, bypassing the
+//    BASS/PAD duck bus).
+//  - PooledEngine: removed entirely (session 11) - it allocated 44 always-on
+//    silent voices but was never triggered; the live engine is per-note.
 
 console.log('PSY3 PRO initialized');
