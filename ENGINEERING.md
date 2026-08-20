@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 20 - docs aligned with verified reality (all remediation phases done)
+## Status: Session 21 - wire-or-delete rule completed (dead code resolved)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -523,6 +523,19 @@ Old `scoreCandidate` took ~80% of the score from global grammar stats (identical
 README.md and ROADMAP.md were rewritten to match the **verified** code state. Removed claims: PooledEngine as a live engine (it was dead and removed in S11), "zero GC dropouts", 12 pattern-op types (7 exist), ROLLING/HALFTIME bass modes (real: gallop/offbeat/pumping/pedal), "S = sound design randomizer" shortcut (no such handler), "Press POWER" (no POWER button), reference to nonexistent ARCHITECTURE.md, "Phase A 7/7 COMPLETE", "53 shortcuts". Added: honest limitations section (ChordEngine not audible, Arpeggiator unwired, no automated tests, song editor without UI), documented pad-key/shortcut conflict, real feature list with session provenance, truthful commercial-phase ledger (A/B/C/D per item), and an explicit known-gaps backlog. Self-assigned scores retired.
 
 Rule applied: every remaining claim maps to code verified in sessions 1-19.
+
+
+## Session 21 changes (this commit) - wire-or-delete rule completed
+
+Every remaining dead-code item was verified (zero callers across all 11 modules, comment-stripped scan) and resolved:
+
+- **TrackControl removed** (brain-runtime.js): never initialized; its init() would have double-routed every partGain (~+6dB, bypassing the BASS/PAD duck bus). Mutes remain via `device.mutes` + `applySongSection`.
+- **PolyBLEPOscillator removed** (brain-runtime.js): a zero-caller createOscillator stub.
+- **PolyBLEP / ZDFFilter / OversampledLowpass / Envelope(ADSR) removed** (dsp.js): zero callers; reference implementations preserved in git history. dsp.js now contains only the **wired** BrickwallLimiter, with an accurate module header.
+- **Stray syntax removed**: an extra dangling `};` that trailed the Envelope object.
+- **main.js decision comment refreshed** to state actual outcomes (TrackControl removed S21, PooledEngine removed S11).
+
+Verification: all three edited files parse; comment-stripped scans assert zero references to all five removed symbols; BrickwallLimiter wiring, BarPlan, duck, MIDI-out, updateGrammars and ADAPTIVE regressions asserted. ROADMAP ledger updated (D1 + gap #6).
 
 
 ## Phase plan
