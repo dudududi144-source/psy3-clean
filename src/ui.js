@@ -15,7 +15,7 @@ var KNOB_DEFS=[
   {name:"reverb",label:"REVERB",fmt:pctFmt},
   {name:"swing",label:"SWING",fmt:pctFmt}
 ];
-var KNOB_DEFAULTS={bpm:(145-120)/45,filter:1,res:0.15,drive:0.15,delay:0.35,reverb:0.30,swing:0.20};
+var KNOB_DEFAULTS={bpm:(145-120)/45,filter:1,res:0.15,drive:0.15,delay:0.35,reverb:0.30,swing:0}; // Phase 2: straight default
 function pctFmt(v){ return Math.round(v*100)+"%"; }
 var knobEls={};
 function buildKnobs(){
@@ -276,10 +276,51 @@ function updateTimelineUi(idx){
   var el=$("timeline"); if(!el) return;
   for(var i=0;i<el.children.length;i++) el.children[i].className="tl-sec"+(i===idx?" cur":"");
 }
+
+/* ═══ PATTERN BANKS UI (Phase 2) ═══
+   PatternBanks (editor.js) existed with save/load/loadAll but had no UI.
+   Click = load bank, Shift+click = save current patterns to bank. */
+function buildBanks(){
+  var seqEl=$("seq");
+  var host=seqEl?seqEl.parentNode:document.body;
+  if(!host||$("banks")) return;
+  var row=document.createElement("div");
+  row.id="banks";
+  row.style.cssText="display:flex;gap:6px;align-items:center;margin:8px 0;flex-wrap:wrap;";
+  var lab=document.createElement("div");
+  lab.textContent="BANKS";
+  lab.style.cssText="font-size:9px;letter-spacing:2px;opacity:.6;margin-right:4px;";
+  row.appendChild(lab);
+  var names=["A","B","C","D"];
+  for(var i=0;i<names.length;i++){
+    (function(b){
+      var btn=document.createElement("button");
+      btn.textContent=b;
+      btn.title="Click: load bank "+b+" | Shift+click: save current pattern to bank "+b;
+      btn.style.cssText="width:34px;height:24px;background:#151b29;color:#9fb4d8;border:1px solid #2a3550;border-radius:4px;font-size:11px;cursor:pointer;";
+      btn.addEventListener("click",function(e){
+        if(typeof PatternBanks==="undefined") return;
+        if(e.shiftKey){ PatternBanks.save(b); }
+        else{
+          PatternBanks.load(b);
+          if(typeof commitUndo==="function") commitUndo(); // snapshot after bank load
+        }
+        if(device&&typeof device.updateLcd==="function") device.updateLcd();
+      });
+      row.appendChild(btn);
+    })(names[i]);
+  }
+  var hint=document.createElement("div");
+  hint.textContent="click: load · shift+click: save";
+  hint.style.cssText="font-size:8px;opacity:.45;margin-left:6px;";
+  row.appendChild(hint);
+  host.insertBefore(row,seqEl?seqEl.nextSibling:null);
+}
 function initUi(){
   buildKnobs();
   buildSeq();
   buildPads();
+  buildBanks();
   renderTimelineFor(device);
   var ls=$("lcdSteps");
   if(ls){ ls.innerHTML=""; for(var i=0;i<16;i++){ var sp=document.createElement("span"); sp.className="ls"; ls.appendChild(sp); } }
