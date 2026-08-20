@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 25 - stale-cache incident fixed (network-first SW + build guard)
+## Status: Session 26 - arrangement editor (the song is now changeable)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -602,6 +602,23 @@ Session 18's service worker was **cache-first**. Offline support quietly became 
 ### Boot-chain verification (static 'does it work' assurance)
 
 All 11 modules parse; load order asserted (core -> ... -> main); 17 boot symbols verified present in the correct files (Groovebox, makeVoices, buildSong, Grammars + updateGrammars, MIDIOut, BrickwallLimiter, PatternBanks, renderWav, initUi, guard script). No browser runtime available in this environment - visual smoke remains the user's one-step check: open in incognito.
+
+
+## Session 26 changes (this commit) - the arrangement stops being a fixed template
+
+User directive: the device felt 'too templated and fixed'; they wanted changeable structure. Delivered:
+
+### Arrangement editor (real, not decorative)
+
+- **ARRANGE bar** under the timeline: `-8b / +8b` (resize, clamped 4-64), `move left/right`, `DUP`, `DEL` (guards the last section), `ADD` (cycles DROP/BREAK/BUILD/RISER/DROP2/INTRO/OUTRO after the selection), `RESET` (rebuild from seed). Selection shown with a dashed outline + `n/total - NAME - bars` readout.
+- **Engine fixes that made the old helpers unusable** (found by inspection, fixed by rewrite): added sections lacked `themeKey/mode/bassStyle` (playback would read `SCALES[undefined]`); duplicated sections got `' COPY'` names that exist in no mapping table; and NO helper recomputed `sectionStarts/totalBars`, so `sectionAt()` would desync playback after any edit. All mutations now go through `songReindex()`, sections use canonical names via `songSectionDefaults()`.
+- **Arrangement joined the state model**: song deep-copied into undo snapshots and into `.psy.json` projects; `applyDeviceState`/`applyProject` restore it and re-render the timeline. Ctrl+Z now undoes structure edits too.
+
+### Verification / honesty
+
+- esprima parse of both edited JS files; anchors asserted (single occurrences); undo/project song paths asserted present.
+- Static verification only. Smoke test: click a section, +8b/-8b changes the strip width and the LCD bar counts; DUP/DEL/ADD/move update playback order; RESET restores the original; Ctrl+Z steps back.
+- Known scope: per-section pattern content still shares the global grid via BarPlan takeover; fully independent per-section pattern banks are a later item.
 
 
 ## Phase plan
