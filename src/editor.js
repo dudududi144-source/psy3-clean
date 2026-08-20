@@ -225,6 +225,7 @@ function getDeviceState() {
     knobVals: JSON.parse(JSON.stringify(device.knobVals)),
     mutes: JSON.parse(JSON.stringify(device.mutes)),
     genre: device.genre||"FULL-ON", // Phase 2: sound preset in undo state
+    sectionPatterns: JSON.parse(JSON.stringify(device.sectionPatterns||{})), // Phase 2 BarPlan
     // Phase 0c: patterns were missing from the snapshot, so undo could
     // never restore step edits. Deep copy (JSON-safe data).
     patterns: JSON.parse(JSON.stringify(device.patterns)),
@@ -246,6 +247,7 @@ function applyDeviceState(state) {
   }
   // Phase 2: restore genre without side effects (no status/analytics during undo)
   if (state.genre) { device.genre = state.genre; STYLE.name = state.genre; }
+  device.sectionPatterns = JSON.parse(JSON.stringify(state.sectionPatterns||{})); // Phase 2 BarPlan
   // Phase 0c: restore patterns snapshot + refresh grid; guard ctx
   // (undo before first play previously threw TypeError on null ctx).
   if (state.patterns) {
@@ -798,9 +800,10 @@ var PatternBanks = {
     
     // Phase 2: bank format v2 stores patterns + takeover flags together
     this.banks[bank] = {
-      v: 2,
+      v: 3, // Phase 2 BarPlan: + per-section pattern overrides
       patterns: JSON.parse(JSON.stringify(device.patterns)),
-      edited: JSON.parse(JSON.stringify(device.patternEdited || { bass:false, lead:false }))
+      edited: JSON.parse(JSON.stringify(device.patternEdited || { bass:false, lead:false })),
+      sectionPatterns: JSON.parse(JSON.stringify(device.sectionPatterns || {}))
     };
     localStorage.setItem('psy3_bank_' + bank, JSON.stringify(this.banks[bank]));
     
@@ -822,12 +825,14 @@ var PatternBanks = {
         var parsed = JSON.parse(saved);
         this.banks[bank] = parsed;
         // Phase 2: v2 banks carry takeover flags; legacy banks are raw patterns
-        if (parsed && parsed.v === 2 && parsed.patterns) {
+        if (parsed && (parsed.v === 2 || parsed.v === 3) && parsed.patterns) {
           device.patterns = JSON.parse(JSON.stringify(parsed.patterns));
           device.patternEdited = parsed.edited ? JSON.parse(JSON.stringify(parsed.edited)) : { bass:false, lead:false };
+          device.sectionPatterns = parsed.sectionPatterns ? JSON.parse(JSON.stringify(parsed.sectionPatterns)) : {}; // BarPlan (v3); v2/legacy -> none
         } else {
           device.patterns = JSON.parse(JSON.stringify(parsed));
           device.patternEdited = { bass:false, lead:false };
+          device.sectionPatterns = {};
         }
         refreshSeqUi();
         
