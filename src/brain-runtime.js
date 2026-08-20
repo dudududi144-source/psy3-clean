@@ -599,7 +599,17 @@ Groovebox.prototype.applyKnob=function(name){
   if(name==="bpm"){ this.bpm=120+v*45; this.updateDelayTime(); return; }
   if(!this.ctx) return;
   if(name==="filter"){
-    var hz=80*Math.pow(225,v*v);
+    // Phase 2: DJ filter modes. LP (default) behaves exactly as before;
+    // HP sweeps the lows out (v=1 open at 20Hz, v=0 cuts up to 20kHz) —
+    // the other half of DJ-style filtering psy sets need.
+    var hz;
+    if(this.filterMode==="HP"){
+      hz=20*Math.pow(1000,(1-v)*(1-v));
+      if(this.djFilter.type!=="highpass") this.djFilter.type="highpass";
+    }else{
+      hz=80*Math.pow(225,v*v);
+      if(this.djFilter.type!=="lowpass") this.djFilter.type="lowpass";
+    }
     this.djFilter.frequency.setTargetAtTime(hz,this.ctx.currentTime,0.03);
   }
   else if(name==="res"){ this.djFilter.Q.value=0.4+v*9; }
@@ -607,6 +617,14 @@ Groovebox.prototype.applyKnob=function(name){
   else if(name==="delay"){ this.delayIn.gain.value=v*0.9; }
   else if(name==="reverb"){ this.reverbIn.gain.value=v*0.9; }
   else if(name==="swing"){ this.swing=v*0.6; }
+};
+Groovebox.prototype.toggleFilterMode=function(){
+  // Phase 2: LP <-> HP for the DJ filter (UI button on the filter knob).
+  this.filterMode=(this.filterMode==="HP")?"LP":"HP";
+  this.applyKnob("filter");
+  if(typeof setStatus==="function") setStatus("FILTER MODE: "+this.filterMode,"ok");
+  if(typeof renderKnob==="function") renderKnob("filter");
+  if(typeof trackEvent==="function") trackEvent("filter_mode",{mode:this.filterMode});
 };
 Groovebox.prototype.setKnob=function(name,v){
   this.knobVals[name]=clamp(v,0,1);
@@ -782,7 +800,7 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
         var lprev=this.lastLeadMidi;
         var liv=(lprev!=null)?Math.abs(lmidi-lprev):0;
         var lslide=(liv===2||liv===3)&&lprev!=null;
-        v.leadNote(t,lmidi,{acc:laccSteps,slide:lslide,fromMidi:lprev});
+        v.leadNote(t,lmidi,{acc:laccSteps,slide:lslide,fromMidi:lprev,gate:(lpe.dur||1)*sd*0.92}); // Phase 2: edited motifs sustain too
         this.lastLeadMidi=lmidi;
       }
     } else {
@@ -801,7 +819,7 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
           var prevMidi=this.lastLeadMidi;
           var iv=(prevMidi!=null)?Math.abs(ev.midi-prevMidi):0;
           var slide=(iv===2||iv===3)&&prevMidi!=null;
-          v.leadNote(t,ev.midi,{acc:accSteps,slide:slide,fromMidi:prevMidi});
+          v.leadNote(t,ev.midi,{acc:accSteps,slide:slide,fromMidi:prevMidi,gate:ev.dur*sd*0.92}); // Phase 2: sustain the written length
           this.lastLeadMidi=ev.midi;
         }
         this._leadStepAcc+=(ev?ev.dur:1);
