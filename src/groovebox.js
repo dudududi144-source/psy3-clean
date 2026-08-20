@@ -12,6 +12,7 @@ function Groovebox(){
   this.pendingSeekBar=null;
   this.recorder=null; this.recChunks=[]; this.recStarted=0; // Phase 4: live recording state
   this.suppressMidi=false; // Phase 4: true on offline export clones (no MIDI leakage)
+  this.brainMode="MANUAL"; // Phase 3: MANUAL / GENERATIVE / ADAPTIVE
   this.isPlaying=false; this.absStep=0; this.nextNoteTime=0; this.timerId=null;
   this.uiQueue=[];
   this.bpm=145; this.swing=0; // Phase 2: psytrance is straight; swing available via knob
