@@ -527,7 +527,13 @@ Groovebox.prototype.init=function(){
   this.drivePre.connect(this.shaper);
   this.shaper.connect(this.drivePost);
   this.drivePost.connect(this.comp);
-  this.comp.connect(this.analyser);
+  // Phase 2: brickwall limiter (-1dB, 20:1, hard knee) after the glue comp.
+  // Analyser stays LAST, so meters/selfTest measure the final output.
+  if(typeof BrickwallLimiter!=="undefined"&&BrickwallLimiter.init){
+    this.comp.connect(BrickwallLimiter.init(ctx,this.analyser));
+  }else{
+    this.comp.connect(this.analyser);
+  }
   this.analyser.connect(ctx.destination);
   this.duck=ctx.createGain(); this.duck.gain.value=1;
   this.duck.connect(this.master);
