@@ -25,6 +25,7 @@ function Groovebox(){
   this._lastCycle=0;
   this.mutes={KICK:0,BASS:0,PERC:0,LEAD:0,ARP:0,PAD:0};
   this.knobVals={bpm:(145-120)/45,filter:1,res:0.15,drive:0.15,delay:0.35,reverb:0.30,swing:0};
+  this.filterMode="LP"; // Phase 2: DJ filter mode (LP default = legacy behavior)
   this.lastLeadMidi=null;
   this._timeBuf=new Uint8Array(512);
 }
