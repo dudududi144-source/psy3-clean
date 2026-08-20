@@ -275,6 +275,8 @@ var MIDIInput = {
   inputs: [],
   
   init: function() {
+    if (this.requested) return; // Phase 0b: idempotent (armed at boot AND on first gesture)
+    this.requested = true;
     var self = this;
     if (!navigator.requestMIDIAccess) {
       console.log('Web MIDI API not supported');
@@ -314,9 +316,11 @@ var MIDIInput = {
   
   handleCC: function(cc, value) {
     if (MIDILearn.active && MIDILearn.targetParam) {
-      MIDILearn.ccMap[cc] = MIDILearn.targetParam;
-      console.log('MIDI Learn: mapped CC ' + cc + ' to ' + MIDILearn.targetParam);
+      var learnedParam = MIDILearn.targetParam; // Phase 0b: capture before stop() clears it
+      MIDILearn.ccMap[cc] = learnedParam;
+      console.log('MIDI Learn: mapped CC ' + cc + ' to ' + learnedParam);
       MIDILearn.stop();
+      if (typeof setStatus === 'function') setStatus('MIDI: CC ' + cc + ' -> ' + String(learnedParam).toUpperCase(), 'ok');
       return;
     }
     var param = MIDILearn.ccMap[cc];
@@ -343,48 +347,29 @@ function initMIDIInput() {
 }
 
 // Apply MIDI parameter to device
+// Apply MIDI parameter to device
+// Phase 0b fix: knob params now route through device.setKnob(), i.e. the
+// exact same code path as the UI knobs. The previous version referenced
+// nodes that do not exist (delayMix/reverbMix were never created) and a
+// different filter node than the knobs use (autoFilter vs djFilter),
+// so delay/reverb learn silently no-op'd and filter behaved differently.
 function applyMIDIParam(param, value) {
   if (!device) return;
-  
-  switch(param) {
-    case 'bpm':
-      device.bpm = 60 + value * 140; // 60-200 BPM
-      break;
-    case 'filter':
-      if (device.autoFilter) {
-        device.autoFilter.frequency.setTargetAtTime(100 + value * 17900, device.ctx.currentTime, 0.01);
-      }
-      break;
-    case 'resonance':
-      if (device.autoFilter) {
-        device.autoFilter.Q.setTargetAtTime(0.5 + value * 19.5, device.ctx.currentTime, 0.01);
-      }
-      break;
-    case 'delay':
-      if (device.delayMix) {
-        device.delayMix.gain.setTargetAtTime(value, device.ctx.currentTime, 0.01);
-      }
-      break;
-    case 'reverb':
-      if (device.reverbMix) {
-        device.reverbMix.gain.setTargetAtTime(value, device.ctx.currentTime, 0.01);
-      }
-      break;
-    case 'drive':
-      if (device.drivePost) {
-        device.drivePost.gain.setTargetAtTime(0.5 + value * 1.5, device.ctx.currentTime, 0.01);
-      }
-      break;
-    case 'volume':
-      if (device.master) {
-        device.master.gain.setTargetAtTime(value, device.ctx.currentTime, 0.01);
-      }
-      break;
-    case 'swing':
-      device.swing = value * 0.5; // 0-50% swing
-      break;
-    default:
-      console.log('MIDI Learn: unknown parameter ' + param);
+
+  // Master volume has no knob; apply directly (guarded).
+  if (param === 'volume') {
+    if (device.master && device.ctx) {
+      device.master.gain.setTargetAtTime(clamp(value, 0, 1), device.ctx.currentTime, 0.01);
+    }
+    return;
+  }
+
+  if (param === 'resonance') param = 'res'; // legacy alias
+  var known = { bpm:1, filter:1, res:1, drive:1, delay:1, reverb:1, swing:1 };
+  if (known[param]) {
+    device.setKnob(param, value);
+  } else {
+    console.log('MIDI Learn: unknown parameter ' + param);
   }
 }
 
@@ -2470,6 +2455,15 @@ function buildKnobs(){
         startKnobDrag(def.name,e.clientY||0);
       });
       dial.addEventListener("dblclick",function(){ device.setKnob(def.name,KNOB_DEFAULTS[def.name]); });
+      // Phase 0b: right-click = MIDI Learn this knob's parameter
+      // (dblclick keeps its existing reset-to-default role)
+      dial.addEventListener("contextmenu",function(e){
+        if(e.preventDefault) e.preventDefault();
+        if(typeof MIDILearn!=="undefined"){
+          MIDILearn.start(def.name);
+          setStatus("MIDI LEARN: "+def.label+" — move a controller","ok");
+        }
+      });
     })(KNOB_DEFS[i]);
   }
 }
@@ -3345,6 +3339,15 @@ var KeyboardShortcuts = {
     
     var key = e.key.toLowerCase();
     
+    // Escape: cancel MIDI learn (Phase 0b)
+    if (key === 'escape') {
+      if (typeof MIDILearn !== 'undefined' && MIDILearn.active) {
+        MIDILearn.stop();
+        if (typeof setStatus === 'function') setStatus('MIDI LEARN: cancelled');
+      }
+      return;
+    }
+    
     // SPACE: Play/Stop
     if (key === ' ') {
       e.preventDefault();
@@ -3589,6 +3592,9 @@ if (document.readyState === 'loading') {
 // Initialize MIDI input
 if (typeof initMIDIInput === 'function') {
   initMIDIInput();
+  // Phase 0b: re-arm on first gesture for browsers that gate MIDI
+  // permission behind user interaction (init is idempotent).
+  window.addEventListener('pointerdown', function() { initMIDIInput(); }, { once: true });
 }
 
 // Initialize TrackControl
