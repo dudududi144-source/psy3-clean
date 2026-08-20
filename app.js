@@ -2221,6 +2221,7 @@ Groovebox.prototype.variate=function(auto){
   if(typeof refreshSeqUi==="function") refreshSeqUi();
   if(typeof renderTimelineFor==="function") renderTimelineFor(this);
   this.updateLcd();
+  if(!auto && typeof commitUndo==="function") commitUndo(); // Phase 0c: undo across manual re-seeds
 };
 Groovebox.prototype.scheduleStep=function(absStep,t){
   var song=this.song;
@@ -2381,8 +2382,18 @@ Groovebox.prototype.previewStep=function(stepIdx){
   o.stop(t+0.1);
 };
 Groovebox.prototype.selfTest=function(){
-  return Promise.resolve({ok:true,rms:0.1,peak:0.5});
-};;
+  // Phase 0c: real structural checks. The previous version returned
+  // hardcoded fake values ({ok:true,rms:0.1,peak:0.5}) unconditionally.
+  var problems=[];
+  if(!this.song||!this.song.sections||this.song.sections.length!==7) problems.push("song-structure");
+  if(!this.song||!(this.song.totalBars>0)) problems.push("total-bars");
+  if(!this.patterns||!this.patterns.arp||this.patterns.arp.length!==16) problems.push("patterns");
+  if(!this.song||!this.song.themes||!this.song.themes.A) problems.push("themes");
+  if(typeof makeVoices!=="function") problems.push("voice-factory");
+  var live=!!(this.ctx&&this.analyser);
+  var rms=live?+this.getEnergy().toFixed(4):0;
+  return Promise.resolve({ok:problems.length===0,reason:problems.join(","),rms:rms,peak:rms,live:live});
+};
 Groovebox.prototype.report=function(){
   var info=sectionAt(this.song,Math.floor(this.absStep/16));
   return {version:"4.0.0-m2-song",style:STYLE.name,playing:this.isPlaying,bpm:Math.round(this.bpm),
@@ -2403,6 +2414,8 @@ try{
   });
 }
 if(device){ device.makePatterns=makePatterns; } // Phase 0: guard (device undefined if ctor threw)
+// Phase 0c: session restore — loadSettings existed but was never called.
+try { loadSettings(); } catch (e) { console.log('loadSettings failed:', e); }
 function trackEvent(name,detail){
   try{
     var arr=JSON.parse(localStorage.getItem("psy6_events")||"[]");
@@ -2536,6 +2549,7 @@ function toggleStep(part,s){
   else if(part==="PAD"){ p.pad[s]=p.pad[s]?null:{chord:[0,4,7]}; }
   refreshStepUi(part,s);
   trackEvent("step_edited",{part:part,step:s});
+  if(typeof commitUndo==="function") commitUndo(); // Phase 0c: make Ctrl+Z real
 }
 function stepActive(part,s){
   var p=device.patterns;
@@ -2726,6 +2740,7 @@ function initUi(){
   device.scaleExt=SCALE_EXT; device.scales=SCALES; device.styleCfg=STYLE;
   device.renderTimeline=function(){ renderTimelineFor(device); };
   window.__psy6=device;
+  if(typeof commitUndo==="function") commitUndo(); // Phase 0c: baseline history entry
 }
 function safeInitUi(){
   try{
@@ -2877,6 +2892,7 @@ function savePreset(name) {
     presets.push(preset);
   }
   localStorage.setItem('psy3_presets', JSON.stringify(presets));
+  if (typeof saveSettings === 'function') saveSettings(); // Phase 0c: persist live settings too
   setStatus('Preset saved: ' + preset.name, 'ok');
   trackEvent('preset_saved', { name: preset.name });
 }
@@ -2898,7 +2914,7 @@ function loadPreset(name) {
   for (var key in device.knobVals) {
     device.applyKnob(key);
   }
-  device.refreshPartGains(device.ctx.currentTime);
+  if (device.ctx) device.refreshPartGains(device.ctx.currentTime); // Phase 0c: ctx guard
   setStatus('Preset loaded: ' + preset.name, 'ok');
   trackEvent('preset_loaded', { name: preset.name });
 }
@@ -2943,6 +2959,10 @@ function loadSettings() {
     for (var key in device.knobVals) {
       device.applyKnob(key);
     }
+    // Phase 0c: keep patterns/song consistent with the restored seed.
+    device.patterns = makePatterns(device.seed);
+    device.song = buildSong(device.seed);
+    device._barCacheKey = -1;
     console.log('Settings loaded');
   } catch (e) {
     console.log('Settings load failed: ' + e);
@@ -2958,7 +2978,10 @@ function getDeviceState() {
     seed: device.seed,
     variation: device.variation,
     knobVals: JSON.parse(JSON.stringify(device.knobVals)),
-    mutes: JSON.parse(JSON.stringify(device.mutes))
+    mutes: JSON.parse(JSON.stringify(device.mutes)),
+    // Phase 0c: patterns were missing from the snapshot, so undo could
+    // never restore step edits. Deep copy (JSON-safe data).
+    patterns: JSON.parse(JSON.stringify(device.patterns))
   };
 }
 
@@ -2973,7 +2996,22 @@ function applyDeviceState(state) {
   for (var key in device.knobVals) {
     device.applyKnob(key);
   }
-  device.refreshPartGains(device.ctx.currentTime);
+  // Phase 0c: restore patterns snapshot + refresh grid; guard ctx
+  // (undo before first play previously threw TypeError on null ctx).
+  if (state.patterns) {
+    device.patterns = JSON.parse(JSON.stringify(state.patterns));
+    if (typeof refreshSeqUi === 'function') refreshSeqUi();
+  }
+  if (device.ctx) device.refreshPartGains(device.ctx.currentTime);
+}
+
+// Phase 0c: snapshot helper — previously UndoRedo.push had zero callers,
+// so Ctrl+Z/Ctrl+Shift+Z were silent no-ops despite the UI wiring.
+function commitUndo() {
+  if (typeof getDeviceState === 'function') {
+    var st = getDeviceState();
+    if (st) UndoRedo.push(st);
+  }
 }
 
 
@@ -3583,11 +3621,10 @@ PatternBanks.loadAll();
    ============================================================ */
 
 // Initialize UI when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', safeInitUi);
-} else {
-  safeInitUi();
-}
+// Phase 0c: duplicate safeInitUi wiring REMOVED. The block above (mid-file)
+// already registers/invokes it. Having both meant initUi() ran twice:
+// duplicated knobs/pads/seq rows, two click handlers on PLAY (one click
+// toggled transport twice) and two rAF loops.
 
 // Initialize MIDI input
 if (typeof initMIDIInput === 'function') {
@@ -3597,14 +3634,13 @@ if (typeof initMIDIInput === 'function') {
   window.addEventListener('pointerdown', function() { initMIDIInput(); }, { once: true });
 }
 
-// Initialize TrackControl
-if (typeof TrackControl !== 'undefined' && TrackControl.init) {
-  // TrackControl.init will be called after device is ready
-}
-
-// Initialize PooledEngine
-if (typeof initPooledEngine === 'function') {
-  // initPooledEngine will be called after device is ready
-}
+// Phase 0c: two empty "will be called after device is ready" if-blocks
+// were removed here. Decisions, documented instead of ritually deferred:
+//  - TrackControl.init is intentionally NOT called: it would double-route
+//    every partGain (already connected to master/duck), adding ~6dB and
+//    bypassing ducking for BASS/PAD. Revisit in Phase 2 with single routing.
+//  - PooledEngine.init IS already called inside device.init(). The pool is
+//    allocated but unused by the live (per-note) engine — Phase 2 decides
+//    between wiring the pool properly or removing it.
 
 console.log('PSY3 PRO initialized');
