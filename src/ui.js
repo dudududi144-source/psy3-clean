@@ -379,6 +379,13 @@ function initUi(){
   }); // Phase 4: project save (.psy.json)
   var jlb=$("projLoadBtn"); if(jlb) jlb.addEventListener("click",function(){ var fi=$("projFileInput"); if(fi) fi.click(); }); // Phase 4: project load
   var jfi=$("projFileInput"); if(jfi) jfi.addEventListener("change",function(){ if(typeof loadProjectFromFile==="function"&&jfi.files&&jfi.files[0]) loadProjectFromFile(jfi.files[0]); jfi.value=""; }); // Phase 4: project file input
+  var bb=$("brainBtn"); if(bb) bb.addEventListener("click",function(){
+    var order=["MANUAL","GENERATIVE","ADAPTIVE"];
+    var cur=(typeof brainMode!=="undefined"&&order.indexOf(brainMode)>=0)?brainMode:"MANUAL";
+    var next=order[(order.indexOf(cur)+1)%order.length];
+    if(typeof setBrainMode==="function") setBrainMode(next);
+    bb.textContent="BRAIN: "+next;
+  }); // Phase 3: creative brain mode toggle
   refreshSeqUi();
   device.updateLcd();
   uiLoop();
