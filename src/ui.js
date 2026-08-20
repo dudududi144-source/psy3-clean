@@ -294,6 +294,55 @@ function uiLoop(){
     g.fillRect(i*barW+1,H-h,barW-2,h);
   }
 }
+/* ============================================================
+   ARRANGEMENT EDITOR UI (session 26)
+   Click a timeline section to select it (and seek); the ARRANGE
+   bar edits the arrangement for real: resize / move / dup / del /
+   add / reset. The song is no longer a fixed template.
+   ============================================================ */
+var arrSel=0;
+var arrAddCycle=0;
+var ARR_ADD_ORDER=["DROP","BREAK","BUILD","RISER","DROP2","INTRO","OUTRO"];
+function refreshTimelineSel(){
+  var el=$("timeline"); if(!el) return;
+  var curIdx=-1;
+  if(typeof device!=="undefined"&&device&&device.song&&typeof sectionAt==="function"){
+    var inf=sectionAt(device.song,Math.floor(device.absStep/16));
+    curIdx=inf.sectionIndex;
+  }
+  for(var i=0;i<el.children.length;i++){
+    var c=el.children[i];
+    c.className=(c.dataset&&c.dataset.base?c.dataset.base:"tl-sec")+(i===curIdx?" cur":"")+(i===arrSel?" sel":"");
+  }
+}
+function selectSection(idx){
+  var el=$("timeline");
+  var n=el?el.children.length:0;
+  arrSel=Math.max(0,Math.min(idx,Math.max(0,n-1)));
+  refreshTimelineSel();
+  var info=$("arrSelInfo");
+  if(info&&typeof device!=="undefined"&&device&&device.song&&device.song.sections[arrSel]){
+    var s=device.song.sections[arrSel];
+    info.textContent=(arrSel+1)+"/"+device.song.sections.length+" \u00B7 "+s.name+" \u00B7 "+s.bars+"b";
+  }
+}
+function arrClampSel(){
+  var n=(typeof device!=="undefined"&&device&&device.song)?device.song.sections.length:0;
+  if(arrSel>n-1) arrSel=Math.max(0,n-1);
+  return arrSel;
+}
+function initArranger(){
+  function bind(id,fn){ var el=$(id); if(el) el.addEventListener("click",fn); }
+  bind("arrMinus8",function(){ if(typeof songResizeSection==="function"){ songResizeSection(arrClampSel(),-8); selectSection(arrSel); } });
+  bind("arrPlus8",function(){ if(typeof songResizeSection==="function"){ songResizeSection(arrClampSel(),8); selectSection(arrSel); } });
+  bind("arrLeft",function(){ var i=arrClampSel(); if(typeof songMoveSection==="function"&&i>0){ songMoveSection(i,i-1); selectSection(i-1); } });
+  bind("arrRight",function(){ var i=arrClampSel(); var n=(typeof device!=="undefined"&&device&&device.song)?device.song.sections.length:0; if(typeof songMoveSection==="function"&&i<n-1){ songMoveSection(i,i+1); selectSection(i+1); } });
+  bind("arrDup",function(){ if(typeof songDuplicateSection==="function"){ songDuplicateSection(arrClampSel()); selectSection(arrSel+1); } });
+  bind("arrDel",function(){ var i=arrClampSel(); if(typeof songRemoveSection==="function"){ songRemoveSection(i); selectSection(Math.max(0,i-1)); } });
+  bind("arrAdd",function(){ if(typeof songAddSection==="function"){ var nm=ARR_ADD_ORDER[arrAddCycle%ARR_ADD_ORDER.length]; arrAddCycle++; songAddSection(nm,arrClampSel()); selectSection(arrSel+1); } });
+  bind("arrReset",function(){ if(typeof songReset==="function"){ songReset(); selectSection(0); } });
+  selectSection(arrSel);
+}
 var KEYMAP={a:0,w:1,s:2,e:3,d:4,f:5,t:6,g:7};
 var TL_COLORS={INTRO:"#3fa9bc",BUILD:"#ffb454",DROP:"#ff2e88",BREAK:"#a78bfa",RISER:"#ffd166",DROP2:"#ff2e88",OUTRO:"#3fa9bc"};
 var TL_ENERGY={INTRO:0.30,BUILD:0.55,DROP:1.00,BREAK:0.25,RISER:0.70,DROP2:1.00,OUTRO:0.30};
@@ -321,16 +370,17 @@ function renderTimelineFor(dev){
       en.style.opacity=String(TL_ENERGY[sec.name]!=null?TL_ENERGY[sec.name]:0.5);
       en.style.background=col;
       d.appendChild(lab); d.appendChild(bars); d.appendChild(en);
-      d.addEventListener("click",function(){ dev.seekToBar(song.sectionStarts[idx]); });
+      d.addEventListener("click",function(){ if(typeof selectSection==="function") selectSection(idx); dev.seekToBar(song.sectionStarts[idx]); });
       el.appendChild(d);
     })(i);
   }
 }
 function updateTimelineUi(idx){
   var el=$("timeline"); if(!el) return;
+  if(typeof arrSel!=="number"||arrSel>=el.children.length) arrSel=0;
   for(var i=0;i<el.children.length;i++){
     var c=el.children[i];
-    c.className=(c.dataset&&c.dataset.base?c.dataset.base:"tl-sec")+(i===idx?" cur":"");
+    c.className=(c.dataset&&c.dataset.base?c.dataset.base:"tl-sec")+(i===idx?" cur":"")+(i===arrSel?" sel":"");
   }
   // Session 24: section-change flash banner (DROP hits like a drop should)
   var fl=$("sectionFlash");
@@ -393,6 +443,7 @@ function initUi(){
   var vb=$("variateBtn"); if(vb) vb.addEventListener("click",function(){ device.variate(false); trackEvent("variate",{}); });
   var nb=$("nextSecBtn"); if(nb) nb.addEventListener("click",function(){ device.jumpSection(); trackEvent("jump_section",{}); });
   var gb=$("genreBtn"); if(gb) gb.addEventListener("click",function(){ if(device&&typeof device.cycleGenre==="function") device.cycleGenre(); }); // Phase 2: genre presets
+  if(typeof initArranger==="function") initArranger(); // Session 26: arrangement editor
   var xb=$("exportBtn"); if(xb) xb.addEventListener("click",function(){ if(typeof renderWav==="function") renderWav(4); }); // Phase 4: WAV export
   var rb=$("recBtn"); if(rb) rb.addEventListener("click",function(){ if(typeof toggleRecording==="function") toggleRecording(); }); // Phase 4: live recording
   var ppb=$("presetsBtn"); if(ppb) ppb.addEventListener("click",function(){ if(typeof togglePresetPanel==="function") togglePresetPanel(); }); // Phase 4: preset manager
