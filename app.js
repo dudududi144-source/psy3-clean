@@ -17,48 +17,6 @@ function debounce(fn, delay) {
   };
 }
 
-/* ============================================================
-   GLOBAL ERROR HANDLER (Phase 5.1)
-   Phase 0 fix: this block was nested inside debounce()'s body
-   (merge splice), so it only executed as a side effect of
-   calling debounce(). Now installed explicitly at top level.
-   ============================================================ */
-
-window.onerror = function(message, source, lineno, colno, error) {
-  console.error('PSY3 PRO Error:', message, 'at', source + ':' + lineno + ':' + colno);
-  
-  // Show error in status bar
-  var statusEl = document.getElementById('status');
-  if (statusEl) {
-    statusEl.textContent = 'ERROR: ' + message.substring(0, 50);
-    statusEl.className = 'err';
-  }
-  
-  // Track error
-  trackEvent('error', {
-    message: message,
-    source: source,
-    line: lineno,
-    col: colno
-  });
-  
-  return false;
-};
-
-window.addEventListener('unhandledrejection', function(event) {
-  console.error('PSY3 PRO Unhandled Rejection:', event.reason);
-  
-  var statusEl = document.getElementById('status');
-  if (statusEl) {
-    statusEl.textContent = 'ERROR: ' + String(event.reason).substring(0, 50);
-    statusEl.className = 'err';
-  }
-  
-  trackEvent('unhandled_rejection', {
-    reason: String(event.reason)
-  });
-});
-
 // Throttle utility
 function throttle(fn, limit) {
   var lastCall = 0;
@@ -1608,8 +1566,6 @@ var Grammars = {
   }
 };
 
-Grammars.init();
-
 /* ============================================================
    GRAMMAR INTEGRATION (Connect grammars to performance)
    ============================================================ */
@@ -1647,53 +1603,9 @@ var grammarTracker = {
 
 // Hook into hitPad to track performance
 var originalHitPad = null;
-if (typeof hitPad === 'function') {
-  originalHitPad = hitPad;
-  hitPad = function(idx, el) {
-    // Track melody for grammar learning
-    grammarTracker.trackMelody(idx);
-    
-    // Call original
-    if (originalHitPad) {
-      return originalHitPad(idx, el);
-    }
-  };
-}
 
 // Hook into scheduleStep to track kick and generate
 var originalScheduleStep = null;
-if (typeof Groovebox !== 'undefined' && Groovebox.prototype.scheduleStep) {
-  originalScheduleStep = Groovebox.prototype.scheduleStep;
-  Groovebox.prototype.scheduleStep = function(absStep, t) {
-    var step = absStep % 16;
-    
-    // Track kick for rhythm grammar
-    if (step === 0 || step === 4 || step === 8 || step === 12) {
-      grammarTracker.trackKick(step);
-    }
-    
-    // ADAPTIVE mode: Generate music using CandidateGenerator
-    if (this.brainMode === 'ADAPTIVE' && step === 0) {
-      var currentState = {
-        lastBassInterval: grammarTracker.lastBassNote || 0
-      };
-      var best = CandidateGenerator.generateNextBar(currentState, null);
-      
-      // Apply generated rhythm to kick pattern
-      if (best && best.rhythmPattern && this.patterns && this.patterns.KICK) {
-        for (var i = 0; i < 16; i++) {
-          this.patterns.KICK[i] = best.rhythmPattern[i];
-        }
-        refreshSeqUi();
-      }
-    }
-    
-    // Call original
-    if (originalScheduleStep) {
-      return originalScheduleStep.call(this, absStep, t);
-    }
-  };
-}
 
 // Initialize brain mode
 var brainMode = 'MANUAL'; // MANUAL, GENERATIVE, ADAPTIVE
@@ -2405,17 +2317,6 @@ Groovebox.prototype.report=function(){
 
 /* ---------- device + UI ---------- */
 var device;
-try{
-  device=new Groovebox();
-}catch(e){
-  document.addEventListener("DOMContentLoaded",function(){
-    var st=document.getElementById("status");
-    if(st){st.textContent="DEVICE ERROR: "+e.message;st.style.color="#ff0044";st.style.fontSize="14px";}
-  });
-}
-if(device){ device.makePatterns=makePatterns; } // Phase 0: guard (device undefined if ctor threw)
-// Phase 0c: session restore — loadSettings existed but was never called.
-try { loadSettings(); } catch (e) { console.log('loadSettings failed:', e); }
 function trackEvent(name,detail){
   try{
     var arr=JSON.parse(localStorage.getItem("psy6_events")||"[]");
@@ -2686,18 +2587,6 @@ function uiLoop(){
   }
 }
 var KEYMAP={a:0,w:1,s:2,e:3,d:4,f:5,t:6,g:7};
-window.addEventListener("keydown",function(e){
-  // Phase 0 fix: SPACE / Ctrl+Z / Ctrl+S were handled here AND in
-  // KeyboardShortcuts, causing double-fire (space could not stop
-  // playback; undo popped twice; save wrote twice). Those keys are
-  // now handled ONLY by KeyboardShortcuts. This listener keeps
-  // pad triggering (KEYMAP) exclusively.
-  if(e.repeat) return;
-  var tgt=e.target;
-  if(tgt&&(tgt.tagName==="INPUT"||tgt.tagName==="TEXTAREA")) return;
-  var k=(e.key||"").toLowerCase();
-  if(k in KEYMAP){ hitPad(KEYMAP[k],null); }
-});
 function renderTimelineFor(dev){
   var el=$("timeline"); if(!el||!dev.song) return;
   el.innerHTML="";
@@ -2756,8 +2645,6 @@ function safeInitUi(){
     hideLoading();
   }
 }
-if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",safeInitUi);
-else safeInitUi();
 
 
 
@@ -3358,12 +3245,6 @@ function hideLoading() {
 }
 
 
-// Fallback: hide loading after 5 seconds regardless
-setTimeout(function() {
-  hideLoading();
-}, 5000);
-
-
 /* ============================================================
    KEYBOARD SHORTCUTS (from PSY6-ULTIMATE)
    SPACE, V, W, D, H, Z, R, S, A, 1-8
@@ -3479,12 +3360,6 @@ var KeyboardShortcuts = {
     }
   }
 };
-
-// Replace existing keydown listener with enhanced version
-window.removeEventListener('keydown', KeyboardShortcuts.handleKey);
-window.addEventListener('keydown', function(e) {
-  KeyboardShortcuts.handleKey(e);
-});
 
 
 /* ============================================================
@@ -3611,6 +3486,142 @@ var PatternBanks = {
     }
   }
 };
+
+/* ============================================================
+   BOOT SEQUENCE (Phase 1a)
+   ALL top-level executable statements are consolidated here,
+   in their ORIGINAL relative order. Everything above this line
+   is declarations only (function decls, var/object config,
+   Groovebox.prototype method definitions). This is the
+   precondition for splitting the file into classic scripts /
+   modules in Phase 1b: declaration files first, boot last.
+   ============================================================ */
+
+
+/* ============================================================
+   GLOBAL ERROR HANDLER (Phase 5.1)
+   Phase 0 fix: this block was nested inside debounce()'s body
+   (merge splice), so it only executed as a side effect of
+   calling debounce(). Now installed explicitly at top level.
+   ============================================================ */
+
+window.onerror = function(message, source, lineno, colno, error) {
+  console.error('PSY3 PRO Error:', message, 'at', source + ':' + lineno + ':' + colno);
+  
+  // Show error in status bar
+  var statusEl = document.getElementById('status');
+  if (statusEl) {
+    statusEl.textContent = 'ERROR: ' + message.substring(0, 50);
+    statusEl.className = 'err';
+  }
+  
+  // Track error
+  trackEvent('error', {
+    message: message,
+    source: source,
+    line: lineno,
+    col: colno
+  });
+  
+  return false;
+};
+
+window.addEventListener('unhandledrejection', function(event) {
+  console.error('PSY3 PRO Unhandled Rejection:', event.reason);
+  
+  var statusEl = document.getElementById('status');
+  if (statusEl) {
+    statusEl.textContent = 'ERROR: ' + String(event.reason).substring(0, 50);
+    statusEl.className = 'err';
+  }
+  
+  trackEvent('unhandled_rejection', {
+    reason: String(event.reason)
+  });
+});
+
+Grammars.init();
+if (typeof hitPad === 'function') {
+  originalHitPad = hitPad;
+  hitPad = function(idx, el) {
+    // Track melody for grammar learning
+    grammarTracker.trackMelody(idx);
+    
+    // Call original
+    if (originalHitPad) {
+      return originalHitPad(idx, el);
+    }
+  };
+}
+if (typeof Groovebox !== 'undefined' && Groovebox.prototype.scheduleStep) {
+  originalScheduleStep = Groovebox.prototype.scheduleStep;
+  Groovebox.prototype.scheduleStep = function(absStep, t) {
+    var step = absStep % 16;
+    
+    // Track kick for rhythm grammar
+    if (step === 0 || step === 4 || step === 8 || step === 12) {
+      grammarTracker.trackKick(step);
+    }
+    
+    // ADAPTIVE mode: Generate music using CandidateGenerator
+    if (this.brainMode === 'ADAPTIVE' && step === 0) {
+      var currentState = {
+        lastBassInterval: grammarTracker.lastBassNote || 0
+      };
+      var best = CandidateGenerator.generateNextBar(currentState, null);
+      
+      // Apply generated rhythm to kick pattern
+      if (best && best.rhythmPattern && this.patterns && this.patterns.KICK) {
+        for (var i = 0; i < 16; i++) {
+          this.patterns.KICK[i] = best.rhythmPattern[i];
+        }
+        refreshSeqUi();
+      }
+    }
+    
+    // Call original
+    if (originalScheduleStep) {
+      return originalScheduleStep.call(this, absStep, t);
+    }
+  };
+}
+try{
+  device=new Groovebox();
+}catch(e){
+  document.addEventListener("DOMContentLoaded",function(){
+    var st=document.getElementById("status");
+    if(st){st.textContent="DEVICE ERROR: "+e.message;st.style.color="#ff0044";st.style.fontSize="14px";}
+  });
+}
+if(device){ device.makePatterns=makePatterns; } // Phase 0: guard (device undefined if ctor threw)
+// Phase 0c: session restore — loadSettings existed but was never called.
+try { loadSettings(); } catch (e) { console.log('loadSettings failed:', e); }
+window.addEventListener("keydown",function(e){
+  // Phase 0 fix: SPACE / Ctrl+Z / Ctrl+S were handled here AND in
+  // KeyboardShortcuts, causing double-fire (space could not stop
+  // playback; undo popped twice; save wrote twice). Those keys are
+  // now handled ONLY by KeyboardShortcuts. This listener keeps
+  // pad triggering (KEYMAP) exclusively.
+  if(e.repeat) return;
+  var tgt=e.target;
+  if(tgt&&(tgt.tagName==="INPUT"||tgt.tagName==="TEXTAREA")) return;
+  var k=(e.key||"").toLowerCase();
+  if(k in KEYMAP){ hitPad(KEYMAP[k],null); }
+});
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",safeInitUi);
+else safeInitUi();
+
+
+// Fallback: hide loading after 5 seconds regardless
+setTimeout(function() {
+  hideLoading();
+}, 5000);
+
+// Replace existing keydown listener with enhanced version
+window.removeEventListener('keydown', KeyboardShortcuts.handleKey);
+window.addEventListener('keydown', function(e) {
+  KeyboardShortcuts.handleKey(e);
+});
 
 // Load banks on startup
 PatternBanks.loadAll();
