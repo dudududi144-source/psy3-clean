@@ -260,6 +260,10 @@ btn.textContent="\u25A0 STOP"; btn.className="play-btn playing";
   });
 }
 var vizBuf=new Uint8Array(256);
+// Session 27: hot-loop DOM lookups cached (were re-queried 60 times/sec)
+var _vizCanvas=null,_vizCtx2d=null,_tlPlayhead=null;
+function _vizResize(){ if(_vizCanvas&&_vizCanvas.isConnected){ _vizCanvas.width=_vizCanvas.offsetWidth||300; _vizCanvas.height=_vizCanvas.offsetHeight||60; } }
+if(typeof window!=="undefined"){ window.addEventListener("resize",_vizResize); }
 
 function uiLoop(){
   requestAnimationFrame(uiLoop);
@@ -268,22 +272,19 @@ function uiLoop(){
   var s=-1;
   while(device.uiQueue.length&&device.uiQueue[0].time<=now){ s=device.uiQueue.shift().step; }
   if(device.isPlaying&&s>=0) setCurStep(s);
-  var canvas=$("viz"); if(!canvas) return;
+  if(!_vizCanvas||!_vizCanvas.isConnected){ _vizCanvas=$("viz"); _vizCtx2d=_vizCanvas?_vizCanvas.getContext("2d"):null; _vizResize(); }
+  var canvas=_vizCanvas; if(!canvas) return;
   // Session 24: arrangement playhead rides the timeline strip
-  var ph=$("tlPlayhead");
+  if(!_tlPlayhead||!_tlPlayhead.isConnected){ _tlPlayhead=$("tlPlayhead"); }
+  var ph=_tlPlayhead;
   if(ph&&device.song){
     var totalBars=device.song.totalBars||176;
     var barPos=(device.absStep/16)%totalBars;
     ph.style.left=(barPos/totalBars*100)+"%";
     ph.style.opacity=device.isPlaying?"1":"0.25";
   }
-  // Session 23 fix: keep the drawing buffer matched to the CSS size. It was
-  // never resized (only the dead drawViz did that), so the viz rendered into
-  // a default 300x150 buffer stretched/cropped by CSS - blurry, half-visible.
-  if(canvas.width!==(canvas.offsetWidth||300)||canvas.height!==(canvas.offsetHeight||60)){
-    canvas.width=canvas.offsetWidth||300; canvas.height=canvas.offsetHeight||60;
-  }
-  var g=canvas.getContext("2d"),W=canvas.width,H=canvas.height;
+  // Session 23: drawing buffer matched to CSS size; resize-driven since session 27.
+  var g=_vizCtx2d,W=canvas.width,H=canvas.height;
   g.fillStyle="#070312"; g.fillRect(0,0,W,H);
   device.analyser.getByteFrequencyData(vizBuf);
   var bars=64,barW=W/bars;
