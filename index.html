@@ -493,6 +493,111 @@ body {
 .self-test.err { color: var(--accent-red); }
 
 /* ============================================================
+   PRESET PANEL + MINI BUTTONS (session 23: design-system parity)
+   ============================================================ */
+
+.preset-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  margin-bottom: var(--space-lg);
+  box-shadow: var(--shadow-raised);
+}
+
+.preset-head, .preset-foot { display: flex; gap: var(--space-sm); align-items: center; }
+
+.preset-foot {
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.preset-input {
+  flex: 1;
+  background: var(--bg-inset);
+  color: var(--text-primary);
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.preset-input:focus { outline: none; border-color: var(--accent-cyan); }
+
+.mini-btn {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-dark);
+  background: linear-gradient(180deg, #2a2e38, #1c2028);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mini-btn:hover { background: linear-gradient(180deg, #343842, #2a2e38); transform: translateY(-1px); }
+
+.preset-list { margin-top: var(--space-sm); }
+
+.preset-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.preset-item:hover { background: var(--bg-raised); }
+
+.preset-name {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.preset-empty {
+  color: var(--text-dim);
+  font-size: 10px;
+  font-family: var(--font-mono);
+  padding: 8px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+/* ============================================================
+   SESSION 23: playhead + quarter accents + REC state + dim status
+   ============================================================ */
+
+.seq-row .steps button.q { box-shadow: inset 0 2px 0 rgba(255,180,84,0.28); }
+
+.seq-row .steps button.q.on { box-shadow: 0 0 8px currentColor, inset 0 2px 0 rgba(255,180,84,0.28); }
+
+.seq-row .steps button.cur { outline: 1px solid var(--accent-cyan); outline-offset: -1px; filter: brightness(1.55); }
+
+#recBtn.rec-on {
+  background: linear-gradient(180deg, var(--accent-red), #b32e3d);
+  color: #ffffff;
+  animation: recPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes recPulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(255,71,87,0.35); }
+  50% { box-shadow: 0 0 22px rgba(255,71,87,0.85); }
+}
+
+#status.dim, .status.dim { color: var(--text-dim); }
+
+/* ============================================================
    RESPONSIVE
    ============================================================ */
 
@@ -539,15 +644,15 @@ body {
     <button id="presetsBtn" title="Open the preset manager (save / load / delete)">PRESETS</button>
     <button id="brainBtn" title="Cycle creative brain mode: MANUAL / GENERATIVE / ADAPTIVE">BRAIN: MANUAL</button>
   </div>
-  <div id="presetPanel" style="display:none;background:#0d1117;border:1px solid #2a3550;border-radius:6px;padding:8px;margin:8px 12px;">
-    <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
-      <input id="presetNameInput" type="text" placeholder="preset name" style="flex:1;background:#151b29;color:#cfe3ff;border:1px solid #2a3550;border-radius:4px;padding:4px 6px;font-size:11px;" />
-      <button id="presetSaveBtn" style="font-size:10px;padding:3px 10px;cursor:pointer;">SAVE</button>
+  <div id="presetPanel" class="preset-panel" style="display:none;">
+    <div class="preset-head">
+      <input id="presetNameInput" class="preset-input" type="text" placeholder="preset / project name" />
+      <button id="presetSaveBtn" class="mini-btn">SAVE</button>
     </div>
-    <div id="presetList"></div>
-    <div style="display:flex;gap:6px;margin-top:6px;border-top:1px solid #2a3550;padding-top:6px;">
-      <button id="projSaveBtn" title="Download the full project as .psy.json" style="font-size:10px;padding:3px 10px;cursor:pointer;">SAVE PROJECT</button>
-      <button id="projLoadBtn" title="Load a .psy.json project file" style="font-size:10px;padding:3px 10px;cursor:pointer;">LOAD PROJECT</button>
+    <div id="presetList" class="preset-list"></div>
+    <div class="preset-foot">
+      <button id="projSaveBtn" class="mini-btn" title="Download the full project as .psy.json">SAVE PROJECT</button>
+      <button id="projLoadBtn" class="mini-btn" title="Load a .psy.json project file">LOAD PROJECT</button>
       <input id="projFileInput" type="file" accept=".json,application/json" style="display:none;" />
     </div>
   </div>
@@ -567,17 +672,17 @@ body {
   <div id="selfTest" class="self-test">SELF TEST: PENDING</div>
 </div>
 
-<script src="src/core.js?v=8"></script>
-<script src="src/pools.js?v=8"></script>
-<script src="src/midi.js?v=8"></script>
-<script src="src/theory.js?v=8"></script>
-<script src="src/song.js?v=8"></script>
-<script src="src/groovebox.js?v=8"></script>
-<script src="src/dsp.js?v=8"></script>
-<script src="src/brain-runtime.js?v=8"></script>
-<script src="src/ui.js?v=8"></script>
-<script src="src/editor.js?v=8"></script>
-<script src="src/main.js?v=8"></script>
+<script src="src/core.js?v=9"></script>
+<script src="src/pools.js?v=9"></script>
+<script src="src/midi.js?v=9"></script>
+<script src="src/theory.js?v=9"></script>
+<script src="src/song.js?v=9"></script>
+<script src="src/groovebox.js?v=9"></script>
+<script src="src/dsp.js?v=9"></script>
+<script src="src/brain-runtime.js?v=9"></script>
+<script src="src/ui.js?v=9"></script>
+<script src="src/editor.js?v=9"></script>
+<script src="src/main.js?v=9"></script>
 <script>
 // Register service worker
 if ('serviceWorker' in navigator) {
