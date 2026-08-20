@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Phase 2 - Session 8 complete: BASS/LEAD takeover + lead gates + HPF DJ filter
+## Status: Phase 2 - Session 9: genre presets wired (FULL-ON / DARK-PSY / PROGRESSIVE)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -244,6 +244,30 @@ Context: five takeover commits (patternEdited flags, scheduler takeover with arr
 - Lead sustain changes the sonic character of themes **by design**: notes now hold for their written length instead of a fixed 240ms. This cannot be verified without a listening test.
 - Takeover-edited lead notes sustain too (dur taken from the edited entries).
 - Static verification only (29 structural/semantic markers, all pass). Runtime smoke: toggle LP/HP and sweep the filter; long theme notes should sustain; edited BASS/LEAD rows still take over on first edit.
+
+
+## Session 9 changes (this commit) — genre presets finally wired
+
+`GENRE_SOUND_CONFIG` shipped with three presets (FULL-ON / DARK-PSY / PROGRESSIVE) but was unreachable (selection read `window._genreSound`, which nothing ever set - flagged in the original audit). Now:
+
+| # | Change | Verification |
+|---|--------|--------------|
+| 1 | `makeVoices` takes a `getCfg` thunk; the five pitched voices (kick/bass/lead/arp/pad) read config **per note**, so a genre switch applies from the next note. Drum voices untouched (they don't read cfg) | AST parse; per-function cfg use/declaration consistency checked for all 10 voice functions (5 use + declare, 5 neither) - zero ReferenceError potential |
+| 2 | `cfg()` reads `this.genre` via `GENRE_SOUND_CONFIG`, with `window._genreSound` kept as legacy fallback | string check |
+| 3 | `setGenre(name)` / `cycleGenre()` prototype methods; constructor default `FULL-ON`; LCD reflects the genre via `STYLE.name` | definitions present (note: `setGenre=function(name)`) |
+| 4 | UI: **GENRE button** in the transport row (cycles the three presets, tooltip explains) | HTML + initUi wiring checks |
+| 5 | Persistence: genre saved/restored in settings (session restore) and included in undo/redo state (applied without side effects during undo) | 4 string checks in editor.js |
+
+What audibly changes per genre (from the config values, verified in code): bass wave/cutoff/resonance/level, lead/arp cutoff/resonance/level, pad level/cutoff, and the kick pitch sweep (FULL-ON 150->55Hz, DARK-PSY 120->45Hz - deeper, PROGRESSIVE 180->60Hz).
+
+### Known gap (honest)
+
+Six config params remain unused by the voice code: `kickDecay, kickPunch, hatFreq, hatDecay, percTune, percDecay` - drum voices still use hardcoded values. Wiring them is further drum-voice surgery; deferred and documented here instead of silently claiming completeness.
+
+### Verification
+
+- All 6 edited files parse (esprima); 24 structural markers pass (one marker 'failure' during the session was my own typo - `setGenre=function(){` vs the actual `setGenre=function(name){` - re-verified correct).
+- Static verification only. Runtime smoke: click GENRE mid-play -> bass/lead character and kick depth change immediately; reload restores genre; undo restores it too.
 
 
 ## Phase plan
