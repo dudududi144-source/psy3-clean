@@ -75,7 +75,7 @@ var stepElsMap={KICK:[],BASS:[],PERC:[],LEAD:[],ARP:[],PAD:[]};
 var stepColEls=[];
 function buildSeq(){
   var root=$("seq"); if(!root) return;
-  var SEQ_EDIT=["ARP"];
+  var SEQ_EDIT=["KICK","PERC","ARP","PAD"]; // Phase 2: every visible row is audible & editable (bass/lead stay arrangement-driven until BarPlan)
   for(var pi=0;pi<SEQ_EDIT.length;pi++){
     (function(part){
       var row=document.createElement("div"); row.className="seq-row";
@@ -115,7 +115,7 @@ function toggleStep(part,s){
   }
   else if(part==="LEAD"){ p.lead[s]=p.lead[s]?null:{deg:4,acc:0,slide:0}; }
   else if(part==="ARP"){ p.arp[s]=p.arp[s]?null:{deg:4}; }
-  else if(part==="PAD"){ p.pad[s]=p.pad[s]?null:{chord:[0,4,7]}; }
+  else if(part==="PAD"){ p.pad[s]=p.pad[s]?null:{chord:[0,7,12]}; }
   refreshStepUi(part,s);
   trackEvent("step_edited",{part:part,step:s});
   if(typeof commitUndo==="function") commitUndo(); // Phase 0c: make Ctrl+Z real
