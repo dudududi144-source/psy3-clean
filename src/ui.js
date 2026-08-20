@@ -372,6 +372,13 @@ function initUi(){
     var nm=(inp&&inp.value.trim())?inp.value.trim():("Preset "+new Date().toLocaleTimeString());
     if(typeof savePreset==="function"){ savePreset(nm); if(inp) inp.value=""; if(typeof renderPresetList==="function") renderPresetList(); }
   }); // Phase 4: preset save
+  var jsb=$("projSaveBtn"); if(jsb) jsb.addEventListener("click",function(){
+    var inp=$("presetNameInput");
+    var nm=(inp&&inp.value.trim())?inp.value.trim():"psy3-project";
+    if(typeof saveProject==="function") saveProject(nm);
+  }); // Phase 4: project save (.psy.json)
+  var jlb=$("projLoadBtn"); if(jlb) jlb.addEventListener("click",function(){ var fi=$("projFileInput"); if(fi) fi.click(); }); // Phase 4: project load
+  var jfi=$("projFileInput"); if(jfi) jfi.addEventListener("change",function(){ if(typeof loadProjectFromFile==="function"&&jfi.files&&jfi.files[0]) loadProjectFromFile(jfi.files[0]); jfi.value=""; }); // Phase 4: project file input
   refreshSeqUi();
   device.updateLcd();
   uiLoop();
