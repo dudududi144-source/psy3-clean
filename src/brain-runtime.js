@@ -560,7 +560,7 @@ Groovebox.prototype.init=function(){
   var revOut=ctx.createGain(); revOut.gain.value=1.0;
   this.reverbIn.connect(conv); conv.connect(revOut); revOut.connect(this.master);
   this.noiseBuf=makeNoiseBuffer(ctx);
-  this.voices=makeVoices(ctx,this.partGains,{delay:this.delayIn,reverb:this.reverbIn},this.noiseBuf,this.cfg());
+  this.voices=makeVoices(ctx,this.partGains,{delay:this.delayIn,reverb:this.reverbIn},this.noiseBuf,this.cfg.bind(this)); // Phase 2: live genre config per note
   this.updateDrive();
   this.applyKnob("filter"); this.applyKnob("res"); this.applyKnob("swing");
   this.applySongSection(sectionAt(this.song,0).section);
