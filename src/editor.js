@@ -927,6 +927,7 @@ function renderWav(bars){
   g.mutes=JSON.parse(JSON.stringify(device.mutes));
   g.genre=device.genre||"FULL-ON";
   g.bpm=device.bpm; g.swing=device.swing;
+  g.suppressMidi=true; // Phase 4: no MIDI emission during offline render
   var baseBar=Math.floor((device.absStep||0)/16);
   var sd=60/g.bpm/4;
   var total=bars*16*sd+2.5; // tail for delay/reverb release
