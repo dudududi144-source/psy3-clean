@@ -4,7 +4,7 @@
 // Previous versions never cached anything ("skip caching entirely"), so the
 // README offline claim was void until now.
 
-var CACHE_NAME = 'psy3-pro-v5';
+var CACHE_NAME = 'psy3-pro-v6'; // session 23: ship the polished UI
 var APP_SHELL = [
   'index.html',
   'src/core.js', 'src/pools.js', 'src/midi.js', 'src/theory.js', 'src/song.js',
