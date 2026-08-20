@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 24 - Hyperspace visual identity (timeline centerpiece + motion)
+## Status: Session 25 - stale-cache incident fixed (network-first SW + build guard)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -579,6 +579,29 @@ Engineering roast conclusion: the arrangement (IN-BU-DR-BR-RI-DR-OU) is the prod
 - esprima parse of ui.js; structural assertions (timeline rewrite, playhead math, beat guard, markup, v10 x11, sw v7). `updateTimelineUi` preserves per-section styling via `dataset.base` (className resets no longer kill colors).
 - Static verification only. Visual smoke test: play -> playhead moves, LCD pulses on quarters, section names flash on transitions; click a section to seek.
 - Known follow-ups: timeline is not yet draggable-scrub; per-section loop ranges and energy-curve rendering (not just static levels) are next-level items.
+
+
+## Session 25 changes (this commit) - the stale-cache incident: diagnosed, roasted, fixed
+
+### Diagnosis (verified, not assumed)
+
+User report: 'the site still shows the same thing'. Checks performed:
+
+1. All session-24 commits present on `main`; latest Pages build status `built` (intermediate 'errored' entries are duplicate-build races from rapid pushes, GitHub-expected).
+2. The served index.html (fetched live) already contained every session-24 marker: 11x `?v=10`, `sectionFlash`, `timeline-wrap`, `logoShift`, `flashIn`.
+
+**Conclusion: the site was correct; the user's browser was not.** The serving path was stale.
+
+### Root cause - self-inflicted (roast on record)
+
+Session 18's service worker was **cache-first**. Offline support quietly became an anti-update mechanism: every improvement shipped afterwards arrived one visit late (or never, while the old SW controlled open tabs). A commercial product that cannot show its own updates is worse than one without offline mode. Fixed properly:
+
+1. **SW v8**: navigations are now **network-first** (online = always latest, instant), with cache fallback for offline boot; other assets stay stale-while-revalidate. Precache list unchanged.
+2. **Build-token guard** in index.html (`psy3_build` in localStorage): on token change, all old caches are deleted and old service workers unregistered once; reload fires exactly once and only for returning users (first visit never reloads - loop-proof by construction).
+
+### Boot-chain verification (static 'does it work' assurance)
+
+All 11 modules parse; load order asserted (core -> ... -> main); 17 boot symbols verified present in the correct files (Groovebox, makeVoices, buildSong, Grammars + updateGrammars, MIDIOut, BrickwallLimiter, PatternBanks, renderWav, initUi, guard script). No browser runtime available in this environment - visual smoke remains the user's one-step check: open in incognito.
 
 
 ## Phase plan
