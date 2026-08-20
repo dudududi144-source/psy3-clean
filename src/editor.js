@@ -981,11 +981,17 @@ function startRecording(){
   };
   device.recStarted=Date.now();
   device.recorder.start(1000); // 1s chunks: safe against tab throttling
+  var rb2=(typeof $==="function")?$("recBtn"):null;
+  if(rb2){ rb2.classList.add("rec-on"); rb2.textContent="\u25CF REC ON"; }
   if(typeof setStatus==="function") setStatus("RECORDING... press REC to stop","ok");
   if(typeof trackEvent==="function") trackEvent("recording_started",{});
 }
 function stopRecording(){
-  if(typeof device!=="undefined"&&device&&device.recorder&&device.recorder.state!=="inactive"){ device.recorder.stop(); }
+  if(typeof device!=="undefined"&&device&&device.recorder&&device.recorder.state!=="inactive"){
+    device.recorder.stop();
+    var rb2=(typeof $==="function")?$("recBtn"):null;
+    if(rb2){ rb2.classList.remove("rec-on"); rb2.textContent="REC"; }
+  }
 }
 function toggleRecording(){
   if(typeof device!=="undefined"&&device&&device.recorder){ stopRecording(); } else { startRecording(); }
@@ -1005,22 +1011,22 @@ function renderPresetList(){
   if(!names.length){
     var d=document.createElement("div");
     d.textContent="no presets yet";
-    d.style.cssText="opacity:.5;font-size:10px;padding:6px;";
+    d.className="preset-empty";
     host.appendChild(d);
     return;
   }
   for(var i=0;i<names.length;i++){
     (function(nm){
       var row=document.createElement("div");
-      row.style.cssText="display:flex;gap:6px;align-items:center;padding:3px 0;";
+      row.className="preset-item";
       var lab=document.createElement("div");
       lab.textContent=nm;
-      lab.style.cssText="flex:1;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
+      lab.className="preset-name";
       var lb=document.createElement("button"); lb.textContent="LOAD";
-      lb.style.cssText="font-size:9px;padding:2px 8px;cursor:pointer;";
+      lb.className="mini-btn";
       lb.addEventListener("click",function(){ if(typeof loadPreset==="function") loadPreset(nm); });
       var db=document.createElement("button"); db.textContent="DEL";
-      db.style.cssText="font-size:9px;padding:2px 8px;cursor:pointer;";
+      db.className="mini-btn";
       db.addEventListener("click",function(){ if(typeof deletePreset==="function"){ deletePreset(nm); renderPresetList(); } });
       row.appendChild(lab); row.appendChild(lb); row.appendChild(db);
       host.appendChild(row);
