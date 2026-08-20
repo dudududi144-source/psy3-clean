@@ -627,6 +627,7 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
   var energy=energyAt(section.name,barInSection,section.bars);
   var auto=automationFromEnergy(energy);
   var pat=this.patternsFor(section.name); // Phase 2 BarPlan
+  var pl=this.partLen||{}; // Session 28: per-part loop length
 
   if(step===0) this.onBar(absBar,t);
 
@@ -638,7 +639,7 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
   // default (makePatterns) is four-on-the-floor, sonically identical to the
   // old hardcoded KICK_STEPS constant (still used by BassStyles.gallop).
   var kp=pat.kick; // BarPlan
-  if(kp&&kp[step]&&!gated&&!m.KICK){
+  if(kp&&kp[absStep%(pl.KICK||16)]&&!gated&&!m.KICK){
     v.kick(t);
     if(typeof updateGrammars==="function")updateGrammars("kick",step,0);
     if(this.duck){
@@ -658,7 +659,7 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
   if(this.patternEdited.bass){
     // Phase 2 TAKEOVER: user-edited pattern overrides the section bass style.
     // Entries {n: semitone offset from bassRoot, s?: sustain in steps}.
-    var bpe=pat.bass[step]; // BarPlan
+    var bpe=pat.bass[absStep%(pl.BASS||16)]; // BarPlan + Session 28 loop length
     if(bpe&&!gated&&!m.BASS){
       var bdur=bpe.s?bpe.s*sd:sd*0.8;
       v.bassNote(t,bassRoot+(bpe.n||0),bdur);
@@ -678,7 +679,7 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
       // Phase 2: base groove is read from the user-editable pattern grid
       // (deterministic per seed). The clap energy gate from the old inline
       // logic is preserved; arrangement fills below remain section-driven.
-      var pe=pat.perc[step]; // BarPlan
+      var pe=pat.perc[absStep%(pl.PERC||16)]; // BarPlan + Session 28 loop length
       if(pe==="clap"){ if(energy>0.3) v.clap(t,0.7*auto.velocityMul); }
       else if(pe==="shaker"){ v.shaker(t,0.5*auto.velocityMul); }
       else if(pe==="oh"){ v.openhat(t,0.35); }
@@ -693,7 +694,7 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
     if(this.patternEdited.lead){
       // Phase 2 TAKEOVER: user-edited motif overrides the section theme.
       // Entries {deg, dur, accent|acc, rest}; deg indexes SCALE_EXT at ROOT+24.
-      var lpe=pat.lead[step]; // BarPlan
+      var lpe=pat.lead[absStep%(pl.LEAD||16)]; // BarPlan + Session 28 loop length
       if(lpe&&!lpe.rest){
         var lmidi=ROOT+24+SCALE_EXT[lpe.deg];
         var laccent=(lpe.accent!=null)?lpe.accent:(lpe.acc||0);
@@ -740,14 +741,14 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
     }
   }
   if(sectionHasPart(section,"arp")&&!m.ARP){
-    var an=pat.arp[absStep%16]; // BarPlan
+    var an=pat.arp[absStep%(pl.ARP||16)]; // BarPlan + Session 28 loop length
     if(an) v.arpNote(t,ROOT+24+SCALE_EXT[an.deg],step%4===0);
   }
   if(sectionHasPart(section,"pad")&&!m.PAD&&barInSection%2===0){
     // Phase 2: pad chords are read from the pattern grid. Seeded default is
     // {chord:[0,7,12]} at step 0 => exactly the old voicing
     // (root/fifth/octave above bassRoot+12; modal, no third).
-    var pp=pat.pad[step]; // BarPlan
+    var pp=pat.pad[absStep%(pl.PAD||16)]; // BarPlan + Session 28 loop length
     if(pp&&pp.chord){
       var padMidis=[];
       for(var pi2=0;pi2<pp.chord.length;pi2++){ padMidis.push(bassRoot+12+pp.chord[pi2]); }
