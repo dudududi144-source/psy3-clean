@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 23 - commercial UI polish (visible fixes shipped)
+## Status: Session 24 - Hyperspace visual identity (timeline centerpiece + motion)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -560,6 +560,25 @@ A real UI QA pass found and fixed actual brokenness:
 7. **Users would not have seen any of this** without a cache bust: script tags v8 -> v9 and service worker cache v5 -> v6 (old caches purge on activation).
 
 Verification: esprima parse of ui/editor/sw; structural assertions (dead code gone, buffer fix present, classes wired on both CSS and JS sides, v9 x11, v6 cache, no leftover inline panel styles); regressions asserted (WAV export, live recording, projects, brain button). Static verification only - a visual smoke test is recommended (hard refresh / incognito to bypass any old cache).
+
+
+## Session 24 changes (this commit) - Hyperspace visual identity (commercial-grade pass)
+
+Engineering roast conclusion: the arrangement (IN-BU-DR-BR-RI-DR-OU) is the product's signature, yet it was the weakest pixel on screen (7px dead strip). The chassis looked like a form, not an instrument; nothing moved with the music except one bar analyzer. This session rebuilt the visual layer around three commercial principles: **hierarchy, motion tied to audio, identity**.
+
+### What shipped
+
+1. **Timeline -> centerpiece**: sections render **proportional to bar count** (flex-grow), color-coded per role (INTRO/OUTRO cyan, BUILD amber, DROP/DROP2 psy-pink, BREAK violet, RISER gold), with bar labels and an **energy strip** per section (DROP=1.0, BREAK=0.25...). A glowing **playhead** rides the strip, driven from `device.absStep` in `uiLoop` (mod totalBars, dims when stopped). Click-to-seek kept.
+2. **Section-change flash banner**: `#sectionFlash` overlays the chassis and punches the section name (re-triggered via reflow trick) - drops arrive like drops.
+3. **Beat breathing**: quarter-note pulse on the LCD panel (`setCurStep` -> `.beat` class, re-triggered).
+4. **Identity**: logo gradient drift (background-clip text), LCD scanlines (::after overlay), transport hover glows color-coded per function, knobs color-coded by function group (BPM/drive orange, filters cyan, FX purple, swing green, duck pink).
+5. Cache bust v10 + SW cache v7 so real users receive it.
+
+### Verification / honesty
+
+- esprima parse of ui.js; structural assertions (timeline rewrite, playhead math, beat guard, markup, v10 x11, sw v7). `updateTimelineUi` preserves per-section styling via `dataset.base` (className resets no longer kill colors).
+- Static verification only. Visual smoke test: play -> playhead moves, LCD pulses on quarters, section names flash on transitions; click a section to seek.
+- Known follow-ups: timeline is not yet draggable-scrub; per-section loop ranges and energy-curve rendering (not just static levels) are next-level items.
 
 
 ## Phase plan
