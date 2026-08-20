@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Phase 3 complete - Session 19: brain wired (learning, fitness, modes) - ALL PHASES DONE
+## Status: Session 20 - docs aligned with verified reality (all remediation phases done)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -516,6 +516,13 @@ Old `scoreCandidate` took ~80% of the score from global grammar stats (identical
 - AST parse of all edited files; assertions: single definition of updateGrammars, both melodic-learning call sites, original kick/bass call sites intact, old fitness removed, GENERATIVE branch present, ctor field + button wiring; session 1-18 regressions sampled (BarPlan, ADAPTIVE write, MIDI-out untouched).
 - Offline exports stay quiet-brained: clones get brainMode MANUAL from the constructor.
 - Static verification only. Runtime smoke: switch to GENERATIVE -> arp evolves per bar; play for a while in ADAPTIVE -> kick patterns drift toward learned rhythm; grammar confidence rises with play time.
+
+
+## Session 20 changes (this commit) - documentation truthfulness pass
+
+README.md and ROADMAP.md were rewritten to match the **verified** code state. Removed claims: PooledEngine as a live engine (it was dead and removed in S11), "zero GC dropouts", 12 pattern-op types (7 exist), ROLLING/HALFTIME bass modes (real: gallop/offbeat/pumping/pedal), "S = sound design randomizer" shortcut (no such handler), "Press POWER" (no POWER button), reference to nonexistent ARCHITECTURE.md, "Phase A 7/7 COMPLETE", "53 shortcuts". Added: honest limitations section (ChordEngine not audible, Arpeggiator unwired, no automated tests, song editor without UI), documented pad-key/shortcut conflict, real feature list with session provenance, truthful commercial-phase ledger (A/B/C/D per item), and an explicit known-gaps backlog. Self-assigned scores retired.
+
+Rule applied: every remaining claim maps to code verified in sessions 1-19.
 
 
 ## Phase plan
