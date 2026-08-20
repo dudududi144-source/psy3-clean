@@ -73,12 +73,23 @@ function knobUp(){
 }
 var stepElsMap={KICK:[],BASS:[],PERC:[],LEAD:[],ARP:[],PAD:[]};
 var stepColEls=[];
+var seqRowEls={};
+/* Phase 2 takeover UX: BASS/LEAD rows render dimmed while the arrangement
+   engine drives them. First step edit takes the part over; the row then
+   becomes authoritative and fully audible. */
+function updateRowGhost(part){
+  var r=seqRowEls[part]; if(!r||typeof device==="undefined"||!device) return;
+  var ghost=(part==="BASS"||part==="LEAD")&&device.patternEdited&&!device.patternEdited[part.toLowerCase()];
+  r.style.opacity=ghost?"0.45":"1";
+  r.title=ghost?part+" is arrangement-driven \u2014 click a step to take over":"";
+}
 function buildSeq(){
   var root=$("seq"); if(!root) return;
-  var SEQ_EDIT=["KICK","PERC","ARP","PAD"]; // Phase 2: every visible row is audible & editable (bass/lead stay arrangement-driven until BarPlan)
+  var SEQ_EDIT=["KICK","BASS","PERC","LEAD","ARP","PAD"]; // Phase 2: all 6 rows; BASS/LEAD start dimmed (arrangement-driven) until first edit takes over
   for(var pi=0;pi<SEQ_EDIT.length;pi++){
     (function(part){
       var row=document.createElement("div"); row.className="seq-row";
+      seqRowEls[part]=row;
       var mute=document.createElement("button"); mute.className="mute"; mute.textContent="M";
       mute.addEventListener("click",function(){
         device.mutes[part]=device.mutes[part]?0:1;
@@ -101,11 +112,17 @@ function buildSeq(){
         })(s);
       }
       row.appendChild(mute); row.appendChild(lab); row.appendChild(steps);
+      updateRowGhost(part);
       root.appendChild(row);
     })(SEQ_EDIT[pi]);
   }
 }
 function toggleStep(part,s){
+  // Phase 2 takeover: first BASS/LEAD edit switches the part from
+  // arrangement-driven to pattern-driven (audible + authoritative).
+  if((part==="BASS"||part==="LEAD")&&device.patternEdited&&!device.patternEdited[part.toLowerCase()]){
+    device.patternEdited[part.toLowerCase()]=true;
+  }
   var p=device.patterns;
   if(part==="KICK"){ p.kick[s]=p.kick[s]?0:1; }
   else if(part==="BASS"){ p.bass[s]=p.bass[s]?null:{n:0}; }
@@ -119,6 +136,7 @@ function toggleStep(part,s){
   refreshStepUi(part,s);
   trackEvent("step_edited",{part:part,step:s});
   if(typeof commitUndo==="function") commitUndo(); // Phase 0c: make Ctrl+Z real
+  if(typeof updateRowGhost==="function") updateRowGhost(part);
 }
 function stepActive(part,s){
   var p=device.patterns;
@@ -144,8 +162,10 @@ function refreshStepUi(part,s){
   }
 }
 function refreshSeqUi(){
-  for(var i=0;i<PART_NAMES.length;i++)
+  for(var i=0;i<PART_NAMES.length;i++){
     for(var s=0;s<16;s++) refreshStepUi(PART_NAMES[i],s);
+    if(typeof updateRowGhost==="function") updateRowGhost(PART_NAMES[i]);
+  }
 }
 var curStepShown=-1;
 function setCurStep(s){
