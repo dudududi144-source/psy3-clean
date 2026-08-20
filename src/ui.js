@@ -366,6 +366,12 @@ function initUi(){
   var gb=$("genreBtn"); if(gb) gb.addEventListener("click",function(){ if(device&&typeof device.cycleGenre==="function") device.cycleGenre(); }); // Phase 2: genre presets
   var xb=$("exportBtn"); if(xb) xb.addEventListener("click",function(){ if(typeof renderWav==="function") renderWav(4); }); // Phase 4: WAV export
   var rb=$("recBtn"); if(rb) rb.addEventListener("click",function(){ if(typeof toggleRecording==="function") toggleRecording(); }); // Phase 4: live recording
+  var ppb=$("presetsBtn"); if(ppb) ppb.addEventListener("click",function(){ if(typeof togglePresetPanel==="function") togglePresetPanel(); }); // Phase 4: preset manager
+  var psb=$("presetSaveBtn"); if(psb) psb.addEventListener("click",function(){
+    var inp=$("presetNameInput");
+    var nm=(inp&&inp.value.trim())?inp.value.trim():("Preset "+new Date().toLocaleTimeString());
+    if(typeof savePreset==="function"){ savePreset(nm); if(inp) inp.value=""; if(typeof renderPresetList==="function") renderPresetList(); }
+  }); // Phase 4: preset save
   refreshSeqUi();
   device.updateLcd();
   uiLoop();
