@@ -424,44 +424,78 @@ body {
    TIMELINE
    ============================================================ */
 
-.timeline {
-  display: flex;
-  gap: 2px;
-  margin-bottom: var(--space-lg);
+/* Session 27: RESTORED timeline centerpiece CSS (lost in a session-24
+   multi-cell push race) + playhead alignment via .tl-inner. */
+.timeline-wrap {
   padding: var(--space-sm);
   background: var(--bg-inset);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-dark);
-  overflow-x: auto;
+  margin-bottom: var(--space-lg);
+}
+
+.tl-inner {
+  position: relative;
+}
+
+.timeline {
+  display: flex;
+  gap: 2px;
 }
 
 .timeline .tl-sec {
-  min-width: 48px;
-  height: 28px;
+  position: relative;
+  min-width: 26px;
+  height: 46px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-dark);
-  background: linear-gradient(180deg, #22262e, #181c22);
   font-family: var(--font-mono);
-  font-size: 7px;
-  letter-spacing: 0.5px;
   color: var(--text-dim);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
   cursor: pointer;
-  transition: all 0.1s;
-  flex-shrink: 0;
+  transition: filter 0.15s ease, transform 0.15s ease;
+  overflow: hidden;
+  flex-basis: 0;
 }
 
-.timeline .tl-sec:hover {
-  background: linear-gradient(180deg, #2a2e36, #22262e);
+.timeline .tl-sec:hover { filter: brightness(1.35); }
+
+.timeline .tl-sec.cur {
+  border-color: var(--sec, var(--accent-cyan));
+  filter: brightness(1.3);
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px rgba(255,255,255,0.08), inset 0 0 12px rgba(255,255,255,0.05);
+}
+
+.tl-label {
+  font-size: 8px;
+  letter-spacing: 1px;
   color: var(--text-secondary);
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-.timeline .tl-sec.active {
-  border-color: var(--accent-cyan);
-  color: var(--accent-cyan);
-  box-shadow: 0 0 8px rgba(63,169,188,0.3);
+.tl-bars { font-size: 7px; color: var(--text-dim); }
+
+.tl-energy {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 3px;
+}
+
+.tl-playhead {
+  position: absolute;
+  top: -3px; bottom: -3px;
+  width: 2px; left: 0;
+  background: var(--accent-cyan);
+  box-shadow: 0 0 10px rgba(63,169,188,0.9);
+  pointer-events: none;
+  opacity: 0.25;
+  z-index: 2;
 }
 
 /* ============================================================
@@ -785,8 +819,10 @@ body {
   <div id="seq" class="seq"></div>
   <div id="pads" class="pads"></div>
   <div class="timeline-wrap">
-    <div id="timeline" class="timeline"></div>
-    <div id="tlPlayhead" class="tl-playhead"></div>
+    <div class="tl-inner">
+      <div id="timeline" class="timeline"></div>
+      <div id="tlPlayhead" class="tl-playhead"></div>
+    </div>
   </div>
   <div class="arranger-bar" id="arrangerBar">
     <span class="arr-label">ARRANGE</span>
@@ -808,7 +844,7 @@ body {
 // Session 25 build guard: when the build token changes, purge stale caches and
 // service workers once, so returning users never stay stuck on an old version.
 (function(){
-  var BUILD = "s25-v10";
+  var BUILD = "s27-v12"; // session 27: force one-time purge so returning users see updates
   try {
     var seen = localStorage.getItem("psy3_build");
     if (seen !== BUILD) {
@@ -824,17 +860,17 @@ body {
   } catch (e) {}
 })();
 </script>
-<script src="src/core.js?v=11"></script>
-<script src="src/pools.js?v=11"></script>
-<script src="src/midi.js?v=11"></script>
-<script src="src/theory.js?v=11"></script>
-<script src="src/song.js?v=11"></script>
-<script src="src/groovebox.js?v=11"></script>
-<script src="src/dsp.js?v=11"></script>
-<script src="src/brain-runtime.js?v=11"></script>
-<script src="src/ui.js?v=11"></script>
-<script src="src/editor.js?v=11"></script>
-<script src="src/main.js?v=11"></script>
+<script src="src/core.js?v=12"></script>
+<script src="src/pools.js?v=12"></script>
+<script src="src/midi.js?v=12"></script>
+<script src="src/theory.js?v=12"></script>
+<script src="src/song.js?v=12"></script>
+<script src="src/groovebox.js?v=12"></script>
+<script src="src/dsp.js?v=12"></script>
+<script src="src/brain-runtime.js?v=12"></script>
+<script src="src/ui.js?v=12"></script>
+<script src="src/editor.js?v=12"></script>
+<script src="src/main.js?v=12"></script>
 <script>
 // Register service worker
 if ('serviceWorker' in navigator) {
