@@ -478,6 +478,12 @@ Groovebox.prototype.init=function(extCtx){
     this.comp.connect(this.analyser);
   }
   this.analyser.connect(ctx.destination);
+  // Phase 4: live recording tap (post-limiter, post-analyser). OfflineAudioContext
+  // has no createMediaStreamDestination, so WAV-export clones skip this automatically.
+  if(ctx.createMediaStreamDestination){
+    this.recTap=ctx.createMediaStreamDestination();
+    this.analyser.connect(this.recTap);
+  }
   this.duck=ctx.createGain(); this.duck.gain.value=1;
   this.duck.connect(this.master);
   PART_NAMES.forEach(function(n){
