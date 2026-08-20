@@ -1033,3 +1033,75 @@ function togglePresetPanel(){
   p.style.display=isOpen?"none":"block";
   if(!isOpen&&typeof renderPresetList==="function") renderPresetList();
 }
+
+
+/* ============================================================
+   PROJECTS (Phase 4) - full-project save/load via .psy.json files
+   Final README phase-4 item: "Projects - Save/load .psy.json".
+   A project captures everything that defines the current track:
+   seed/variation, tempo/swing, knobs, mutes, genre, the pattern
+   grid, BarPlan per-section overrides and takeover flags. The
+   arrangement itself is rebuilt deterministically from the seed.
+   ============================================================ */
+function buildProjectObject(name){
+  if(typeof device==="undefined"||!device) return null;
+  return {
+    format:"psy3-project", v:1,
+    name:name||"Untitled", timestamp:Date.now(),
+    seed:device.seed, variation:device.variation,
+    bpm:device.bpm, swing:device.swing,
+    knobVals:JSON.parse(JSON.stringify(device.knobVals)),
+    mutes:JSON.parse(JSON.stringify(device.mutes)),
+    genre:device.genre||"FULL-ON",
+    patterns:JSON.parse(JSON.stringify(device.patterns)),
+    sectionPatterns:JSON.parse(JSON.stringify(device.sectionPatterns||{})),
+    patternEdited:JSON.parse(JSON.stringify(device.patternEdited||{bass:false,lead:false}))
+  };
+}
+function saveProject(name){
+  var proj=buildProjectObject(name);
+  if(!proj) return;
+  var blob=new Blob([JSON.stringify(proj,null,2)],{type:"application/json"});
+  var safe=(proj.name||"psy3-project").replace(/[^\w\-]+/g,"_");
+  if(typeof downloadBlob==="function") downloadBlob(blob,safe+".psy.json");
+  if(typeof setStatus==="function") setStatus("PROJECT SAVED: "+proj.name,"ok");
+  if(typeof trackEvent==="function") trackEvent("project_saved",{name:proj.name});
+}
+function applyProject(proj){
+  if(typeof device==="undefined"||!device||!proj) return;
+  if(typeof commitUndo==="function") commitUndo(); // undo restores the pre-load state
+  device.seed=proj.seed; device.variation=proj.variation||1;
+  device.bpm=proj.bpm; device.swing=proj.swing;
+  if(proj.genre&&typeof device.setGenre==="function") device.setGenre(proj.genre);
+  device.knobVals=JSON.parse(JSON.stringify(proj.knobVals));
+  device.mutes=JSON.parse(JSON.stringify(proj.mutes));
+  device.patterns=JSON.parse(JSON.stringify(proj.patterns));
+  device.sectionPatterns=JSON.parse(JSON.stringify(proj.sectionPatterns||{}));
+  device.patternEdited=JSON.parse(JSON.stringify(proj.patternEdited||{bass:false,lead:false}));
+  for(var key in device.knobVals){ device.applyKnob(key); }
+  if(typeof buildSong==="function"){ device.song=buildSong(device.seed); device._barCacheKey=-1; }
+  if(typeof refreshSeqUi==="function") refreshSeqUi();
+  if(typeof renderTimelineFor==="function") renderTimelineFor(device);
+  if(typeof device.updateLcd==="function") device.updateLcd();
+  if(device.ctx&&typeof device.refreshPartGains==="function") device.refreshPartGains(device.ctx.currentTime);
+  if(typeof setStatus==="function") setStatus("PROJECT LOADED: "+(proj.name||"unknown"),"ok");
+  if(typeof trackEvent==="function") trackEvent("project_loaded",{name:proj.name||"unknown"});
+}
+function loadProjectFromFile(file){
+  if(!file) return;
+  var rd=new FileReader();
+  rd.onload=function(){
+    try{
+      var proj=JSON.parse(rd.result);
+      if(!proj||proj.format!=="psy3-project"||!proj.patterns){
+        if(typeof setStatus==="function") setStatus("NOT A PSY3 PROJECT FILE","err");
+        return;
+      }
+      applyProject(proj);
+    }catch(e){
+      if(typeof setStatus==="function") setStatus("PROJECT LOAD FAILED","err");
+      console.log("Project load failed:",e);
+    }
+  };
+  rd.readAsText(file);
+}
