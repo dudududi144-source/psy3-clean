@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Phase 2 - Session 11: dead code excised + controllable sidechain
+## Status: Phase 2 complete - Session 12: BarPlan (per-section patterns)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -330,6 +330,29 @@ Per-function cfg use/declaration matrix re-verified for all 10 voice functions (
 - All 5 edited files parse; dead-symbol scan clean; limiter/genre/gates/HPF/takeover regressions asserted.
 - Removing the silent pool changes no audible signal (voices never triggered, gain 0).
 - Static verification only. Runtime smoke: DUCK knob audible on bass/pad pumping; knob restores with presets.
+
+
+## Session 12 changes (this commit) — BarPlan: per-section pattern ownership
+
+The last Phase-2 editing feature: each song section can now own its pattern grid.
+
+### Model (lazy ownership, zero behavior change until first edit)
+
+- `device.sectionPatterns = { SECTION_NAME: patternsClone }` - populated lazily.
+- `patternsFor(sectionName)`: scheduler reads the section's own patterns if it was edited, otherwise falls back to the global seeded patterns. All six lanes routed through it (kick, takeover-bass, perc, takeover-lead, arp, pad).
+- `activePatterns()`: grid-edit target = the section at the playhead; first edit clones the global baseline into that section's slot (then mutates the clone).
+- `onBar` section change refreshes the grid, so the displayed pattern follows the playing section.
+- `variate()` clears overrides (new variation = fresh baseline). Undo/redo state and banks include them.
+
+### Banks v3 + compatibility
+
+- Save format v3 = `{v:3, patterns, edited, sectionPatterns}`. Loader accepts v3, v2 (no overrides -> `{}`) and legacy raw-pattern banks. Old saved banks load unchanged.
+
+### Semantics notes (honest)
+
+- BASS/LEAD takeover flags stay global: once you edit bass anywhere, bass becomes pattern-driven in all sections (unedited sections read the global seeded gallop). Per-section bass STYLE (offbeat/pedal) is superseded by design once patterns take over.
+- Pattern ops (clear/random/shift/...) still act on the global patterns object, not per-section - documented limitation; section-scoped ops are a follow-up.
+- Static verification only (AST parse + structural assertions, incl. all session 1-11 regressions). Runtime smoke: edit ARP in DROP, seek to BREAK -> grid differs; playback plays each section's own steps; save/load bank A preserves per-section edits; undo restores them.
 
 
 ## Phase plan
