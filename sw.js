@@ -4,7 +4,7 @@
 // Previous versions never cached anything ("skip caching entirely"), so the
 // README offline claim was void until now.
 
-var CACHE_NAME = 'psy3-pro-v6'; // session 23: ship the polished UI
+var CACHE_NAME = 'psy3-pro-v7'; // session 24: hyperspace identity
 var APP_SHELL = [
   'index.html',
   'src/core.js', 'src/pools.js', 'src/midi.js', 'src/theory.js', 'src/song.js',
