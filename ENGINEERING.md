@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Phase 1 (Modularization) - Session 5: Phase 1b complete (physical file split)
+## Status: Phase 1-2 - Session 6: engine decomposed, Banks UI, swing default 0
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -152,6 +152,38 @@ The 3.6k-line `app.js` monolith is now physically split into 9 files under `src/
 - This is a **contiguous** split (boundaries at natural section lines), not a layer-pure regrouping — `src/engine.js` still mixes engine + brain code, and theory/voices share a file. Layer-pure modules (moving declarations across file order) need a dependency-order proof + runtime test = Phase 1c/2.
 - `src/engine.js` at 1464 lines is the next decomposition target.
 - Static verification only. Runtime smoke test required: page loads, PLAY works, knobs/pads respond, MIDI enumerates, SELF TEST shows OK.
+
+
+## Session 6 changes (this commit)
+
+Two tracks this session: completing the engine decomposition (Phase 1b follow-up) and two concrete musical/UI improvements that were documented-but-missing.
+
+### 1. `src/engine.js` decomposed into 3 files
+
+| File | Lines | Actual contents |
+|---|---|---|
+| `src/groovebox.js` | 302 | Groovebox constructor, GENRE_SOUND_CONFIG, cfg()/early prototypes, PART_COLORS/PART_NAMES, PooledEngine |
+| `src/dsp.js` | 272 | PolyBLEP, ZDFFilter, BrickwallLimiter, OversampledLowpass, Envelope, SoftClip (all still unwired - Phase 2 decision pending) |
+| `src/brain-runtime.js` | 892 | Grammars, grammarTracker, CandidateGenerator, TrackControl, ChordEngine, pooled triggers, `var device`, and the bulk of Groovebox.prototype methods (init/FX graph/transport/scheduler/LCD/selfTest) |
+
+- **Byte-exact proof**: split parts + reverted session-6 swing edits == original `engine.js`, byte for byte.
+- Each file parses standalone; zero immediate-execution statements outside `Groovebox.prototype.*` bindings (Phase 1a invariant).
+- `src/engine.js` deleted after `index.html` switch-over (site working at every intermediate commit).
+- Honest naming note: `brain-runtime.js` mixes brain code with runtime prototypes because the split is contiguous; layer-pure separation remains deferred (needs dependency-order proof + runtime test).
+
+### 2. Pattern Banks UI (documented feature, had no UI)
+
+`PatternBanks` (A-D, localStorage-persisted, `loadAll()` at boot) existed since the PSY6 copy but had zero callers for `save()`/`load()`. Added `buildBanks()` in `src/ui.js` (called from `initUi`): 4 bank buttons under the sequencer - **click = load bank, shift+click = save current patterns**, with status feedback (existing PatternBanks messages) and an undo snapshot pushed after each load. No audio-path changes.
+
+### 3. Swing default: 0.20 -> 0 (musical correctness, Phase 2 first item)
+
+Psytrance groove is straight; the previous default added ~6% 16th偏移 via three places that are now consistent:
+constructor `this.swing`, constructor `knobVals.swing`, and `KNOB_DEFAULTS.swing` (all 0 now). The knob remains for deliberate swing/humanize. (Wording fixed in code comment; knob range unchanged.)
+
+### Verification
+
+- 21 structural/semantic markers pass (split equivalence, swing consistency, banks wiring, all session 1-5 regressions).
+- Static verification only. Runtime smoke: page loads, BANK buttons load/save ARP patterns, swing knob still works.
 
 
 ## Phase plan
