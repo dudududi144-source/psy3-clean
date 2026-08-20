@@ -231,7 +231,8 @@ if(navigator.vibrate)navigator.vibrate(15);
     trackEvent("stopped",{});
     return;
   }
-  device.absStep=0; device._barCacheKey=-1; device._lastSecIdx=-1;
+  // Session 23: resume from the stopped position instead of rewinding to bar 0.
+  device._barCacheKey=-1; device._lastSecIdx=-1;
 device.play().then(function(){
 btn.textContent="\u25A0 STOP"; btn.className="play-btn playing";
     if(eng){ eng.textContent="running"; eng.className="ok"; }
@@ -251,26 +252,6 @@ btn.textContent="\u25A0 STOP"; btn.className="play-btn playing";
 }
 var vizBuf=new Uint8Array(256);
 
-function drawViz(){
-  var canvas=document.getElementById("viz");
-  if(!canvas||!device||!device.analyser) return;
-  var ctx2d=canvas.getContext("2d");
-  var w=canvas.width=canvas.offsetWidth||300;
-  var h=canvas.height=canvas.offsetHeight||56;
-  device.analyser.getByteFrequencyData(vizBuf);
-  ctx2d.clearRect(0,0,w,h);
-  var barCount=64;
-  var barWidth=w/barCount;
-  for(var i=0;i<barCount;i++){
-    var v=vizBuf[i]/255;
-    var barHeight=v*h;
-    var hue=180+i*2;
-    var lightness=40+v*30;
-    ctx2d.fillStyle="hsla("+hue+",70%,"+lightness+"%,0.85)";
-    ctx2d.fillRect(i*barWidth,h-barHeight,barWidth-1,barHeight);
-  }
-}
-
 function uiLoop(){
   requestAnimationFrame(uiLoop);
   if(!device.ctx||!device.analyser) return;
@@ -279,6 +260,12 @@ function uiLoop(){
   while(device.uiQueue.length&&device.uiQueue[0].time<=now){ s=device.uiQueue.shift().step; }
   if(device.isPlaying&&s>=0) setCurStep(s);
   var canvas=$("viz"); if(!canvas) return;
+  // Session 23 fix: keep the drawing buffer matched to the CSS size. It was
+  // never resized (only the dead drawViz did that), so the viz rendered into
+  // a default 300x150 buffer stretched/cropped by CSS - blurry, half-visible.
+  if(canvas.width!==(canvas.offsetWidth||300)||canvas.height!==(canvas.offsetHeight||60)){
+    canvas.width=canvas.offsetWidth||300; canvas.height=canvas.offsetHeight||60;
+  }
   var g=canvas.getContext("2d"),W=canvas.width,H=canvas.height;
   g.fillStyle="#070312"; g.fillRect(0,0,W,H);
   device.analyser.getByteFrequencyData(vizBuf);
