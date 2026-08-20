@@ -147,18 +147,27 @@ function makeVoices(ctx,outMap,sends,noiseBuf,cfg){
     var flt=ctx.createBiquadFilter(); flt.type="lowpass"; flt.Q.value=cfg.leadRes;
     var acc=opts.acc||0;
     var peak=Math.min(cfg.leadCut*(acc===2?1.4:(acc===1?1.2:1.0)),ctx.sampleRate*0.42);
+    // Phase 2: gate support — a lead note can now sustain for its written
+    // duration. Without opts.gate the legacy fixed 240ms envelope is
+    // reproduced exactly (arp/pads/pad-triggers keep their sound).
+    var gate=(opts&&typeof opts.gate==="number"&&opts.gate>0)?opts.gate:0;
     flt.frequency.setValueAtTime(280,t);
     flt.frequency.exponentialRampToValueAtTime(Math.max(300,peak),t+0.016);
-    flt.frequency.exponentialRampToValueAtTime(380,t+0.22);
+    flt.frequency.exponentialRampToValueAtTime(380,t+(gate>0?Math.max(0.10,gate*0.85):0.22));
     var g=ctx.createGain();
     var lvl=cfg.leadLvl*(acc===2?1.0:(acc===1?0.85:0.7));
     g.gain.setValueAtTime(0.0001,t);
     g.gain.exponentialRampToValueAtTime(lvl,t+0.009);
-    g.gain.exponentialRampToValueAtTime(0.001,t+0.24);
+    if(gate>0){
+      g.gain.exponentialRampToValueAtTime(Math.max(0.0011,lvl*0.72),t+gate*0.75);
+      g.gain.exponentialRampToValueAtTime(0.001,t+gate);
+    }else{
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.24);
+    }
     o1.connect(flt); o2.connect(flt); flt.connect(g); g.connect(outMap.LEAD);
     if(sends.delay){ var sd=ctx.createGain(); sd.gain.value=0.4; g.connect(sd); sd.connect(sends.delay); }
     if(sends.reverb){ var sr2=ctx.createGain(); sr2.gain.value=0.25; g.connect(sr2); sr2.connect(sends.reverb); }
-    o1.start(t); o2.start(t); o1.stop(t+0.26); o2.stop(t+0.26);
+    o1.start(t); o2.start(t); o1.stop(t+(gate>0?gate+0.03:0.26)); o2.stop(t+(gate>0?gate+0.03:0.26));
   }
   function arpNote(t,midi,acc){
     var f=mtof(midi);
