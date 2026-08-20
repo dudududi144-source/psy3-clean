@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 21 - wire-or-delete rule completed (dead code resolved)
+## Status: Session 22 - status dashboard live; Pages verified built
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -536,6 +536,15 @@ Every remaining dead-code item was verified (zero callers across all 11 modules,
 - **main.js decision comment refreshed** to state actual outcomes (TrackControl removed S21, PooledEngine removed S11).
 
 Verification: all three edited files parse; comment-stripped scans assert zero references to all five removed symbols; BrickwallLimiter wiring, BarPlan, duck, MIDI-out, updateGrammars and ADAPTIVE regressions asserted. ROADMAP ledger updated (D1 + gap #6).
+
+
+## Session 22 changes (this commit) - status dashboard + Pages verification
+
+Answered 'where do we stand?' with a published page:
+
+- **GitHub Pages verified**: API reports status `built`, source `main` `/`; the live app URL returned HTTP 200 (~16KB) - the demo link in the README is real, not aspirational.
+- **status.html** added at repo root: self-contained dark dashboard (no dependencies) showing phases, session ledger, verified features, honest backlog, module map, and links to ENGINEERING.md/README/ROADMAP. Served at `/status.html` by the existing Pages setup.
+- README updated: demo line now states Pages verified + links the dashboard.
 
 
 ## Phase plan
