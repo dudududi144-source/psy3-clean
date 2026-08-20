@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Phase 2 - Session 7: sequencer audible for KICK/PERC/ARP/PAD
+## Status: Phase 2 - Session 8: BASS/LEAD takeover (all 6 rows live)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -210,6 +210,24 @@ Other changes:
 - `variate()` (manual or per 176-bar cycle) regenerates patterns from the new seed - kick/perc/pad edits reset, same as ARP always did. Pattern persistence across variations belongs to Phase 4.
 - Bank save/load now meaningfully covers 4 audible parts.
 - Static verification only (esprima parse of all 4 edited files + 25 structural/semantic markers, all pass). Runtime smoke: toggle a KICK step off -> hear the gap; add PERC steps; PAD chord edits audible on even bars.
+
+
+## Session 8 changes (this commit) — Phase 2: BASS/LEAD takeover
+
+All 6 sequencer rows are now visible, and BASS/LEAD become editable WITHOUT breaking the arrangement engine, via an explicit takeover mechanism:
+
+- `device.patternEdited = {bass:false, lead:false}` (constructor). While false, the section bass styles and lead themes drive the music exactly as before (byte-identical code path, now inside an `else` branch).
+- **First user edit of a BASS/LEAD step takes the part over**: the flag flips, the row becomes authoritative and audible (`patterns.bass` entries {n: semitone offset from section bassRoot, s?: sustain}; `patterns.lead` entries {deg,dur,accent|acc,rest} mapped through SCALE_EXT at ROOT+24 with the existing accent/slide logic).
+- **Ghost UX (honesty)**: while arrangement-driven, BASS/LEAD rows render dimmed (opacity .45) with a tooltip 'arrangement-driven - click a step to take over'. Visible==editable==audible remains true in BOTH states, and the state itself is visible - no more write-only grids.
+- Flags reset to arrangement control on `variate()` (reseed) and `loadSettings()` (session restore).
+- **Banks v2**: PatternBanks save/load now persist patterns + takeover flags (`{v:2, patterns, edited}`); legacy raw-pattern banks still load (treated as arrangement-driven).
+- **Undo/redo**: `getDeviceState`/`applyDeviceState` snapshot and restore the flags, so Ctrl+Z returns a taken-over part to its exact prior state.
+
+### Verification
+
+- All 4 edited files parse (esprima); 26 structural/semantic markers pass (the single reported failure was a wrong-scope check in the harness - the ADAPTIVE hook lives in main.js, verified intact on remote).
+- Arrangement code paths preserved verbatim inside else branches (bass styles, theme cache/cursor logic).
+- Static verification only. Runtime smoke: BASS/LEAD rows appear dimmed; click a BASS step -> row brightens and the edited note plays; Ctrl+Z restores; bank save/load round-trips takeover state.
 
 
 ## Phase plan
