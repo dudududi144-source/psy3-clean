@@ -139,7 +139,7 @@ function toggleStep(part,s){
   if((part==="BASS"||part==="LEAD")&&device.patternEdited&&!device.patternEdited[part.toLowerCase()]){
     device.patternEdited[part.toLowerCase()]=true;
   }
-  var p=device.patterns;
+  var p=(typeof device.activePatterns==="function")?device.activePatterns():device.patterns; // Phase 2 BarPlan: edit the section at the playhead
   if(part==="KICK"){ p.kick[s]=p.kick[s]?0:1; }
   else if(part==="BASS"){ p.bass[s]=p.bass[s]?null:{n:0}; }
   else if(part==="PERC"){
@@ -155,7 +155,7 @@ function toggleStep(part,s){
   if(typeof updateRowGhost==="function") updateRowGhost(part);
 }
 function stepActive(part,s){
-  var p=device.patterns;
+  var p=(typeof device.activePatterns==="function")?device.activePatterns():device.patterns; // BarPlan
   if(part==="KICK") return !!p.kick[s];
   if(part==="BASS") return !!p.bass[s];
   if(part==="PERC") return !!p.perc[s];
