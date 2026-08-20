@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Phase 0 (Emergency Stabilization) — Session 3 complete
+## Status: Phase 1 (Modularization) - Session 4: Phase 1a complete
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -100,6 +100,27 @@ Goal: close the remaining Phase 0 crash/consistency items; make documented persi
 - Undo granularity: one snapshot per step edit / manual variate. Pattern ops (clear/random/shift/...) and song ops do not push snapshots yet - Phase 1 command pattern covers this properly.
 - Settings snapshot does not include step edits; pattern persistence belongs to preset format v2 (Phase 4). Restoring a seed rebuilds the seed-derived arrangement.
 - Static verification only (esprima parse + 42 structural checks, all pass). Runtime smoke: edit ARP steps -> Ctrl+Z restores; reload page -> BPM/knobs restored; SELF TEST line shows OK.
+
+
+## Session 4 changes (this commit) — Phase 1a complete
+
+Goal: consolidate ALL top-level executable statements into a single marked BOOT block at the end of the file, in their original relative order. Everything above is now declarations only (function declarations, config objects, `Groovebox.prototype.*` method definitions). This is the verified precondition for splitting the file into separate script files / modules in Phase 1b.
+
+| # | Change | Verification |
+|---|--------|--------------|
+| 1 | 16 immediate-exec statements relocated to BOOT: `window.onerror`, `unhandledrejection` listener, `Grammars.init()`, hitPad/scheduleStep hooks, device creation + `makePatterns` guard + `loadSettings()`, pads keydown listener, `safeInitUi` wiring, loading fallback `setTimeout`, KeyboardShortcuts remove/add listener pair, `PatternBanks.loadAll()`, MIDI init, init log | AST: statement multiset byte-identical before/after (202 stmts); boot block == moved statements in original relative order; zero immediate-exec statements remain above BOOT; parse OK |
+
+### Why this is behavior-preserving (verified reasoning)
+
+- Only statement ORDER changed; every top-level statement kept byte-for-byte (multiset check).
+- Cross-references of moved statements at load time resolve identically: function declarations hoist across the whole script; all `var` config objects referenced by boot statements (Grammars, grammarTracker, KEYMAP, KeyboardShortcuts, PatternBanks, MIDIInput) remain above the boot block.
+- The `document.readyState` check for `safeInitUi` still runs during parsing (end-of-body script), so its outcome is unchanged.
+- Event listeners and timers only fire after full script execution, so their later registration is observationally identical.
+
+### Honest notes
+
+- `Groovebox.prototype.*` assignments are technically executable statements; they are intentionally left in place (they execute nothing at load time beyond binding methods). In Phase 1b they move into the engine module file.
+- Static verification only (esprima + 39 structural/semantic checks, all pass). Runtime smoke: page loads, PLAY works, SELF TEST shows OK, MIDI device enumerates.
 
 
 ## Phase plan
