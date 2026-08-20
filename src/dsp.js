@@ -1,6 +1,6 @@
 
 
-// Initialize PooledEngine when device is ready
+
 
 
 /* ============================================================
@@ -251,22 +251,5 @@ var Envelope = {
 };
 
 
-var SoftClip = {
-  process: function(input, drive) {
-    drive = drive || 1.0;
-    return Math.tanh(input * drive) / Math.tanh(drive);
-  },
-  create: function(ctx, drive) {
-    var shaper = ctx.createWaveShaper();
-    var samples = 44100;
-    var curve = new Float32Array(samples);
-    drive = drive || 1.0;
-    for (var i = 0; i < samples; i++) {
-      var x = (i * 2) / samples - 1;
-      curve[i] = Math.tanh(x * drive) / Math.tanh(drive);
-    }
-    shaper.curve = curve;
-    shaper.oversample = '4x';
-    return shaper;
-  }
-};
+// Phase 2 cleanup: SoftClip removed (only referenced by the dead initSoftClipOutput;
+// the drive stage uses its own tanh WaveShaper via updateDrive()).
