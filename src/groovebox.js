@@ -26,6 +26,7 @@ function Groovebox(){
   this.mutes={KICK:0,BASS:0,PERC:0,LEAD:0,ARP:0,PAD:0};
   this.knobVals={bpm:(145-120)/45,filter:1,res:0.15,drive:0.15,delay:0.35,reverb:0.30,swing:0};
   this.filterMode="LP"; // Phase 2: DJ filter mode (LP default = legacy behavior)
+  this.genre="FULL-ON"; // Phase 2: sound preset (FULL-ON / DARK-PSY / PROGRESSIVE)
   this.lastLeadMidi=null;
   this._timeBuf=new Uint8Array(512);
 }
@@ -60,8 +61,24 @@ var GENRE_SOUND_CONFIG={
   }
 };
 
+Groovebox.prototype.setGenre=function(name){
+  // Phase 2: genre presets become reachable. Voices read config live via the
+  // getCfg thunk, so the switch applies from the next note onward.
+  if(!GENRE_SOUND_CONFIG[name]) return;
+  this.genre=name;
+  STYLE.name=name;
+  if(typeof updateLcd==="function") updateLcd();
+  if(typeof setStatus==="function") setStatus("GENRE: "+name,"ok");
+  if(typeof trackEvent==="function") trackEvent("genre_set",{name:name});
+};
+Groovebox.prototype.cycleGenre=function(){
+  var names=["FULL-ON","DARK-PSY","PROGRESSIVE"];
+  var cur=names.indexOf(this.genre||"FULL-ON");
+  this.setGenre(names[(cur+1)%names.length]);
+};
 Groovebox.prototype.cfg=function(){
-  var gs=window._genreSound||GENRE_SOUND_CONFIG["FULL-ON"];
+  // Phase 2: genre presets reachable via device.setGenre()/cycleGenre().
+  var gs=(this.genre&&GENRE_SOUND_CONFIG[this.genre])||window._genreSound||GENRE_SOUND_CONFIG["FULL-ON"];
   return {
     bassWave:gs.bassWave, bassCut:gs.bassCut, bassRes:gs.bassRes, bassLvl:gs.bassLvl,
     leadCut:gs.leadCut, leadRes:gs.leadRes, leadLvl:gs.leadLvl,
