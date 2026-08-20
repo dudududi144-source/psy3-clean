@@ -342,30 +342,9 @@ var TrackControl = {
     }
   }
 };
-function initSoftClipOutput() {
-  if (device && device.ctx && device.master) {
-    var shaper = SoftClip.create(device.ctx, 1.5);
-    console.log('SoftClip output stage available');
-  }
-}
-function initBrickwallLimiter() {
-  if (device && device.ctx && device.master) {
-    // Create limiter
-    var limiterInput = BrickwallLimiter.init(device.ctx, device.ctx.destination);
-    
-    // Reconnect master through limiter
-    // master -> limiter -> destination
-    try {
-      device.master.disconnect();
-    } catch (e) {
-      // Already disconnected
-    }
-    device.master.connect(limiterInput);
-    
-    console.log('Master bus routed through BrickwallLimiter');
-  }
-}
-
+// Phase 2 cleanup: initSoftClipOutput() / initBrickwallLimiter() removed.
+// Both were never called. The limiter is wired directly in Groovebox.init()
+// (session 10); the drive stage already uses its own WaveShaper.
 var PolyBLEPOscillator = {
   create: function(ctx, type) {
     // For now, use standard OscillatorNode as fallback
@@ -453,50 +432,10 @@ var ChordEngine = {
   }
 };
 
-/* ============================================================
-   POOLED ENGINE INTEGRATION
-   ============================================================ */
+// Phase 2 cleanup: POOLED ENGINE INTEGRATION removed (triggerDrumWithPool,
+// triggerSynthWithPool, panicAllVoices, initPooledEngine). Verified zero callers;
+// the live engine allocates per-note. PooledEngine object removed from groovebox.js.
 
-// Use PooledEngine for drum voices if available
-function triggerDrumWithPool(type, velocity, t) {
-  if (PooledEngine.isInitialized) {
-    var voice = PooledEngine.nextDrum();
-    voice.trigger(type, velocity, t);
-    return true;
-  }
-  return false;
-}
-
-// Use PooledEngine for synth voices if available
-function triggerSynthWithPool(freq, velocity, t) {
-  if (PooledEngine.isInitialized) {
-    var voice = PooledEngine.nextSynth();
-    voice.noteOn(freq, velocity, t);
-    return true;
-  }
-  return false;
-}
-
-// Panic function using PooledEngine
-function panicAllVoices() {
-  if (PooledEngine.isInitialized) {
-    PooledEngine.panic();
-  }
-  if (device) {
-    device.stop();
-  }
-  var statusEl = document.getElementById('status');
-  if (statusEl) {
-    statusEl.textContent = 'PANIC: All voices stopped';
-    statusEl.className = 'err';
-  }
-}
-
-function initPooledEngine() {
-  if (device && device.ctx && device.master) {
-    PooledEngine.init(device.ctx, device.master);
-  }
-}
 
 
 Groovebox.prototype.init=function(){
@@ -571,7 +510,6 @@ Groovebox.prototype.init=function(){
   this.applyKnob("filter"); this.applyKnob("res"); this.applyKnob("swing");
   this.applySongSection(sectionAt(this.song,0).section);
   if(ctx.state==="suspended") return ctx.resume();
-  initPooledEngine();
   return Promise.resolve();
 };
 Groovebox.prototype.makeImpulse=function(dur,decay){
@@ -623,6 +561,7 @@ Groovebox.prototype.applyKnob=function(name){
   else if(name==="delay"){ this.delayIn.gain.value=v*0.9; }
   else if(name==="reverb"){ this.reverbIn.gain.value=v*0.9; }
   else if(name==="swing"){ this.swing=v*0.6; }
+  else if(name==="duck"){ this.duckDepth=1-v*0.8; } // Phase 2: v=0 -> no duck (1.0), v=1 -> deep (0.2)
 };
 Groovebox.prototype.toggleFilterMode=function(){
   // Phase 2: LP <-> HP for the DJ filter (UI button on the filter knob).
@@ -748,9 +687,11 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
     v.kick(t);
     if(typeof updateGrammars==="function")updateGrammars("kick",step,0);
     if(this.duck){
+      // Phase 2: user-adjustable sidechain depth (DUCK knob; default 0.40 = legacy)
+      var dd=(typeof this.duckDepth==="number")?this.duckDepth:0.40;
       this.duck.gain.cancelScheduledValues(t);
       this.duck.gain.setValueAtTime(1,t);
-      this.duck.gain.setTargetAtTime(0.40,t,0.006);
+      this.duck.gain.setTargetAtTime(dd,t,0.006);
       this.duck.gain.setTargetAtTime(1.0,t+0.055,0.03);
     }
   }
