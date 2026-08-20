@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Phase 1-2 - Session 6: engine decomposed, Banks UI, swing default 0
+## Status: Phase 2 - Session 7: sequencer audible for KICK/PERC/ARP/PAD
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -184,6 +184,32 @@ constructor `this.swing`, constructor `knobVals.swing`, and `KNOB_DEFAULTS.swing
 
 - 21 structural/semantic markers pass (split equivalence, swing consistency, banks wiring, all session 1-5 regressions).
 - Static verification only. Runtime smoke: page loads, BANK buttons load/save ARP patterns, swing knob still works.
+
+
+## Session 7 changes (this commit) — Phase 2 first slice: the sequencer becomes audible
+
+The step sequencer now drives the engine for 4 of 6 parts. Previously only `patterns.arp` was read by `scheduleStep`; kick/percussion/pads came from hardcoded constants and inline logic, so editing their patterns (or storing them in banks) had no sonic effect.
+
+| Part | Before | Now |
+|---|---|---|
+| KICK | hardcoded `KICK_STEPS=[0,4,8,12]` | `patterns.kick[step]` (seeded default = four-on-the-floor, sonically identical) |
+| PERC | inline per-step logic with per-bar RNG | `patterns.perc[step]` (`clap/shaker/oh`), deterministic per seed; clap energy gate preserved; section fills + crash unchanged |
+| PAD | hardcoded `[bassRoot+12,+19,+24]` at step 0 of even bars | `patterns.pad[step].chord` offsets (seeded default `{chord:[0,7,12]}` = exactly the old voicing) |
+| ARP | already pattern-driven | unchanged |
+| BASS / LEAD | section styles / themes | **unchanged by design** - they remain arrangement-driven until the BarPlan architecture (per-section patterns); no fake rows in the UI |
+
+Other changes:
+
+- **UI**: `SEQ_EDIT` now shows 4 rows (KICK, PERC, ARP, PAD). Honesty rule applied: a row is shown only if it is both editable AND audible.
+- **ADAPTIVE brain bug fixed**: it wrote to `patterns.KICK` (uppercase) - a key that never existed in `makePatterns` output (lowercase keys), so the write silently no-op'd. Now writes `patterns.kick`.
+- **Pad chord consistency**: `toggleStep` PAD default and seeded `makePatterns` pad chord were `[0,4,7]` (root/third/fifth) while the runtime actually voiced `[0,7,12]` (root/fifth/octave, modal no-third). All three sites now agree on `[0,7,12]`.
+
+### Behavioral notes (honest)
+
+- Odd-step shakers are now seeded-deterministic (pattern) instead of per-bar random (`barRng`) - tighter, reproducible groove.
+- `variate()` (manual or per 176-bar cycle) regenerates patterns from the new seed - kick/perc/pad edits reset, same as ARP always did. Pattern persistence across variations belongs to Phase 4.
+- Bank save/load now meaningfully covers 4 audible parts.
+- Static verification only (esprima parse of all 4 edited files + 25 structural/semantic markers, all pass). Runtime smoke: toggle a KICK step off -> hear the gap; add PERC steps; PAD chord edits audible on even bars.
 
 
 ## Phase plan
