@@ -228,7 +228,8 @@ function getDeviceState() {
     mutes: JSON.parse(JSON.stringify(device.mutes)),
     genre: device.genre||"FULL-ON", // Phase 2: sound preset in undo state
     sectionPatterns: JSON.parse(JSON.stringify(device.sectionPatterns||{})),
-    song: JSON.parse(JSON.stringify(device.song)), // Session 26: arrangement belongs in the undo state // Phase 2 BarPlan
+    song: JSON.parse(JSON.stringify(device.song)), // Session 26: arrangement belongs in the undo state
+    partLen: JSON.parse(JSON.stringify(device.partLen||{})), // Session 28: loop lengths // Phase 2 BarPlan
     // Phase 0c: patterns were missing from the snapshot, so undo could
     // never restore step edits. Deep copy (JSON-safe data).
     patterns: JSON.parse(JSON.stringify(device.patterns)),
@@ -251,6 +252,7 @@ function applyDeviceState(state) {
   // Phase 2: restore genre without side effects (no status/analytics during undo)
   if (state.genre) { device.genre = state.genre; STYLE.name = state.genre; }
   device.sectionPatterns = JSON.parse(JSON.stringify(state.sectionPatterns||{})); // Phase 2 BarPlan
+  if (state.partLen) { device.partLen = JSON.parse(JSON.stringify(state.partLen)); } // Session 28
   if (state.song) {
     device.song = JSON.parse(JSON.stringify(state.song)); // Session 26: restore arrangement
     device._barCacheKey = -1;
@@ -1117,7 +1119,8 @@ function buildProjectObject(name){
     patterns:JSON.parse(JSON.stringify(device.patterns)),
     sectionPatterns:JSON.parse(JSON.stringify(device.sectionPatterns||{})),
     patternEdited:JSON.parse(JSON.stringify(device.patternEdited||{bass:false,lead:false})),
-    song:JSON.parse(JSON.stringify(device.song))
+    song:JSON.parse(JSON.stringify(device.song)),
+    partLen:JSON.parse(JSON.stringify(device.partLen||{}))
   };
 }
 function saveProject(name){
@@ -1140,6 +1143,7 @@ function applyProject(proj){
   device.patterns=JSON.parse(JSON.stringify(proj.patterns));
   device.sectionPatterns=JSON.parse(JSON.stringify(proj.sectionPatterns||{}));
   if(proj.song){ device.song=JSON.parse(JSON.stringify(proj.song)); device._barCacheKey=-1; if(typeof renderTimelineFor==="function") renderTimelineFor(device); } // Session 26
+  if(proj.partLen){ device.partLen=JSON.parse(JSON.stringify(proj.partLen)); } // Session 28
   device.patternEdited=JSON.parse(JSON.stringify(proj.patternEdited||{bass:false,lead:false}));
   for(var key in device.knobVals){ device.applyKnob(key); }
   if(typeof buildSong==="function"){ device.song=buildSong(device.seed); device._barCacheKey=-1; }
