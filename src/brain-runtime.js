@@ -715,7 +715,11 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
   var nextSection=song.sections[nextIdx];
   var gated=isPreDropSilenceBar(nextSection.name,barInSection,section.bars)&&!preDropGate(step);
 
-  if(KICK_STEPS.indexOf(step)!==-1&&!gated&&!m.KICK){
+  // Phase 2: kick is read from the user-editable pattern grid. The seeded
+  // default (makePatterns) is four-on-the-floor, sonically identical to the
+  // old hardcoded KICK_STEPS constant (still used by BassStyles.gallop).
+  var kp=this.patterns.kick;
+  if(kp&&kp[step]&&!gated&&!m.KICK){
     v.kick(t);
     if(typeof updateGrammars==="function")updateGrammars("kick",step,0);
     if(this.duck){
@@ -739,10 +743,13 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
   }
   if(section.name!=="BREAK"&&!m.PERC){
     if(!gated){
-      if((step===4||step===12)&&energy>0.3) v.clap(t,0.7*auto.velocityMul);
-      else if(step%4===2) v.shaker(t,0.5*auto.velocityMul);
-      else if(step%2===1&&barRng()<0.25*auto.noteDensityMul) v.shaker(t,0.3*auto.velocityMul);
-      if(step===14&&barInSection%2===1&&barRng()<0.5) v.openhat(t,0.35);
+      // Phase 2: base groove is read from the user-editable pattern grid
+      // (deterministic per seed). The clap energy gate from the old inline
+      // logic is preserved; arrangement fills below remain section-driven.
+      var pe=this.patterns.perc[step];
+      if(pe==="clap"){ if(energy>0.3) v.clap(t,0.7*auto.velocityMul); }
+      else if(pe==="shaker"){ v.shaker(t,0.5*auto.velocityMul); }
+      else if(pe==="oh"){ v.openhat(t,0.35); }
     }
     var barsLeft=section.bars-1-barInSection;
     if(barsLeft<=1&&(section.name==="BUILD"||section.name==="RISER"||section.name==="INTRO")){
@@ -777,8 +784,16 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
     var an=this.patterns.arp[absStep%16];
     if(an) v.arpNote(t,ROOT+24+SCALE_EXT[an.deg],step%4===0);
   }
-  if(sectionHasPart(section,"pad")&&!m.PAD&&step===0&&barInSection%2===0){
-    v.padChord(t,[bassRoot+12,bassRoot+19,bassRoot+24],sd*32*0.95);
+  if(sectionHasPart(section,"pad")&&!m.PAD&&barInSection%2===0){
+    // Phase 2: pad chords are read from the pattern grid. Seeded default is
+    // {chord:[0,7,12]} at step 0 => exactly the old voicing
+    // (root/fifth/octave above bassRoot+12; modal, no third).
+    var pp=this.patterns.pad[step];
+    if(pp&&pp.chord){
+      var padMidis=[];
+      for(var pi2=0;pi2<pp.chord.length;pi2++){ padMidis.push(bassRoot+12+pp.chord[pi2]); }
+      v.padChord(t,padMidis,sd*32*0.95);
+    }
   }
 };
 
