@@ -6,10 +6,22 @@
 
 // Debounce utility
 function debounce(fn, delay) {
-  
+  var timer = null;
+  return function() {
+    var ctx = this, args = arguments;
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(function() {
+      fn.apply(ctx, args);
+      timer = null;
+    }, delay);
+  };
+}
 
 /* ============================================================
    GLOBAL ERROR HANDLER (Phase 5.1)
+   Phase 0 fix: this block was nested inside debounce()'s body
+   (merge splice), so it only executed as a side effect of
+   calling debounce(). Now installed explicitly at top level.
    ============================================================ */
 
 window.onerror = function(message, source, lineno, colno, error) {
@@ -46,17 +58,6 @@ window.addEventListener('unhandledrejection', function(event) {
     reason: String(event.reason)
   });
 });
-
-var timer = null;
-  return function() {
-    var ctx = this, args = arguments;
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(function() {
-      fn.apply(ctx, args);
-      timer = null;
-    }, delay);
-  };
-}
 
 // Throttle utility
 function throttle(fn, limit) {
@@ -190,28 +191,6 @@ function doRedo() {
 }
 
 
-// Get current sequencer state
-function getSequencerState() {
-  var steps = document.querySelectorAll('.seq-step');
-  var state = [];
-  steps.forEach(function(step) {
-    state.push(step.classList.contains('active'));
-  });
-  return state;
-}
-
-// Apply sequencer state
-function applySequencerState(state) {
-  var steps = document.querySelectorAll('.seq-step');
-  steps.forEach(function(step, idx) {
-    if (state[idx]) {
-      step.classList.add('active');
-    } else {
-      step.classList.remove('active');
-    }
-  });
-}
-
 /* ══════════════════════════════════════════════════════════
    MIDI LEARN SYSTEM (v3.0)
    ══════════════════════════════════════════════════════════ */
@@ -278,7 +257,19 @@ var MIDILearn = {
   // Clear all mappings
   clear: function() {
     this.ccMap = {};
+    this.noteMap = {};
+    console.log('MIDI Learn: all mappings cleared');
+  }
+};
 
+/* ============================================================
+   MIDI INPUT (Phase 2.5)
+   Phase 0 fix: MIDIInput + initMIDIInput were spliced INSIDE
+   MIDILearn.clear() by a bad merge, so MIDI never initialized
+   (initMIDIInput was not global; the boot-time typeof guard
+   silently failed). Extracted back to top level. CC handling now
+   routes to applyMIDIParam() (the undefined macro call is gone).
+   ============================================================ */
 var MIDIInput = {
   access: null,
   inputs: [],
@@ -330,7 +321,7 @@ var MIDIInput = {
     }
     var param = MIDILearn.ccMap[cc];
     if (param && device) {
-      applyMacro(param, value / 127);
+      applyMIDIParam(param, value / 127);
     }
   },
   
@@ -338,6 +329,11 @@ var MIDIInput = {
     var action = MIDILearn.noteMap[note];
     if (action && typeof action === 'number') {
       hitPad(action);
+      return;
+    }
+    // Default mapping (Phase 0): notes 36-43 (C2..G2) trigger pads 1-8
+    if (note >= 36 && note <= 43 && velocity > 0) {
+      hitPad(note - 36);
     }
   }
 };
@@ -345,11 +341,6 @@ var MIDIInput = {
 function initMIDIInput() {
   MIDIInput.init();
 }
-
-    this.noteMap = {};
-    console.log('MIDI Learn: all mappings cleared');
-  }
-};
 
 // Apply MIDI parameter to device
 function applyMIDIParam(param, value) {
@@ -2202,7 +2193,7 @@ Groovebox.prototype.scheduler=function(){
       return;
     }
     }
-  }catch(e){ }
+  }catch(e){ if(!this._schedErrLogged){ this._schedErrLogged=true; console.error('scheduler error:', e); } } // Phase 0: no silent swallow
 };
 
 
@@ -2426,7 +2417,7 @@ try{
     if(st){st.textContent="DEVICE ERROR: "+e.message;st.style.color="#ff0044";st.style.fontSize="14px";}
   });
 }
-device.makePatterns=makePatterns;
+if(device){ device.makePatterns=makePatterns; } // Phase 0: guard (device undefined if ctor threw)
 function trackEvent(name,detail){
   try{
     var arr=JSON.parse(localStorage.getItem("psy6_events")||"[]");
@@ -2688,25 +2679,16 @@ function uiLoop(){
 }
 var KEYMAP={a:0,w:1,s:2,e:3,d:4,f:5,t:6,g:7};
 window.addEventListener("keydown",function(e){
+  // Phase 0 fix: SPACE / Ctrl+Z / Ctrl+S were handled here AND in
+  // KeyboardShortcuts, causing double-fire (space could not stop
+  // playback; undo popped twice; save wrote twice). Those keys are
+  // now handled ONLY by KeyboardShortcuts. This listener keeps
+  // pad triggering (KEYMAP) exclusively.
   if(e.repeat) return;
   var tgt=e.target;
   if(tgt&&(tgt.tagName==="INPUT"||tgt.tagName==="TEXTAREA")) return;
   var k=(e.key||"").toLowerCase();
   if(k in KEYMAP){ hitPad(KEYMAP[k],null); }
-  else if(k===" "){ if(e.preventDefault)e.preventDefault(); togglePlay(); }
-
-  // Undo/Redo shortcuts (Phase 3.7)
-  if(k==="z"&&(e.ctrlKey||e.metaKey)){
-    e.preventDefault();
-    if(e.shiftKey){ doRedo(); } else { doUndo(); }
-    return;
-  }
-  // Save preset shortcut (Phase 3.1)
-  if(k==="s"&&(e.ctrlKey||e.metaKey)){
-    e.preventDefault();
-    savePreset('Quick Save ' + Date.now());
-    return;
-  }
 });
 function renderTimelineFor(dev){
   var el=$("timeline"); if(!el||!dev.song) return;
