@@ -86,7 +86,7 @@ Groovebox.prototype.cfg=function(){
     padLvl:gs.padLvl, padCut:gs.padCut,
     kickStart:gs.kickStart||150, kickEnd:gs.kickEnd||55, kickDecay:gs.kickDecay||.10, kickPunch:gs.kickPunch||.35,
     hatFreq:gs.hatFreq||8000, hatDecay:gs.hatDecay||.04,
-    percTune:gs.percTune||1.0, percDecay:gs.percDecay||.4
+    percTune:gs.percTune||1.0, percDecay:gs.percDecay||.08 // Phase 2: corrected fallback (FULL-ON value; was .4)
   };
 };
 Groovebox.prototype.stepDur=function(){ return 60/this.bpm/4; };
