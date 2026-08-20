@@ -80,7 +80,7 @@ function makePatterns(seed){
   /* pad: root-fifth-octave drone (modal, no third) */
   var pad=[];
   for(s=0;s<16;s++) pad.push(null);
-  pad[0]={chord:[0,4,7]};
+  pad[0]={chord:[0,7,12]}; // Phase 2: root-fifth-octave drone (matches old runtime voicing)
   return {kick:kick,bass:bass,perc:perc,lead:lead,arp:arp,pad:pad};
 }
 
