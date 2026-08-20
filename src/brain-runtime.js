@@ -685,6 +685,7 @@ Groovebox.prototype._doSeekToBar=function(bar){
 Groovebox.prototype.variate=function(auto){
   this.seed=(this.seed+0x9E3779B9)>>>0;
   this.patterns=makePatterns(this.seed);
+  this.patternEdited={bass:false,lead:false}; // Phase 2: new seed restores arrangement control
   this.song=buildSong(this.seed);
   this.variation++;
   this.lastLeadMidi=null;
@@ -734,12 +735,23 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
   }
   var bassRoot=song.root+(section.rootOffset||0);
   var scale=SCALES[song.modes[section.mode]];
-  var bassBar=generateBassBar(section.bassStyle,bassRoot,scale,barInSection,barRng);
-  var bassEvent=bassBar[step];
-  if(bassEvent&&!gated&&!m.BASS){
-    var dur=bassEvent.sustain?bassEvent.sustain*sd:sd*0.8;
-    v.bassNote(t,bassEvent.midi,dur);
-    if(typeof updateGrammars==="function")updateGrammars("bass",step,bassEvent.midi);
+  if(this.patternEdited.bass){
+    // Phase 2 TAKEOVER: user-edited pattern overrides the section bass style.
+    // Entries {n: semitone offset from bassRoot, s?: sustain in steps}.
+    var bpe=this.patterns.bass[step];
+    if(bpe&&!gated&&!m.BASS){
+      var bdur=bpe.s?bpe.s*sd:sd*0.8;
+      v.bassNote(t,bassRoot+(bpe.n||0),bdur);
+      if(typeof updateGrammars==="function")updateGrammars("bass",step,bassRoot+(bpe.n||0));
+    }
+  } else {
+    var bassBar=generateBassBar(section.bassStyle,bassRoot,scale,barInSection,barRng);
+    var bassEvent=bassBar[step];
+    if(bassEvent&&!gated&&!m.BASS){
+      var dur=bassEvent.sustain?bassEvent.sustain*sd:sd*0.8;
+      v.bassNote(t,bassEvent.midi,dur);
+      if(typeof updateGrammars==="function")updateGrammars("bass",step,bassEvent.midi);
+    }
   }
   if(section.name!=="BREAK"&&!m.PERC){
     if(!gated){
@@ -758,26 +770,43 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
     }
   }
   if(sectionHasPart(section,"lead")&&!m.LEAD){
-    if(this._barCacheKey!==absBar){
-      this._barCacheKey=absBar;
-      var theme=song.themes[section.themeKey];
-      this._leadBarNotes=resolveThemeBar(theme,barInSection,SCALES);
-      this._leadStepCursor=0;
-      this._leadStepAcc=0;
-    }
-    if(this._leadStepAcc===step){
-      var ev=this._leadBarNotes[this._leadStepCursor];
-      if(ev&&!ev.rest){
-        var accLvl=Math.max(0,Math.min(1,ev.accent*auto.velocityMul));
-        var accSteps=accLvl>=0.8?2:(accLvl>=0.5?1:0);
-        var prevMidi=this.lastLeadMidi;
-        var iv=(prevMidi!=null)?Math.abs(ev.midi-prevMidi):0;
-        var slide=(iv===2||iv===3)&&prevMidi!=null;
-        v.leadNote(t,ev.midi,{acc:accSteps,slide:slide,fromMidi:prevMidi});
-        this.lastLeadMidi=ev.midi;
+    if(this.patternEdited.lead){
+      // Phase 2 TAKEOVER: user-edited motif overrides the section theme.
+      // Entries {deg, dur, accent|acc, rest}; deg indexes SCALE_EXT at ROOT+24.
+      var lpe=this.patterns.lead[step];
+      if(lpe&&!lpe.rest){
+        var lmidi=ROOT+24+SCALE_EXT[lpe.deg];
+        var laccent=(lpe.accent!=null)?lpe.accent:(lpe.acc||0);
+        var laccLvl=Math.max(0,Math.min(1,laccent*auto.velocityMul));
+        var laccSteps=laccLvl>=0.8?2:(laccLvl>=0.5?1:0);
+        var lprev=this.lastLeadMidi;
+        var liv=(lprev!=null)?Math.abs(lmidi-lprev):0;
+        var lslide=(liv===2||liv===3)&&lprev!=null;
+        v.leadNote(t,lmidi,{acc:laccSteps,slide:lslide,fromMidi:lprev});
+        this.lastLeadMidi=lmidi;
       }
-      this._leadStepAcc+=(ev?ev.dur:1);
-      this._leadStepCursor++;
+    } else {
+      if(this._barCacheKey!==absBar){
+        this._barCacheKey=absBar;
+        var theme=song.themes[section.themeKey];
+        this._leadBarNotes=resolveThemeBar(theme,barInSection,SCALES);
+        this._leadStepCursor=0;
+        this._leadStepAcc=0;
+      }
+      if(this._leadStepAcc===step){
+        var ev=this._leadBarNotes[this._leadStepCursor];
+        if(ev&&!ev.rest){
+          var accLvl=Math.max(0,Math.min(1,ev.accent*auto.velocityMul));
+          var accSteps=accLvl>=0.8?2:(accLvl>=0.5?1:0);
+          var prevMidi=this.lastLeadMidi;
+          var iv=(prevMidi!=null)?Math.abs(ev.midi-prevMidi):0;
+          var slide=(iv===2||iv===3)&&prevMidi!=null;
+          v.leadNote(t,ev.midi,{acc:accSteps,slide:slide,fromMidi:prevMidi});
+          this.lastLeadMidi=ev.midi;
+        }
+        this._leadStepAcc+=(ev?ev.dur:1);
+        this._leadStepCursor++;
+      }
     }
   }
   if(sectionHasPart(section,"arp")&&!m.ARP){
