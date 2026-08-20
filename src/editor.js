@@ -202,6 +202,7 @@ function loadSettings() {
     }
     // Phase 0c: keep patterns/song consistent with the restored seed.
     device.patterns = makePatterns(device.seed);
+    device.patternEdited = { bass:false, lead:false }; // Phase 2: reseed restores arrangement control
     device.song = buildSong(device.seed);
     device._barCacheKey = -1;
     console.log('Settings loaded');
@@ -222,7 +223,9 @@ function getDeviceState() {
     mutes: JSON.parse(JSON.stringify(device.mutes)),
     // Phase 0c: patterns were missing from the snapshot, so undo could
     // never restore step edits. Deep copy (JSON-safe data).
-    patterns: JSON.parse(JSON.stringify(device.patterns))
+    patterns: JSON.parse(JSON.stringify(device.patterns)),
+    // Phase 2: takeover flags are part of the undoable state
+    patternEdited: JSON.parse(JSON.stringify(device.patternEdited || { bass:false, lead:false }))
   };
 }
 
@@ -241,6 +244,8 @@ function applyDeviceState(state) {
   // (undo before first play previously threw TypeError on null ctx).
   if (state.patterns) {
     device.patterns = JSON.parse(JSON.stringify(state.patterns));
+    // Phase 2: restore takeover flags (default = arrangement-driven)
+    device.patternEdited = state.patternEdited ? JSON.parse(JSON.stringify(state.patternEdited)) : { bass:false, lead:false };
     if (typeof refreshSeqUi === 'function') refreshSeqUi();
   }
   if (device.ctx) device.refreshPartGains(device.ctx.currentTime);
@@ -785,7 +790,12 @@ var PatternBanks = {
   save: function(bank) {
     if (!device || !device.patterns) return;
     
-    this.banks[bank] = JSON.parse(JSON.stringify(device.patterns));
+    // Phase 2: bank format v2 stores patterns + takeover flags together
+    this.banks[bank] = {
+      v: 2,
+      patterns: JSON.parse(JSON.stringify(device.patterns)),
+      edited: JSON.parse(JSON.stringify(device.patternEdited || { bass:false, lead:false }))
+    };
     localStorage.setItem('psy3_bank_' + bank, JSON.stringify(this.banks[bank]));
     
     var statusEl = document.getElementById('status');
@@ -803,8 +813,16 @@ var PatternBanks = {
     var saved = localStorage.getItem('psy3_bank_' + bank);
     if (saved) {
       try {
-        this.banks[bank] = JSON.parse(saved);
-        device.patterns = JSON.parse(JSON.stringify(this.banks[bank]));
+        var parsed = JSON.parse(saved);
+        this.banks[bank] = parsed;
+        // Phase 2: v2 banks carry takeover flags; legacy banks are raw patterns
+        if (parsed && parsed.v === 2 && parsed.patterns) {
+          device.patterns = JSON.parse(JSON.stringify(parsed.patterns));
+          device.patternEdited = parsed.edited ? JSON.parse(JSON.stringify(parsed.edited)) : { bass:false, lead:false };
+        } else {
+          device.patterns = JSON.parse(JSON.stringify(parsed));
+          device.patternEdited = { bass:false, lead:false };
+        }
         refreshSeqUi();
         
         var statusEl = document.getElementById('status');
