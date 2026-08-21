@@ -469,6 +469,7 @@ function initUi(){
   if(ls){ ls.innerHTML=""; for(var i=0;i<16;i++){ var sp=document.createElement("span"); sp.className="ls"; ls.appendChild(sp); } }
   var pb=$("playBtn"); if(pb) pb.addEventListener("click",togglePlay);
   var vb=$("variateBtn"); if(vb) vb.addEventListener("click",function(){ device.variate(false); trackEvent("variate",{}); });
+  var rtb=$("rethemeBtn"); if(rtb) rtb.addEventListener("click",function(){ if(typeof retheme==="function") retheme(); }); // Session 30
   var nb=$("nextSecBtn"); if(nb) nb.addEventListener("click",function(){ device.jumpSection(); trackEvent("jump_section",{}); });
   var gb=$("genreBtn"); if(gb) gb.addEventListener("click",function(){ if(device&&typeof device.cycleGenre==="function") device.cycleGenre(); }); // Phase 2: genre presets
   if(typeof initArranger==="function") initArranger(); // Session 26: arrangement editor
