@@ -147,7 +147,7 @@ function buildSeq(){
         (function(ss){
           var b=document.createElement("button");
           b.className="step"+(ss%4===0?" q":"");
-          b.addEventListener("click",function(){ toggleStep(part,ss); });
+          b.addEventListener("click",function(e){ toggleStep(part,ss,e); });
           steps.appendChild(b);
           stepElsMap[part][ss]=b;
           if(!stepColEls[ss]) stepColEls[ss]=[];
@@ -164,7 +164,18 @@ function buildSeq(){
     })(SEQ_EDIT[pi]);
   }
 }
-function toggleStep(part,s){
+function toggleStep(part,s,e){
+  // Session 33: shift+click a PERC step cycles its play chance (100/75/50/25%)
+  if(part==="PERC"&&e&&e.shiftKey){
+    if(!device.percProb) device.percProb=new Array(16).fill(1);
+    var levels=[1,0.75,0.5,0.25];
+    var idx=levels.indexOf(device.percProb[s]);
+    device.percProb[s]=levels[(idx+1)%levels.length];
+    refreshStepUi(part,s);
+    if(typeof setStatus==="function") setStatus("PERC step "+(s+1)+" chance: "+Math.round(device.percProb[s]*100)+"%","ok");
+    if(typeof commitUndo==="function") commitUndo();
+    return;
+  }
   // Phase 2 takeover: first BASS/LEAD edit switches the part from
   // arrangement-driven to pattern-driven (audible + authoritative).
   if((part==="BASS"||part==="LEAD")&&device.patternEdited&&!device.patternEdited[part.toLowerCase()]){
@@ -207,6 +218,7 @@ function refreshStepUi(part,s){
     b.style.background="";
     b.style.boxShadow="";
   }
+  if(part==="PERC"&&device.percProb&&typeof device.percProb[s]==="number"){ b.style.opacity=String(0.3+0.7*device.percProb[s]); } // Session 33: chance visual
 }
 function refreshSeqUi(){
   for(var i=0;i<PART_NAMES.length;i++){
