@@ -322,17 +322,23 @@ function _patCommit(msg){
   if(typeof setStatus==="function") setStatus(msg,"ok");
   if(typeof commitUndo==="function") commitUndo();
 }
+/* Session 36: section-aware pattern tools - operate on the pattern set of the
+   section at the playhead (BarPlan), consistent with grid editing. */
+function _activePat(){
+  if(!device) return null;
+  return (typeof device.activePatterns==="function")?device.activePatterns():device.patterns;
+}
 function _patParts(part){
-  if(!device||!device.patterns) return [];
-  if(part&&device.patterns[part]) return [part];
-  var all=[]; for(var i=0;i<PART_ORDER.length;i++){ if(device.patterns[PART_ORDER[i]]) all.push(PART_ORDER[i]); }
+  if(!device||!_activePat()) return [];
+  if(part&&_activePat()[part]) return [part];
+  var all=[]; for(var i=0;i<PART_ORDER.length;i++){ if(_activePat()[PART_ORDER[i]]) all.push(PART_ORDER[i]); }
   return all;
 }
 function patternClear(part){
   var parts=_patParts(part); if(!parts.length) return;
   for(var k=0;k<parts.length;k++){
     var p=parts[k];
-    for(var i=0;i<16;i++){ device.patterns[p][i]=_patEmpty(p); }
+    for(var i=0;i<16;i++){ _activePat()[p][i]=_patEmpty(p); }
   }
   _patCommit("Pattern cleared"+(part?" ("+part+")":""));
 }
@@ -341,20 +347,20 @@ function patternRandom(part){
   var rng=mulberry32((device.seed+Date.now())>>>0);
   for(var k=0;k<parts.length;k++){
     var p=parts[k];
-    for(var i=0;i<16;i++){ device.patterns[p][i]=_patRandom(p,rng); }
+    for(var i=0;i<16;i++){ _activePat()[p][i]=_patRandom(p,rng); }
   }
   _patCommit("Pattern randomized"+(part?" ("+part+")":""));
 }
 function patternReverse(part){
   var parts=_patParts(part); if(!parts.length) return;
-  for(var k=0;k<parts.length;k++){ device.patterns[parts[k]].reverse(); }
+  for(var k=0;k<parts.length;k++){ _activePat()[parts[k]].reverse(); }
   _patCommit("Pattern reversed"+(part?" ("+part+")":""));
 }
 function patternShift(part,direction){
   var parts=_patParts(part); if(!parts.length) return;
   var dir=direction||1;
   for(var k=0;k<parts.length;k++){
-    var arr=device.patterns[parts[k]];
+    var arr=_activePat()[parts[k]];
     if(dir>0){ arr.unshift(arr.pop()); } else { arr.push(arr.shift()); }
   }
   _patCommit("Pattern shifted "+(dir>0?">>":"<<")+(part?" ("+part+")":""));
@@ -362,7 +368,7 @@ function patternShift(part,direction){
 function patternDouble(part){
   var parts=_patParts(part); if(!parts.length) return;
   for(var k=0;k<parts.length;k++){
-    var arr=device.patterns[parts[k]];
+    var arr=_activePat()[parts[k]];
     var src=arr.slice();
     for(var i=0;i<16;i++){ arr[i]=src[Math.floor(i/2)]; }
   }
@@ -371,7 +377,7 @@ function patternDouble(part){
 function patternHalf(part){
   var parts=_patParts(part); if(!parts.length) return;
   for(var k=0;k<parts.length;k++){
-    var arr=device.patterns[parts[k]];
+    var arr=_activePat()[parts[k]];
     var half=[]; for(var i2=0;i2<8;i2++){ half.push(arr[i2*2]); }
     for(var j=0;j<16;j++){ arr[j]=half[j%8]; }
   }
@@ -381,7 +387,7 @@ function patternInvert(part){
   var parts=_patParts(part); if(!parts.length) return;
   for(var k=0;k<parts.length;k++){
     var p=parts[k];
-    for(var i=0;i<16;i++){ device.patterns[p][i]=_patInvert(p,device.patterns[p][i]); }
+    for(var i=0;i<16;i++){ _activePat()[p][i]=_patInvert(p,_activePat()[p][i]); }
   }
   _patCommit("Pattern inverted"+(part?" ("+part+")":""));
 }
