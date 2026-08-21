@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 30 - RETHeme (melodic variety on demand)
+## Status: Session 31 - pattern tools (real pattern editing, corruption fixed)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -700,6 +700,29 @@ Gap addressed: melodic content was limited to the four seed-generated themes (A/
 
 - All edited files parse; retheme uses only verified globals (buildTheme/buildTransitionTheme/rngFor are the same calls buildSong uses); button wired.
 - Static verification only. Smoke: press RETHeme while playing -> the lead melody changes at the next bar; structure, bass groove and drums untouched.
+
+
+## Session 31 changes (this commit) - pattern tools: real pattern editing, corruption bugs fixed
+
+Two things shipped together:
+
+### 1. Bug fixes in the pattern operations (they were corrupting data)
+
+- `patternRandom` wrote binary 0/1 into ALL parts - including bass (`{n}`), perc (strings), lead/arp (`{deg,...}`) and pad (`{chord}`) - destroying their structures (e.g. the H key "generate melody" wrote numbers into lead slots). Every op is now **part-aware**: `_patEmpty/_patRandom/_patInvert` build the correct structure per part; reverse/shift/double/half copy values verbatim so any structure survives.
+- `patternDouble` rewrote the array in place while reading from it (self-overwrite corruption) - now reads from a snapshot copy. `patternHalf` had an undeclared loop variable (global leak) - fixed.
+- Every op now commits an undo snapshot + refreshes the grid + status feedback.
+
+### 2. Pattern Tools panel (UI)
+
+New TOOLS strip under the sequencer: part selector (ALL/KICK/BASS/PERC/LEAD/ARP/PAD) + CLR / RND / REV / << / >> / x2 / /2 / INV. The previously unwired pattern operations (editor.js had them since PSY6 with zero callers except D/H/Z) are finally playable from the UI.
+
+Cache: scripts v16, token s31-v16, SW v14.
+
+### Verification / honesty
+
+- All edited files parse (esprima); structural asserts for panel markup/CSS/wiring; part-aware helpers verified present; double/half fixes asserted.
+- Known limitation: ops apply to the 16-step global grid (BarPlan section overrides are not the target here); per-section pattern tools remain future work.
+- Static verification only. Smoke: pick ARP, hit RND -> grid randomizes + heard; REV/x2//2 transform audibly; undo restores.
 
 
 ## Phase plan
