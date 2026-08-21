@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 28 - polyrhythm per-part loop lengths (OP-Z-style)
+## Status: Session 29 - arrangement templates (fixed demo structure retired)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -661,6 +661,25 @@ Premium-gap item from the session-27 roast, delivered: every pattern-driven part
 - All edited files parse (esprima); all six scheduler index anchors replaced exactly once; defaults prove backward compatibility.
 - Musical note: lengths that don't divide 16 (3/6) drift across the bar - intended polyrhythm; the pre-drop silence gate stays bar-aligned (section logic unchanged).
 - Static verification only. Smoke: click an ARP row badge to \u00D73 while playing -> the arp phrase rotates against the kick; undo restores \u00D716.
+
+
+## Session 29 changes (this commit) - the fixed demo structure is retired
+
+User verdict on the single hardcoded INTRO/BUILD/DROP/BREAK/RISER/DROP2/OUTRO template: fine for a demo, not a composition tool. Delivered:
+
+### Arrangement templates (session 29)
+
+- `ARRANGEMENT_TEMPLATES` (editor.js): real psytrance structures as loadable starting points - **Full-On Classic** (the old default), **Progressive** (32b builds, 48b second drop), **Dark Forest** (16b intro/break, two 32b drops), **Hypnotic** (48b drops, minimal sections), and **Blank Canvas** (single 16b DROP - build from scratch).
+- `loadArrangementTemplate(name)`: rebuilds `device.song.sections` via `songSectionDefaults` (all theme/mode/bass-style mappings stay valid), reindexes, re-renders, resets selection, undo snapshot.
+- **UI**: TEMPLATE selector at the head of the ARRANGE bar, populated dynamically from the templates object (no hardcoded drift).
+- Composition workflow is now: pick a structure (or blank) -> sculpt with ARRANGE (-8b/+8b/move/dup/del/add/reset) -> polyrhythm per part -> patterns/Banks -> arrangement survives undo and .psy.json.
+- Cache: scripts v14, token s29-v14, SW v12.
+
+### Verification / honesty
+
+- All edited files parse; template loader uses only verified helpers; selector self-populates.
+- Known musical detail: template DROP2 sections get rootOffset 0 (buildSong's random +2 offset applied only to seed-generated songs); per-section key editing remains a future item.
+- Static verification only. Smoke: pick Progressive -> timeline shows 200 bars; Blank Canvas -> build your own with ADD; undo restores the previous structure.
 
 
 ## Phase plan
