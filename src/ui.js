@@ -357,6 +357,18 @@ function initArranger(){
   bind("arrDel",function(){ var i=arrClampSel(); if(typeof songRemoveSection==="function"){ songRemoveSection(i); selectSection(Math.max(0,i-1)); } });
   bind("arrAdd",function(){ if(typeof songAddSection==="function"){ var nm=ARR_ADD_ORDER[arrAddCycle%ARR_ADD_ORDER.length]; arrAddCycle++; songAddSection(nm,arrClampSel()); selectSection(arrSel+1); } });
   bind("arrReset",function(){ if(typeof songReset==="function"){ songReset(); selectSection(0); } });
+  // Session 29: arrangement template selector (real track structures, not one fixed demo)
+  var at=$("arrTemplate");
+  if(at&&typeof ARRANGEMENT_TEMPLATES!=="undefined"){
+    at.innerHTML="";
+    var ph=document.createElement("option"); ph.value=""; ph.textContent="TEMPLATE\u2026"; at.appendChild(ph);
+    for(var tn in ARRANGEMENT_TEMPLATES){
+      var op=document.createElement("option"); op.value=tn; op.textContent=tn; at.appendChild(op);
+    }
+    at.addEventListener("change",function(){
+      if(at.value){ if(typeof loadArrangementTemplate==="function") loadArrangementTemplate(at.value); at.value=""; }
+    });
+  }
   selectSection(arrSel);
 }
 var KEYMAP={a:0,w:1,s:2,e:3,d:4,f:5,t:6,g:7};
