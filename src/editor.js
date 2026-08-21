@@ -280,147 +280,108 @@ function commitUndo() {
 
 
 /* ============================================================
-   PATTERN EDITOR (Phase 3.2)
+   PATTERN EDITOR (session 31 rewrite: part-aware operations)
+   Every part stores a different structure (kick=0/1, bass={n},
+   perc=string, lead={deg,dur,accent}, arp={deg}, pad={chord}).
+   The old ops blindly wrote 0/1 into ALL parts, corrupting the
+   object structures. Ops are now part-aware: reverse/shift/double/
+   half copy values safely; clear/random/invert build the correct
+   structure per part. Each op commits undo + refreshes the grid.
    ============================================================ */
 
-function getSequencerState() {
-  if (!device || !device.patterns) return null;
-  return JSON.parse(JSON.stringify(device.patterns));
-}
+var PART_ORDER=["KICK","BASS","PERC","LEAD","ARP","PAD"];
 
-function applySequencerState(state) {
-  if (!device || !state) return;
-  device.patterns = JSON.parse(JSON.stringify(state));
-  refreshSeqUi();
+function _patEmpty(part){
+  if(part==="KICK") return 0;
+  return null;
 }
-
-function patternClear(part) {
-  if (!device || !device.patterns) return;
-  if (part && device.patterns[part]) {
-    for (var i = 0; i < 16; i++) {
-      device.patterns[part][i] = 0;
-    }
-  } else {
-    for (var p in device.patterns) {
-      for (var i = 0; i < 16; i++) {
-        device.patterns[p][i] = 0;
-      }
-    }
+function _patRandom(part,rng){
+  var r=rng();
+  if(part==="KICK"){ return r<0.5?1:0; }
+  if(part==="BASS"){ return r<0.30?null:{n:[0,0,0,7,10,12][Math.floor(rng()*6)]}; }
+  if(part==="PERC"){ return r<0.5?null:(r<0.70?"clap":(r<0.90?"shaker":"oh")); }
+  if(part==="LEAD"){ return r<0.35?null:{deg:Math.floor(rng()*8),dur:1,accent:rng(),rest:false}; }
+  if(part==="ARP"){ return r<0.30?null:{deg:Math.floor(rng()*8),on:1}; }
+  if(part==="PAD"){ return r<0.15?{chord:[0,7,12]}:null; }
+  return null;
+}
+function _patInvert(part,val){
+  if(part==="KICK"){ return val?0:1; }
+  if(part==="BASS"){ return val?null:{n:0}; }
+  if(part==="PERC"){ return val?null:"clap"; }
+  if(part==="LEAD"){ return val?null:{deg:4,dur:1,accent:0.7,rest:false}; }
+  if(part==="ARP"){ return val?null:{deg:4,on:1}; }
+  if(part==="PAD"){ return val?null:{chord:[0,7,12]}; }
+  return val?null:0;
+}
+function _patCommit(msg){
+  if(typeof refreshSeqUi==="function") refreshSeqUi();
+  if(typeof setStatus==="function") setStatus(msg,"ok");
+  if(typeof commitUndo==="function") commitUndo();
+}
+function _patParts(part){
+  if(!device||!device.patterns) return [];
+  if(part&&device.patterns[part]) return [part];
+  var all=[]; for(var i=0;i<PART_ORDER.length;i++){ if(device.patterns[PART_ORDER[i]]) all.push(PART_ORDER[i]); }
+  return all;
+}
+function patternClear(part){
+  var parts=_patParts(part); if(!parts.length) return;
+  for(var k=0;k<parts.length;k++){
+    var p=parts[k];
+    for(var i=0;i<16;i++){ device.patterns[p][i]=_patEmpty(p); }
   }
-  refreshSeqUi();
-  setStatus('Pattern cleared', 'ok');
+  _patCommit("Pattern cleared"+(part?" ("+part+")":""));
 }
-
-function patternRandom(part) {
-  if (!device || !device.patterns) return;
-  var rng = mulberry32(device.seed + Date.now());
-  if (part && device.patterns[part]) {
-    for (var i = 0; i < 16; i++) {
-      device.patterns[part][i] = rng() > 0.5 ? 1 : 0;
-    }
-  } else {
-    for (var p in device.patterns) {
-      for (var i = 0; i < 16; i++) {
-        device.patterns[p][i] = rng() > 0.5 ? 1 : 0;
-      }
-    }
+function patternRandom(part){
+  var parts=_patParts(part); if(!parts.length) return;
+  var rng=mulberry32((device.seed+Date.now())>>>0);
+  for(var k=0;k<parts.length;k++){
+    var p=parts[k];
+    for(var i=0;i<16;i++){ device.patterns[p][i]=_patRandom(p,rng); }
   }
-  refreshSeqUi();
-  setStatus('Pattern randomized', 'ok');
+  _patCommit("Pattern randomized"+(part?" ("+part+")":""));
 }
-
-function patternReverse(part) {
-  if (!device || !device.patterns) return;
-  if (part && device.patterns[part]) {
-    device.patterns[part].reverse();
-  } else {
-    for (var p in device.patterns) {
-      device.patterns[p].reverse();
-    }
+function patternReverse(part){
+  var parts=_patParts(part); if(!parts.length) return;
+  for(var k=0;k<parts.length;k++){ device.patterns[parts[k]].reverse(); }
+  _patCommit("Pattern reversed"+(part?" ("+part+")":""));
+}
+function patternShift(part,direction){
+  var parts=_patParts(part); if(!parts.length) return;
+  var dir=direction||1;
+  for(var k=0;k<parts.length;k++){
+    var arr=device.patterns[parts[k]];
+    if(dir>0){ arr.unshift(arr.pop()); } else { arr.push(arr.shift()); }
   }
-  refreshSeqUi();
-  setStatus('Pattern reversed', 'ok');
+  _patCommit("Pattern shifted "+(dir>0?">>":"<<")+(part?" ("+part+")":""));
 }
-
-function patternShift(part, direction) {
-  if (!device || !device.patterns) return;
-  direction = direction || 1;
-  if (part && device.patterns[part]) {
-    var arr = device.patterns[part];
-    if (direction > 0) {
-      arr.push(arr.shift());
-    } else {
-      arr.unshift(arr.pop());
-    }
-  } else {
-    for (var p in device.patterns) {
-      var arr = device.patterns[p];
-      if (direction > 0) {
-        arr.push(arr.shift());
-      } else {
-        arr.unshift(arr.pop());
-      }
-    }
+function patternDouble(part){
+  var parts=_patParts(part); if(!parts.length) return;
+  for(var k=0;k<parts.length;k++){
+    var arr=device.patterns[parts[k]];
+    var src=arr.slice();
+    for(var i=0;i<16;i++){ arr[i]=src[Math.floor(i/2)]; }
   }
-  refreshSeqUi();
-  setStatus('Pattern shifted', 'ok');
+  _patCommit("Pattern doubled"+(part?" ("+part+")":""));
 }
-
-function patternDouble(part) {
-  if (!device || !device.patterns) return;
-  if (part && device.patterns[part]) {
-    var arr = device.patterns[part];
-    for (var i = 0; i < 8; i++) {
-      arr[i + 8] = arr[i];
-    }
-  } else {
-    for (var p in device.patterns) {
-      var arr = device.patterns[p];
-      for (var i = 0; i < 8; i++) {
-        arr[i + 8] = arr[i];
-      }
-    }
+function patternHalf(part){
+  var parts=_patParts(part); if(!parts.length) return;
+  for(var k=0;k<parts.length;k++){
+    var arr=device.patterns[parts[k]];
+    var half=[]; for(var i2=0;i2<8;i2++){ half.push(arr[i2*2]); }
+    for(var j=0;j<16;j++){ arr[j]=half[j%8]; }
   }
-  refreshSeqUi();
-  setStatus('Pattern doubled', 'ok');
+  _patCommit("Pattern halved"+(part?" ("+part+")":""));
 }
-
-function patternHalf(part) {
-  if (!device || !device.patterns) return;
-  if (part && device.patterns[part]) {
-    var arr = device.patterns[part];
-    for (var i = 8; i < 16; i++) {
-      arr[i] = 0;
-    }
-  } else {
-    for (var p in device.patterns) {
-      var arr = device.patterns[p];
-      for (var i = 8; i < 16; i++) {
-        arr[i] = 0;
-      }
-    }
+function patternInvert(part){
+  var parts=_patParts(part); if(!parts.length) return;
+  for(var k=0;k<parts.length;k++){
+    var p=parts[k];
+    for(var i=0;i<16;i++){ device.patterns[p][i]=_patInvert(p,device.patterns[p][i]); }
   }
-  refreshSeqUi();
-  setStatus('Pattern halved', 'ok');
+  _patCommit("Pattern inverted"+(part?" ("+part+")":""));
 }
-
-function patternInvert(part) {
-  if (!device || !device.patterns) return;
-  if (part && device.patterns[part]) {
-    for (var i = 0; i < 16; i++) {
-      device.patterns[part][i] = device.patterns[part][i] ? 0 : 1;
-    }
-  } else {
-    for (var p in device.patterns) {
-      for (var i = 0; i < 16; i++) {
-        device.patterns[p][i] = device.patterns[p][i] ? 0 : 1;
-      }
-    }
-  }
-  refreshSeqUi();
-  setStatus('Pattern inverted', 'ok');
-}
-
 
 /* ============================================================
    ARRANGEMENT EDITOR (session 26)
