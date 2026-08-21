@@ -699,6 +699,8 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
       // Entries {deg, dur, accent|acc, rest}; deg indexes SCALE_EXT at ROOT+24.
       var lpe=pat.lead[absStep%(pl.LEAD||16)]; // BarPlan + Session 28 loop length
       if(lpe&&!lpe.rest){
+        var lprob=(this.chance&&this.chance.LEAD&&typeof this.chance.LEAD[step]==="number")?this.chance.LEAD[step]:1; // Session 35: LEAD chance
+        if(Math.random()<=lprob){
         var lmidi=ROOT+24+SCALE_EXT[lpe.deg];
         var laccent=(lpe.accent!=null)?lpe.accent:(lpe.acc||0);
         var laccLvl=Math.max(0,Math.min(1,laccent*auto.velocityMul));
@@ -713,6 +715,7 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
           MIDIOut.noteOff(lmidi,audioToPerf(this.ctx,t+(lpe.dur||1)*sd*0.92));
         }
         this.lastLeadMidi=lmidi;
+        }
       }
     } else {
       if(this._barCacheKey!==absBar){
@@ -725,6 +728,8 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
       if(this._leadStepAcc===step){
         var ev=this._leadBarNotes[this._leadStepCursor];
         if(ev&&!ev.rest){
+          var lprob=(this.chance&&this.chance.LEAD&&typeof this.chance.LEAD[step]==="number")?this.chance.LEAD[step]:1; // Session 35: LEAD chance
+          if(Math.random()<=lprob){
           var accLvl=Math.max(0,Math.min(1,ev.accent*auto.velocityMul));
           var accSteps=accLvl>=0.8?2:(accLvl>=0.5?1:0);
           var prevMidi=this.lastLeadMidi;
@@ -737,6 +742,7 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
             MIDIOut.noteOff(ev.midi,audioToPerf(this.ctx,t+ev.dur*sd*0.92));
           }
           this.lastLeadMidi=ev.midi;
+          }
         }
         this._leadStepAcc+=(ev?ev.dur:1);
         this._leadStepCursor++;
