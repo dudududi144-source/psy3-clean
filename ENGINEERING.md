@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 36 - section-aware pattern tools (BarPlan consistency)
+## Status: Session 37 - GENERATIVE brain functional
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -806,6 +806,24 @@ Cache: scripts v21, token s36-v21, SW v19.
 - editor.js parses; the PATTERN EDITOR block now has 0 `device.patterns` refs and >=11 `_activePat()` refs; `_activePat()` defined once.
 - Scope note: the tools act on the playhead section, so move the playhead to a section before applying a tool to it. Global (all-section) transforms are no longer offered by these tools (that was the ambiguous behavior); a deliberate all-sections transform can be a follow-up if wanted.
 - Static verification only. Smoke: park the playhead in DROP, hit RND on ARP -> only DROP's ARP changes; move to BREAK, hit RND -> BREAK changes independently.
+
+
+## Session 37 changes (this commit) - GENERATIVE brain mode made functional
+
+Before this session the BRAIN button cycled MANUAL/GENERATIVE/ADAPTIVE but `brainMode` was never read by the scheduler - GENERATIVE and ADAPTIVE were cosmetic. This session makes GENERATIVE real:
+
+- In `onBar`, when `brainMode==='GENERATIVE'`, with ~18% probability per bar the **playhead section's ARP pattern rotates by one step** (BarPlan-aware via `activePatterns()`), and the grid refreshes. Over bars the arpeggio evolves - the intended generative behavior. Default MANUAL = no change (backward compatible).
+- `brainMode` was already initialized to MANUAL in the Groovebox constructor; the BRAIN button already set it. Only the scheduler behavior was missing.
+
+Still cosmetic (deferred): **ADAPTIVE** (grammar-driven generation) needs real grammar-based generation; the grammar tracker collects data but generation from it is not yet implemented.
+
+Cache: scripts v22, token s37-v22, SW v20.
+
+### Verification / honesty
+
+- brain-runtime parses; exactly one GENERATIVE block; brainMode constructor init confirmed.
+- GENERATIVE mutates the section pattern permanently (that is the generative intent); it does not commit undo (frequent automatic mutations would flood undo). Users who want a stable pattern should stay in MANUAL.
+- Static verification only. Smoke: set BRAIN to GENERATIVE, play, watch the ARP row evolve over bars.
 
 
 ## Phase plan
