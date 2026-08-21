@@ -680,9 +680,12 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
       // (deterministic per seed). The clap energy gate from the old inline
       // logic is preserved; arrangement fills below remain section-driven.
       var pe=pat.perc[absStep%(pl.PERC||16)]; // BarPlan + Session 28 loop length
-      if(pe==="clap"){ if(energy>0.3) v.clap(t,0.7*auto.velocityMul); }
-      else if(pe==="shaker"){ v.shaker(t,0.5*auto.velocityMul); }
-      else if(pe==="oh"){ v.openhat(t,0.35); }
+      var pprob=(this.percProb&&typeof this.percProb[step]==="number")?this.percProb[step]:1; // Session 33: chance
+      if(pe&&Math.random()<=pprob){
+        if(pe==="clap"){ if(energy>0.3) v.clap(t,0.7*auto.velocityMul); }
+        else if(pe==="shaker"){ v.shaker(t,0.5*auto.velocityMul); }
+        else if(pe==="oh"){ v.openhat(t,0.35); }
+      }
     }
     var barsLeft=section.bars-1-barInSection;
     if(barsLeft<=1&&(section.name==="BUILD"||section.name==="RISER"||section.name==="INTRO")){
