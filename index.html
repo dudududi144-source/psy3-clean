@@ -940,7 +940,7 @@ body {
 // Session 25 build guard: when the build token changes, purge stale caches and
 // service workers once, so returning users never stay stuck on an old version.
 (function(){
-  var BUILD = "s38-v23"; // session 38: ADAPTIVE brain functional // session 37: GENERATIVE brain functional // session 36: section-aware pattern tools // session 35: LEAD chance // session 34: ARP chance + arrangement-persist fix // session 33: percussion chance // session 32: tap tempo // session 31: pattern tools // session 30: retheme // session 29: arrangement templates // session 28: polyrhythm loop lengths // session 27: force one-time purge so returning users see updates
+  var BUILD = "s39-v24"; // session 39: per-section scale // session 38: ADAPTIVE brain functional // session 37: GENERATIVE brain functional // session 36: section-aware pattern tools // session 35: LEAD chance // session 34: ARP chance + arrangement-persist fix // session 33: percussion chance // session 32: tap tempo // session 31: pattern tools // session 30: retheme // session 29: arrangement templates // session 28: polyrhythm loop lengths // session 27: force one-time purge so returning users see updates
   try {
     var seen = localStorage.getItem("psy3_build");
     if (seen !== BUILD) {
@@ -956,17 +956,17 @@ body {
   } catch (e) {}
 })();
 </script>
-<script src="src/core.js?v=23"></script>
-<script src="src/pools.js?v=23"></script>
-<script src="src/midi.js?v=23"></script>
-<script src="src/theory.js?v=23"></script>
-<script src="src/song.js?v=23"></script>
-<script src="src/groovebox.js?v=23"></script>
-<script src="src/dsp.js?v=23"></script>
-<script src="src/brain-runtime.js?v=23"></script>
-<script src="src/ui.js?v=23"></script>
-<script src="src/editor.js?v=23"></script>
-<script src="src/main.js?v=23"></script>
+<script src="src/core.js?v=24"></script>
+<script src="src/pools.js?v=24"></script>
+<script src="src/midi.js?v=24"></script>
+<script src="src/theory.js?v=24"></script>
+<script src="src/song.js?v=24"></script>
+<script src="src/groovebox.js?v=24"></script>
+<script src="src/dsp.js?v=24"></script>
+<script src="src/brain-runtime.js?v=24"></script>
+<script src="src/ui.js?v=24"></script>
+<script src="src/editor.js?v=24"></script>
+<script src="src/main.js?v=24"></script>
 <script>
 // Register service worker
 if ('serviceWorker' in navigator) {
