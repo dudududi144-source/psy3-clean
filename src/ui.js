@@ -114,6 +114,18 @@ function cyclePartLen(part,el){
   if(typeof setStatus==="function") setStatus(part+" loop: "+next+" steps","ok");
   if(typeof commitUndo==="function") commitUndo();
 }
+function initPatternTools(){
+  function pt(){ var sel=$("toolPart"); return sel?sel.value:"ARP"; }
+  function bind(id,fn){ var el=$(id); if(el) el.addEventListener("click",fn); }
+  bind("ptClear",function(){ patternClear(pt()); });
+  bind("ptRandom",function(){ patternRandom(pt()); });
+  bind("ptReverse",function(){ patternReverse(pt()); });
+  bind("ptShiftL",function(){ patternShift(pt(),-1); });
+  bind("ptShiftR",function(){ patternShift(pt(),1); });
+  bind("ptDouble",function(){ patternDouble(pt()); });
+  bind("ptHalf",function(){ patternHalf(pt()); });
+  bind("ptInvert",function(){ patternInvert(pt()); });
+}
 function buildSeq(){
   var root=$("seq"); if(!root) return;
   var SEQ_EDIT=["KICK","BASS","PERC","LEAD","ARP","PAD"]; // Phase 2: all 6 rows; BASS/LEAD start dimmed (arrangement-driven) until first edit takes over
@@ -473,6 +485,7 @@ function initUi(){
   var nb=$("nextSecBtn"); if(nb) nb.addEventListener("click",function(){ device.jumpSection(); trackEvent("jump_section",{}); });
   var gb=$("genreBtn"); if(gb) gb.addEventListener("click",function(){ if(device&&typeof device.cycleGenre==="function") device.cycleGenre(); }); // Phase 2: genre presets
   if(typeof initArranger==="function") initArranger(); // Session 26: arrangement editor
+  if(typeof initPatternTools==="function") initPatternTools(); // Session 31: pattern tools
   var xb=$("exportBtn"); if(xb) xb.addEventListener("click",function(){ if(typeof renderWav==="function") renderWav(4); }); // Phase 4: WAV export
   var rb=$("recBtn"); if(rb) rb.addEventListener("click",function(){ if(typeof toggleRecording==="function") toggleRecording(); }); // Phase 4: live recording
   var ppb=$("presetsBtn"); if(ppb) ppb.addEventListener("click",function(){ if(typeof togglePresetPanel==="function") togglePresetPanel(); }); // Phase 4: preset manager
