@@ -166,7 +166,7 @@ function buildSeq(){
 }
 function toggleStep(part,s,e){
   // Session 33: shift+click a PERC step cycles its play chance (100/75/50/25%)
-  if((part==="PERC"||part==="ARP")&&e&&e.shiftKey){
+  if((part==="PERC"||part==="ARP"||part==="LEAD")&&e&&e.shiftKey){
     if(!device.chance) device.chance={PERC:new Array(16).fill(1),ARP:new Array(16).fill(1)};
     if(!device.chance[part]) device.chance[part]=new Array(16).fill(1);
     var levels=[1,0.75,0.5,0.25];
@@ -219,7 +219,7 @@ function refreshStepUi(part,s){
     b.style.background="";
     b.style.boxShadow="";
   }
-  if((part==="PERC"||part==="ARP")&&device.chance&&device.chance[part]&&typeof device.chance[part][s]==="number"){ b.style.opacity=String(0.3+0.7*device.chance[part][s]); } // Session 34: chance visual
+  if((part==="PERC"||part==="ARP"||part==="LEAD")&&device.chance&&device.chance[part]&&typeof device.chance[part][s]==="number"){ b.style.opacity=String(0.3+0.7*device.chance[part][s]); } // Session 35: chance visual (LEAD added)
 }
 function refreshSeqUi(){
   for(var i=0;i<PART_NAMES.length;i++){
