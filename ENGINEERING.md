@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 29 - arrangement templates (fixed demo structure retired)
+## Status: Session 30 - RETHeme (melodic variety on demand)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -680,6 +680,26 @@ User verdict on the single hardcoded INTRO/BUILD/DROP/BREAK/RISER/DROP2/OUTRO te
 - All edited files parse; template loader uses only verified helpers; selector self-populates.
 - Known musical detail: template DROP2 sections get rootOffset 0 (buildSong's random +2 offset applied only to seed-generated songs); per-section key editing remains a future item.
 - Static verification only. Smoke: pick Progressive -> timeline shows 200 bars; Blank Canvas -> build your own with ADD; undo restores the previous structure.
+
+
+## Session 30 changes (this commit) - RETHeme: melodic variety on demand
+
+Gap addressed: melodic content was limited to the four seed-generated themes (A/A2/B/transition); every track from the same seed had the same melodies. Now:
+
+- **`retheme()`** (editor.js): regenerates ALL four themes from a fresh random seed while keeping the song's root, modes, drop2 offset, structure and patterns intact. Lead cache invalidated so the new melodies are heard immediately on the next scheduled bar.
+- **RETHEME transport button** (after VARIATE) wired in initUi.
+- Undo integration: retheme commits a snapshot (undo returns to pre-retheme melodies).
+- Cache: scripts v15, token s30-v15, SW v13.
+
+### Semantics (honest)
+
+- VARIATE still reseeds EVERYTHING (structure+patterns+themes) from song.seed; RETHeme touches ONLY the melodies. A later VARIATE overwrites a retheme (documented behavior).
+- DROP2's theme keeps its built-in root offset (A2 derived from the new A), so rethemes stay musical across drops.
+
+### Verification
+
+- All edited files parse; retheme uses only verified globals (buildTheme/buildTransitionTheme/rngFor are the same calls buildSong uses); button wired.
+- Static verification only. Smoke: press RETHeme while playing -> the lead melody changes at the next bar; structure, bass groove and drums untouched.
 
 
 ## Phase plan
