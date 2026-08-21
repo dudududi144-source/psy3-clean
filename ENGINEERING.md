@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 32 - tap tempo
+## Status: Session 33 - percussion chance (probability per step)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -738,6 +738,23 @@ A real-instrument control added:
 - ui.js parses; TAP button + wiring asserted; bpm math verified (60000/avg-interval, clamped).
 - Known limitation: BPM is limited to the existing 120-165 knob range by design; taps outside are clamped.
 - Static verification only. Smoke: tap a steady pulse -> BPM readout converges to your tempo; audio follows immediately (updateDelayTime re-tunes the dotted-eighth delay).
+
+
+## Session 33 changes (this commit) - percussion chance (Digitakt-style probability)
+
+The 'smarter patterns' gap, first slice: per-step play probability for percussion.
+
+- **State**: `device.percProb` (16 floats, default 1.0) in the Groovebox constructor.
+- **Scheduler**: percussion hits (clap/shaker/oh) are gated by `Math.random() <= percProb[step]` - probability is evaluated at schedule time. Default 1.0 = identical behavior to before.
+- **Editing**: **shift+click** a PERC step cycles its chance 100% -> 75% -> 50% -> 25%; the step dims proportionally (opacity 0.3+0.7*p). Regular click still cycles the perc sound type.
+- **Persistence**: percProb included in undo/redo snapshots and project state (getDeviceState/applyDeviceState).
+- Cache: scripts v18, token s33-v18, SW v16.
+
+### Verification / honesty
+
+- All four edited JS files parse; anchors replaced exactly once; chance gating present; default-1.0 proves backward compatibility.
+- Known scope: chance applies to PERC only (kick stays four-on-the-floor by design); probability is per absolute step (16-grid), independent of per-part loop lengths.
+- Static verification only. Smoke: shift+click a PERC step a few times -> it dims; play -> that hit drops out randomly at the set percentage.
 
 
 ## Phase plan
