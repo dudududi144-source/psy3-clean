@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 35 - LEAD chance (chance across PERC/ARP/LEAD)
+## Status: Session 36 - section-aware pattern tools (BarPlan consistency)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -790,6 +790,22 @@ Cache: scripts v20, token s35-v20, SW v18.
 
 - All edited JS parse; exactly two LEAD gates asserted; default 1.0 proves backward compatibility; cursor-outside-gate verified by inspection (theme path).
 - Static verification only. Smoke: shift+click a LEAD step -> dims + that note drops out at that %; melody timing stays steady.
+
+
+## Session 36 changes (this commit) - section-aware pattern tools (BarPlan consistency)
+
+Fixed a real inconsistency: grid editing (toggleStep) edits the **active section's** patterns via `activePatterns()`, but the pattern tools (clear/random/reverse/shift/double/half/invert) operated on the **global** `device.patterns`. So the tools and the grid disagreed about what they edited.
+
+- New `_activePat()` helper returns the pattern set of the section at the playhead (`activePatterns()`), falling back to `device.patterns`. All 11 `device.patterns` references in the PATTERN EDITOR block now route through it.
+- Effect: the TOOLS panel (and D/H/Z shortcuts) now transform the patterns of the section the playhead is in - consistent with grid editing and with BarPlan per-section overrides. Editing a section that has no override yet lazily clones the global baseline (existing BarPlan behavior).
+
+Cache: scripts v21, token s36-v21, SW v19.
+
+### Verification / honesty
+
+- editor.js parses; the PATTERN EDITOR block now has 0 `device.patterns` refs and >=11 `_activePat()` refs; `_activePat()` defined once.
+- Scope note: the tools act on the playhead section, so move the playhead to a section before applying a tool to it. Global (all-section) transforms are no longer offered by these tools (that was the ambiguous behavior); a deliberate all-sections transform can be a follow-up if wanted.
+- Static verification only. Smoke: park the playhead in DROP, hit RND on ARP -> only DROP's ARP changes; move to BREAK, hit RND -> BREAK changes independently.
 
 
 ## Phase plan
