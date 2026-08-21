@@ -792,6 +792,23 @@ Groovebox.prototype.onBar=function(absBar,t){
       if(typeof refreshSeqUi==="function") refreshSeqUi();
     }
   }
+  // Session 38: ADAPTIVE brain - reshape ARP from the learned melodic contour
+  if(this.brainMode==="ADAPTIVE"&&Math.random()<0.18){
+    var ap2=(typeof this.activePatterns==="function")?this.activePatterns():this.patterns;
+    if(ap2&&ap2.arp&&ap2.arp.length){
+      var tendency=(typeof Grammars!=="undefined"&&Grammars.melodic)?Grammars.melodic.contourTendency():"neutral";
+      var deg=(ap2.arp[0]&&typeof ap2.arp[0].deg==="number")?ap2.arp[0].deg:0;
+      for(var s2=0;s2<ap2.arp.length;s2++){
+        var r=Math.random(); var dir=0;
+        if(tendency==="up") dir=(r<0.6)?1:((r<0.8)?-1:0);
+        else if(tendency==="down") dir=(r<0.6)?-1:((r<0.8)?1:0);
+        else dir=(r<0.4)?1:((r<0.8)?-1:0);
+        deg=Math.max(0,Math.min(14,deg+dir));
+        if(ap2.arp[s2]) ap2.arp[s2].deg=deg;
+      }
+      if(typeof refreshSeqUi==="function") refreshSeqUi();
+    }
+  }
   this.updateLcd();
 };
 Groovebox.prototype.applySongSection=function(section){
