@@ -254,6 +254,23 @@ if(navigator.vibrate)navigator.vibrate(8);
   if(el){ el.className="pad hit"; setTimeout(function(){ el.className="pad"; },150); }
   trackEvent("pad_hit",{deg:PAD_DEGS[idx]});
 }
+var tapTimes=[]; // Session 32: tap tempo
+function tapTempo(){
+  var now=(typeof performance!=="undefined"&&performance.now)?performance.now():Date.now();
+  if(tapTimes.length&&now-tapTimes[tapTimes.length-1]>2000){ tapTimes=[]; } // reset if gap > 2s
+  tapTimes.push(now);
+  if(tapTimes.length>8){ tapTimes.shift(); }
+  if(tapTimes.length>=2){
+    var sum=0;
+    for(var i=1;i<tapTimes.length;i++){ sum+=tapTimes[i]-tapTimes[i-1]; }
+    var avg=sum/(tapTimes.length-1);
+    var bpm=Math.round(60000/avg);
+    bpm=Math.max(120,Math.min(165,bpm)); // knob range 120-165
+    if(device&&typeof device.setKnob==="function"){ device.setKnob("bpm",(bpm-120)/45); }
+    if(typeof setStatus==="function") setStatus("TAP: "+bpm+" BPM","ok");
+    if(typeof trackEvent==="function") trackEvent("tap_tempo",{bpm:bpm});
+  } else if(typeof setStatus==="function"){ setStatus("TAP: keep tapping...","ok"); }
+}
 function togglePlay(){
 if(navigator.vibrate)navigator.vibrate(15);
   var btn=$("playBtn");
@@ -480,6 +497,7 @@ function initUi(){
   var ls=$("lcdSteps");
   if(ls){ ls.innerHTML=""; for(var i=0;i<16;i++){ var sp=document.createElement("span"); sp.className="ls"; ls.appendChild(sp); } }
   var pb=$("playBtn"); if(pb) pb.addEventListener("click",togglePlay);
+  var tb=$("tapBtn"); if(tb) tb.addEventListener("click",function(){ tapTempo(); }); // Session 32: tap tempo
   var vb=$("variateBtn"); if(vb) vb.addEventListener("click",function(){ device.variate(false); trackEvent("variate",{}); });
   var rtb=$("rethemeBtn"); if(rtb) rtb.addEventListener("click",function(){ if(typeof retheme==="function") retheme(); }); // Session 30
   var nb=$("nextSecBtn"); if(nb) nb.addEventListener("click",function(){ device.jumpSection(); trackEvent("jump_section",{}); });
