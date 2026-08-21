@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 33 - percussion chance (probability per step)
+## Status: Session 34 - ARP chance + arrangement-persistence fix
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -755,6 +755,22 @@ The 'smarter patterns' gap, first slice: per-step play probability for percussio
 - All four edited JS files parse; anchors replaced exactly once; chance gating present; default-1.0 proves backward compatibility.
 - Known scope: chance applies to PERC only (kick stays four-on-the-floor by design); probability is per absolute step (16-grid), independent of per-part loop lengths.
 - Static verification only. Smoke: shift+click a PERC step a few times -> it dims; play -> that hit drops out randomly at the set percentage.
+
+
+## Session 34 changes (this commit) - ARP chance + arrangement-persistence fix
+
+1. **Chance generalized to `device.chance`** keyed by part: `{PERC:[16], ARP:[16]}` (default 1.0 = identical behavior). Shift+click now works on PERC **and ARP** steps (100/75/50/25%); the step dims with its chance. ARP gating evaluated at schedule time. Extends Session-33 percussion chance to arpeggios for more alive/variant motion.
+
+2. **Real bug fixed - arrangement persistence**: `applyProject` restored `proj.song` (the custom arrangement) and then immediately overwrote it with `buildSong(seed)`, silently discarding any arrangement the user built (sessions 26/29). Now the rebuild runs only when the project has no saved song (legacy projects). Custom arrangements now survive save/load.
+
+3. **State migration**: undo/project state stores `chance`; loading a Session-33 state with `percProb` migrates it to `chance.PERC` (ARP defaults to 1.0).
+
+Cache: scripts v19, token s34-v19, SW v17.
+
+### Verification / honesty
+
+- All edited JS parse; every anchor replaced exactly once; zero stray `percProb` outside intentional migration refs; default 1.0 proves backward compatibility; the song-clobber fix verified by inspection.
+- Static verification only. Smoke: shift+click an ARP step -> dims + drops out at that %; save a project with an edited arrangement, reload it -> arrangement preserved.
 
 
 ## Phase plan
