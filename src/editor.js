@@ -706,6 +706,12 @@ var KeyboardShortcuts = {
     
     var key = e.key.toLowerCase();
     
+    // Session 39: M cycles the playhead section's scale
+    if (key === 'm') {
+      if (typeof cycleSectionMode === 'function') cycleSectionMode();
+      return;
+    }
+    
     // Escape: cancel MIDI learn (Phase 0b)
     if (key === 'escape') {
       if (typeof MIDILearn !== 'undefined' && MIDILearn.active) {
@@ -1195,4 +1201,25 @@ function loadProjectFromFile(file){
     }
   };
   rd.readAsText(file);
+}
+
+/* Session 39: per-section scale. Cycles the scale of the section at the playhead.
+   Both the bass and the lead follow the section theme's scaleKey, so they stay
+   in the same key. Note: INTRO/BUILD/RISER/OUTRO share the 'transition' theme,
+   so changing one of their scales affects all four. */
+function cycleSectionMode(){
+  if(typeof device==="undefined"||!device||!device.song) return;
+  var scaleNames=Object.keys(SCALES);
+  var info=sectionAt(device.song,Math.floor(device.absStep/16));
+  var section=info.section;
+  var theme=device.song.themes[section.themeKey];
+  if(!theme) return;
+  var curScale=theme.scaleKey||device.song.modes[section.mode];
+  var idx=scaleNames.indexOf(curScale);
+  var nextScale=scaleNames[(idx+1)%scaleNames.length];
+  theme.scaleKey=nextScale;
+  device._barCacheKey=-1; // invalidate lead cache so the new scale is heard
+  if(typeof setStatus==="function") setStatus("SCALE: "+section.name+" -> "+nextScale,"ok");
+  if(typeof refreshSeqUi==="function") refreshSeqUi();
+  if(typeof commitUndo==="function") commitUndo();
 }
