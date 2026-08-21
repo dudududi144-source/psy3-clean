@@ -229,7 +229,8 @@ function getDeviceState() {
     genre: device.genre||"FULL-ON", // Phase 2: sound preset in undo state
     sectionPatterns: JSON.parse(JSON.stringify(device.sectionPatterns||{})),
     song: JSON.parse(JSON.stringify(device.song)), // Session 26: arrangement belongs in the undo state
-    partLen: JSON.parse(JSON.stringify(device.partLen||{})), // Session 28: loop lengths // Phase 2 BarPlan
+    partLen: JSON.parse(JSON.stringify(device.partLen||{})), // Session 28: loop lengths
+    percProb: JSON.parse(JSON.stringify(device.percProb||new Array(16).fill(1))), // Session 33: perc chance // Phase 2 BarPlan
     // Phase 0c: patterns were missing from the snapshot, so undo could
     // never restore step edits. Deep copy (JSON-safe data).
     patterns: JSON.parse(JSON.stringify(device.patterns)),
@@ -253,6 +254,7 @@ function applyDeviceState(state) {
   if (state.genre) { device.genre = state.genre; STYLE.name = state.genre; }
   device.sectionPatterns = JSON.parse(JSON.stringify(state.sectionPatterns||{})); // Phase 2 BarPlan
   if (state.partLen) { device.partLen = JSON.parse(JSON.stringify(state.partLen)); } // Session 28
+  if (state.percProb) { device.percProb = JSON.parse(JSON.stringify(state.percProb)); } // Session 33
   if (state.song) {
     device.song = JSON.parse(JSON.stringify(state.song)); // Session 26: restore arrangement
     device._barCacheKey = -1;
