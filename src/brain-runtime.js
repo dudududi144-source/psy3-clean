@@ -784,6 +784,14 @@ Groovebox.prototype.onBar=function(absBar,t){
   if(this.autoFilter) this.autoFilter.frequency.setTargetAtTime(auto.filterCutoffHz,t,0.08);
   if(this.delayIn) this.delayIn.gain.setTargetAtTime(Math.max(0.05,auto.delaySend),t,0.1);
   if(this.reverbIn) this.reverbIn.gain.setTargetAtTime(Math.max(0.05,auto.reverbSend),t,0.1);
+  // Session 37: GENERATIVE brain - evolve the playhead section's ARP pattern
+  if(this.brainMode==="GENERATIVE"&&Math.random()<0.18){
+    var ap=(typeof this.activePatterns==="function")?this.activePatterns():this.patterns;
+    if(ap&&ap.arp&&ap.arp.length){
+      ap.arp.unshift(ap.arp.pop()); // rotate by 1 step
+      if(typeof refreshSeqUi==="function") refreshSeqUi();
+    }
+  }
   this.updateLcd();
 };
 Groovebox.prototype.applySongSection=function(section){
