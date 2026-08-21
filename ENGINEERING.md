@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 31 - pattern tools (real pattern editing, corruption fixed)
+## Status: Session 32 - tap tempo
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -723,6 +723,21 @@ Cache: scripts v16, token s31-v16, SW v14.
 - All edited files parse (esprima); structural asserts for panel markup/CSS/wiring; part-aware helpers verified present; double/half fixes asserted.
 - Known limitation: ops apply to the 16-step global grid (BarPlan section overrides are not the target here); per-section pattern tools remain future work.
 - Static verification only. Smoke: pick ARP, hit RND -> grid randomizes + heard; REV/x2//2 transform audibly; undo restores.
+
+
+## Session 32 changes (this commit) - tap tempo
+
+A real-instrument control added:
+
+- **TAP button** in the transport: tap repeatedly to set BPM. Keeps the last 8 taps, averages the intervals, rounds to BPM and syncs the BPM knob via `device.setKnob`. Resets the tap buffer after a >2s gap. Clamped to the knob range 120-165 (psytrance sits at 138-150).
+- Status feedback ("TAP: keep tapping..." then "TAP: NNN BPM") + analytics event.
+- Cache: scripts v17, token s32-v17, SW v15.
+
+### Verification / honesty
+
+- ui.js parses; TAP button + wiring asserted; bpm math verified (60000/avg-interval, clamped).
+- Known limitation: BPM is limited to the existing 120-165 knob range by design; taps outside are clamped.
+- Static verification only. Smoke: tap a steady pulse -> BPM readout converges to your tempo; audio follows immediately (updateDelayTime re-tunes the dotted-eighth delay).
 
 
 ## Phase plan
