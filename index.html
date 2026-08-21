@@ -420,6 +420,41 @@ body {
   box-shadow: 0 0 20px rgba(167,139,250,0.5);
 }
 
+/* Session 31: pattern tools */
+.pattern-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  align-items: center;
+  margin-bottom: var(--space-lg);
+  padding: var(--space-sm);
+  background: var(--bg-raised);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-dark);
+}
+
+.pt-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.pt-select {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-dark);
+  background: var(--bg-inset);
+  color: var(--accent-green);
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.pt-select:hover { background: var(--bg-inset); filter: brightness(1.2); }
+
 /* ============================================================
    TIMELINE
    ============================================================ */
@@ -856,6 +891,26 @@ body {
   
   <div id="knobs" class="knobs"></div>
   <div id="seq" class="seq"></div>
+  <div id="patternTools" class="pattern-tools">
+    <span class="pt-label">TOOLS</span>
+    <select id="toolPart" class="pt-select" title="Apply tools to this part (or ALL)">
+      <option value="">ALL</option>
+      <option value="KICK">KICK</option>
+      <option value="BASS">BASS</option>
+      <option value="PERC">PERC</option>
+      <option value="LEAD">LEAD</option>
+      <option value="ARP" selected>ARP</option>
+      <option value="PAD">PAD</option>
+    </select>
+    <button id="ptClear" class="mini-btn" title="Clear the selected part">CLR</button>
+    <button id="ptRandom" class="mini-btn" title="Randomize the selected part">RND</button>
+    <button id="ptReverse" class="mini-btn" title="Reverse the pattern">REV</button>
+    <button id="ptShiftL" class="mini-btn" title="Shift left">&lt;&lt;</button>
+    <button id="ptShiftR" class="mini-btn" title="Shift right">&gt;&gt;</button>
+    <button id="ptDouble" class="mini-btn" title="Double-time (2x speed)">&times;2</button>
+    <button id="ptHalf" class="mini-btn" title="Half-time">&divide;2</button>
+    <button id="ptInvert" class="mini-btn" title="Invert on/off steps">INV</button>
+  </div>
   <div id="pads" class="pads"></div>
   <div class="timeline-wrap">
     <div class="tl-inner">
@@ -884,7 +939,7 @@ body {
 // Session 25 build guard: when the build token changes, purge stale caches and
 // service workers once, so returning users never stay stuck on an old version.
 (function(){
-  var BUILD = "s30-v15"; // session 30: retheme // session 29: arrangement templates // session 28: polyrhythm loop lengths // session 27: force one-time purge so returning users see updates
+  var BUILD = "s31-v16"; // session 31: pattern tools // session 30: retheme // session 29: arrangement templates // session 28: polyrhythm loop lengths // session 27: force one-time purge so returning users see updates
   try {
     var seen = localStorage.getItem("psy3_build");
     if (seen !== BUILD) {
@@ -900,17 +955,17 @@ body {
   } catch (e) {}
 })();
 </script>
-<script src="src/core.js?v=15"></script>
-<script src="src/pools.js?v=15"></script>
-<script src="src/midi.js?v=15"></script>
-<script src="src/theory.js?v=15"></script>
-<script src="src/song.js?v=15"></script>
-<script src="src/groovebox.js?v=15"></script>
-<script src="src/dsp.js?v=15"></script>
-<script src="src/brain-runtime.js?v=15"></script>
-<script src="src/ui.js?v=15"></script>
-<script src="src/editor.js?v=15"></script>
-<script src="src/main.js?v=15"></script>
+<script src="src/core.js?v=16"></script>
+<script src="src/pools.js?v=16"></script>
+<script src="src/midi.js?v=16"></script>
+<script src="src/theory.js?v=16"></script>
+<script src="src/song.js?v=16"></script>
+<script src="src/groovebox.js?v=16"></script>
+<script src="src/dsp.js?v=16"></script>
+<script src="src/brain-runtime.js?v=16"></script>
+<script src="src/ui.js?v=16"></script>
+<script src="src/editor.js?v=16"></script>
+<script src="src/main.js?v=16"></script>
 <script>
 // Register service worker
 if ('serviceWorker' in navigator) {
