@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 34 - ARP chance + arrangement-persistence fix
+## Status: Session 35 - LEAD chance (chance across PERC/ARP/LEAD)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -771,6 +771,25 @@ Cache: scripts v19, token s34-v19, SW v17.
 
 - All edited JS parse; every anchor replaced exactly once; zero stray `percProb` outside intentional migration refs; default 1.0 proves backward compatibility; the song-clobber fix verified by inspection.
 - Static verification only. Smoke: shift+click an ARP step -> dims + drops out at that %; save a project with an edited arrangement, reload it -> arrangement preserved.
+
+
+## Session 35 changes (this commit) - LEAD chance (completes chance across PERC/ARP/LEAD)
+
+The per-step play-chance mechanism from sessions 33-34 now covers the lead too:
+
+- `device.chance` gains a `LEAD` lane (16 floats, default 1.0 = identical behavior).
+- Both lead paths (section-theme and BarPlan takeover) gate the **note trigger** with `Math.random() <= chance.LEAD[step]`. The theme cursor advancement stays OUTSIDE the gate, so skipped notes do not cause melodic timing drift - they simply drop out.
+- Shift+click now works on PERC, ARP **and LEAD** steps (100/75/50/25%); step dims with chance.
+- Undo/project state + Session-33 migration now include the LEAD lane (default 1.0).
+
+Musical note: LEAD chance is opt-in (default 100%). Used sparingly it adds psychedelic variation; high dropout on the main theme can sound broken, so it is a taste control, not a default.
+
+Cache: scripts v20, token s35-v20, SW v18.
+
+### Verification / honesty
+
+- All edited JS parse; exactly two LEAD gates asserted; default 1.0 proves backward compatibility; cursor-outside-gate verified by inspection (theme path).
+- Static verification only. Smoke: shift+click a LEAD step -> dims + that note drops out at that %; melody timing stays steady.
 
 
 ## Phase plan
