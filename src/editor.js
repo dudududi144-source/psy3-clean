@@ -528,6 +528,38 @@ function songReset(){
   }
 }
 
+
+/* ============================================================
+   ARRANGEMENT TEMPLATES (session 29)
+   The fixed 7-section demo structure is no longer the only option.
+   Real psytrance arrangements as loadable starting points, plus a
+   blank canvas. Combined with the ARRANGE editor this becomes a
+   real composition workflow: pick a structure (or blank), sculpt it.
+   ============================================================ */
+
+var ARRANGEMENT_TEMPLATES={
+  "Full-On Classic":[["INTRO",32],["BUILD",16],["DROP",32],["BREAK",32],["RISER",8],["DROP2",32],["OUTRO",24]],
+  "Progressive":[["INTRO",32],["BUILD",32],["DROP",32],["BREAK",16],["BUILD",16],["DROP2",48],["OUTRO",32]],
+  "Dark Forest":[["INTRO",16],["BUILD",16],["DROP",32],["BREAK",16],["DROP2",32],["OUTRO",16]],
+  "Hypnotic":[["INTRO",32],["DROP",48],["BREAK",16],["DROP2",48],["OUTRO",32]],
+  "Blank Canvas":[["DROP",16]]
+};
+
+function loadArrangementTemplate(name){
+  if(typeof device==="undefined"||!device||!device.song) return;
+  var tpl=ARRANGEMENT_TEMPLATES[name];
+  if(!tpl) return;
+  var secs=[];
+  for(var i=0;i<tpl.length;i++){ secs.push(songSectionDefaults(tpl[i][0],tpl[i][1])); }
+  device.song.sections=secs;
+  songReindex();
+  if(typeof arrSel!=="undefined") arrSel=0;
+  if(typeof renderTimelineFor==="function") renderTimelineFor(device);
+  if(typeof selectSection==="function") selectSection(0);
+  if(typeof setStatus==="function") setStatus("ARRANGEMENT: "+name+" ("+device.song.totalBars+" bars)","ok");
+  if(typeof commitUndo==="function") commitUndo();
+}
+
 function songGetInfo(){
   if(!device||!device.song) return null;
   return {
