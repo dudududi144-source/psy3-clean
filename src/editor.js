@@ -255,7 +255,7 @@ function applyDeviceState(state) {
   device.sectionPatterns = JSON.parse(JSON.stringify(state.sectionPatterns||{})); // Phase 2 BarPlan
   if (state.partLen) { device.partLen = JSON.parse(JSON.stringify(state.partLen)); } // Session 28
   if (state.chance) { device.chance = JSON.parse(JSON.stringify(state.chance)); } // Session 34
-  else if (state.percProb) { device.chance = {PERC: JSON.parse(JSON.stringify(state.percProb)), ARP: new Array(16).fill(1)}; } // migrate Session 33
+  else if (state.percProb) { device.chance = {PERC: JSON.parse(JSON.stringify(state.percProb)), ARP: new Array(16).fill(1), LEAD: new Array(16).fill(1)}; } // migrate Session 33 (LEAD default 1)
   if (state.song) {
     device.song = JSON.parse(JSON.stringify(state.song)); // Session 26: restore arrangement
     device._barCacheKey = -1;
@@ -1161,7 +1161,7 @@ function applyProject(proj){
   device.sectionPatterns=JSON.parse(JSON.stringify(proj.sectionPatterns||{}));
   if(proj.song){ device.song=JSON.parse(JSON.stringify(proj.song)); device._barCacheKey=-1; if(typeof renderTimelineFor==="function") renderTimelineFor(device); } // Session 26
   if(proj.partLen){ device.partLen=JSON.parse(JSON.stringify(proj.partLen)); } // Session 28
-  if(proj.chance){ device.chance=JSON.parse(JSON.stringify(proj.chance)); } else if(proj.percProb){ device.chance={PERC:JSON.parse(JSON.stringify(proj.percProb)),ARP:new Array(16).fill(1)}; } // Session 34 (migrates Session 33)
+  if(proj.chance){ device.chance=JSON.parse(JSON.stringify(proj.chance)); } else if(proj.percProb){ device.chance={PERC:JSON.parse(JSON.stringify(proj.percProb)),ARP:new Array(16).fill(1),LEAD:new Array(16).fill(1)}; } // Session 35 (migrates Session 33, LEAD default 1)
   device.patternEdited=JSON.parse(JSON.stringify(proj.patternEdited||{bass:false,lead:false}));
   for(var key in device.knobVals){ device.applyKnob(key); }
   if(!proj.song&&typeof buildSong==="function"){ device.song=buildSong(device.seed); device._barCacheKey=-1; } // Session 34: don't clobber a restored arrangement
