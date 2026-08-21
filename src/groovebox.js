@@ -21,7 +21,7 @@ function Groovebox(){
   // Phase 2 takeover flags: BASS/LEAD are arrangement-driven until the user
   // edits their pattern rows; first edit switches them to pattern-driven.
   this.patternEdited={bass:false,lead:false};
-  this.percProb=new Array(16).fill(1); // Session 33: per-step chance for percussion (1=always play)
+  this.chance={PERC:new Array(16).fill(1),ARP:new Array(16).fill(1)}; // Session 34: per-step play chance per part (1=always)
   this.partLen={KICK:16,BASS:16,PERC:16,LEAD:16,ARP:16,PAD:16}; // Session 28: per-part loop length (polyrhythm)
   this.sectionPatterns={}; // Phase 2 BarPlan: per-section overrides (lazy ownership via activePatterns)
   this.song=buildSong(this.seed);
