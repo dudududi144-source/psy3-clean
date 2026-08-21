@@ -602,6 +602,23 @@ body {
   .section-flash { font-size: 26px; letter-spacing: 6px; }
 }
 
+/* Session 29: arrangement template selector */
+.arr-select {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 6px 8px;
+  margin-right: 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-dark);
+  background: var(--bg-inset);
+  color: var(--accent-cyan);
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.arr-select:hover { background: var(--bg-raised); }
+
 /* Session 28: per-part loop-length badge (polyrhythm) */
 .loop-badge {
   font-family: var(--font-mono);
@@ -847,6 +864,7 @@ body {
   </div>
   <div class="arranger-bar" id="arrangerBar">
     <span class="arr-label">ARRANGE</span>
+    <select id="arrTemplate" class="arr-select" title="Load an arrangement template"></select>
     <button id="arrMinus8" class="mini-btn" title="Remove 8 bars from the selected section">-8b</button>
     <button id="arrPlus8" class="mini-btn" title="Add 8 bars to the selected section">+8b</button>
     <button id="arrLeft" class="mini-btn" title="Move the selected section left">&#9664;</button>
@@ -865,7 +883,7 @@ body {
 // Session 25 build guard: when the build token changes, purge stale caches and
 // service workers once, so returning users never stay stuck on an old version.
 (function(){
-  var BUILD = "s28-v13"; // session 28: polyrhythm loop lengths // session 27: force one-time purge so returning users see updates
+  var BUILD = "s29-v14"; // session 29: arrangement templates // session 28: polyrhythm loop lengths // session 27: force one-time purge so returning users see updates
   try {
     var seen = localStorage.getItem("psy3_build");
     if (seen !== BUILD) {
@@ -881,17 +899,17 @@ body {
   } catch (e) {}
 })();
 </script>
-<script src="src/core.js?v=13"></script>
-<script src="src/pools.js?v=13"></script>
-<script src="src/midi.js?v=13"></script>
-<script src="src/theory.js?v=13"></script>
-<script src="src/song.js?v=13"></script>
-<script src="src/groovebox.js?v=13"></script>
-<script src="src/dsp.js?v=13"></script>
-<script src="src/brain-runtime.js?v=13"></script>
-<script src="src/ui.js?v=13"></script>
-<script src="src/editor.js?v=13"></script>
-<script src="src/main.js?v=13"></script>
+<script src="src/core.js?v=14"></script>
+<script src="src/pools.js?v=14"></script>
+<script src="src/midi.js?v=14"></script>
+<script src="src/theory.js?v=14"></script>
+<script src="src/song.js?v=14"></script>
+<script src="src/groovebox.js?v=14"></script>
+<script src="src/dsp.js?v=14"></script>
+<script src="src/brain-runtime.js?v=14"></script>
+<script src="src/ui.js?v=14"></script>
+<script src="src/editor.js?v=14"></script>
+<script src="src/main.js?v=14"></script>
 <script>
 // Register service worker
 if ('serviceWorker' in navigator) {
