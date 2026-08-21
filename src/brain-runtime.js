@@ -680,7 +680,7 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
       // (deterministic per seed). The clap energy gate from the old inline
       // logic is preserved; arrangement fills below remain section-driven.
       var pe=pat.perc[absStep%(pl.PERC||16)]; // BarPlan + Session 28 loop length
-      var pprob=(this.percProb&&typeof this.percProb[step]==="number")?this.percProb[step]:1; // Session 33: chance
+      var pprob=(this.chance&&this.chance.PERC&&typeof this.chance.PERC[step]==="number")?this.chance.PERC[step]:1; // Session 34: chance
       if(pe&&Math.random()<=pprob){
         if(pe==="clap"){ if(energy>0.3) v.clap(t,0.7*auto.velocityMul); }
         else if(pe==="shaker"){ v.shaker(t,0.5*auto.velocityMul); }
@@ -745,7 +745,8 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
   }
   if(sectionHasPart(section,"arp")&&!m.ARP){
     var an=pat.arp[absStep%(pl.ARP||16)]; // BarPlan + Session 28 loop length
-    if(an) v.arpNote(t,ROOT+24+SCALE_EXT[an.deg],step%4===0);
+    var aprob=(this.chance&&this.chance.ARP&&typeof this.chance.ARP[step]==="number")?this.chance.ARP[step]:1; // Session 34: chance
+    if(an&&(Math.random()<=aprob)) v.arpNote(t,ROOT+24+SCALE_EXT[an.deg],step%4===0);
   }
   if(sectionHasPart(section,"pad")&&!m.PAD&&barInSection%2===0){
     // Phase 2: pad chords are read from the pattern grid. Seeded default is
