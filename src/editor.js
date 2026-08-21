@@ -560,6 +560,26 @@ function loadArrangementTemplate(name){
   if(typeof commitUndo==="function") commitUndo();
 }
 
+
+/* Session 30: RETHeme - regenerate all melodic themes with a fresh seed,
+   keeping structure (root, modes, drop2 offset) and patterns intact.
+   Gives real melodic variety without losing the arrangement. */
+function retheme(){
+  if(typeof device==="undefined"||!device||!device.song) return;
+  var song=device.song;
+  var newSeed=(Math.random()*4294967296)>>>0;
+  song.themes={
+    A:buildTheme(newSeed,"A",song.root+24,song.modes.drop),
+    A2:buildTheme(newSeed,"A2",song.root+24+(song.drop2RootOffset||0),song.modes.drop2,{deriveFrom:"A"}),
+    B:buildTheme(newSeed,"B",song.root+24,song.modes.break,{register:-12,emotional:true}),
+    transition:buildTransitionTheme(newSeed,song.root+24,song.modes.intro)
+  };
+  device._barCacheKey=-1; // invalidate lead cache so new themes are heard
+  if(typeof setStatus==="function") setStatus("MELODIES RETHEMED","ok");
+  if(typeof trackEvent==="function") trackEvent("retheme",{});
+  if(typeof commitUndo==="function") commitUndo();
+}
+
 function songGetInfo(){
   if(!device||!device.song) return null;
   return {
