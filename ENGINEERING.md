@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 37 - GENERATIVE brain functional
+## Status: Session 38 - ADAPTIVE brain functional (brain-mode set complete)
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -824,6 +824,24 @@ Cache: scripts v22, token s37-v22, SW v20.
 - brain-runtime parses; exactly one GENERATIVE block; brainMode constructor init confirmed.
 - GENERATIVE mutates the section pattern permanently (that is the generative intent); it does not commit undo (frequent automatic mutations would flood undo). Users who want a stable pattern should stay in MANUAL.
 - Static verification only. Smoke: set BRAIN to GENERATIVE, play, watch the ARP row evolve over bars.
+
+
+## Session 38 changes (this commit) - ADAPTIVE brain mode made functional
+
+Session 37 made GENERATIVE real; this session makes **ADAPTIVE** real, completing the brain-mode set:
+
+- In `onBar`, when `brainMode==='ADAPTIVE'`, with ~18% probability per bar the playhead section's ARP degrees are **reshaped by a random walk biased by the learned melodic contour** (`Grammars.melodic.contourTendency()` -> up/down/same). As the track plays, `updateGrammars` feeds the melodic grammar from the lead, so the ARP drift follows the melodic tendency the system has heard.
+- GENERATIVE (session 37) remains a uniform rotation; ADAPTIVE is the grammar-informed counterpart. MANUAL stays untouched (default).
+
+Scope note: ADAPTIVE edits existing non-null ARP degrees (it adapts the current pattern rather than spawning new steps); degrees are clamped to the SCALE_EXT range (0-14).
+
+Cache: scripts v23, token s38-v23, SW v21.
+
+### Verification / honesty
+
+- brain-runtime parses; exactly one ADAPTIVE block and GENERATIVE still intact; degree clamp asserted by code inspection.
+- The contour tendency is only meaningful once the grammar has observations; early in a fresh session it returns 'neutral' (uniform walk) until the lead has played enough - expected behavior, documented.
+- Static verification only. Smoke: play for a while, set BRAIN to ADAPTIVE, watch the ARP contour start to follow the melody's up/down tendency.
 
 
 ## Phase plan
