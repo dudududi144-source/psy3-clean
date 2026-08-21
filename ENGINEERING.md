@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 38 - ADAPTIVE brain functional (brain-mode set complete)
+## Status: Session 39 - per-section scale
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -842,6 +842,25 @@ Cache: scripts v23, token s38-v23, SW v21.
 - brain-runtime parses; exactly one ADAPTIVE block and GENERATIVE still intact; degree clamp asserted by code inspection.
 - The contour tendency is only meaningful once the grammar has observations; early in a fresh session it returns 'neutral' (uniform walk) until the lead has played enough - expected behavior, documented.
 - Static verification only. Smoke: play for a while, set BRAIN to ADAPTIVE, watch the ARP contour start to follow the melody's up/down tendency.
+
+
+## Session 39 changes (this commit) - per-section scale
+
+Sections can now have their own scale, adding melodic variety per section:
+
+- **`cycleSectionMode()`** (editor.js) cycles the scale of the section at the playhead through the 8 scales in SCALES. Bound to the **M** key.
+- **Bass follows the section theme's scale**: the bass scale lookup now uses the section theme's `scaleKey` (falling back to the section mode). Since the lead already uses the theme's scale, the bass and lead stay in the same key when the scale changes.
+- Changing the scale invalidates the lead cache so the new scale is heard immediately; commits undo.
+
+Known limitation (documented): INTRO/BUILD/RISER/OUTRO all share the 'transition' theme, so changing the scale of one of them affects all four. DROP/DROP2/BREAK each have their own theme and change independently.
+
+Cache: scripts v24, token s39-v24, SW v22.
+
+### Verification / honesty
+
+- brain-runtime and editor parse; bass-scale fallback verified by inspection; M shortcut added.
+- Default behavior unchanged: theme.scaleKey equals the section mode at build time, so the bass scale is the same until the user cycles it.
+- Static verification only. Smoke: park the playhead in DROP, press M repeatedly -> the lead and bass shift through scales together.
 
 
 ## Phase plan
