@@ -655,7 +655,10 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
     v.crash(t,(section.name==="DROP"||section.name==="DROP2")?1.0:0.6);
   }
   var bassRoot=song.root+(section.rootOffset||0);
-  var scale=SCALES[song.modes[section.mode]];
+  var bassScaleKey=song.modes[section.mode];
+  var secTheme=song.themes[section.themeKey];
+  if(secTheme&&secTheme.scaleKey) bassScaleKey=secTheme.scaleKey; // Session 39: per-section scale
+  var scale=SCALES[bassScaleKey]||SCALES.phrygianDominant;
   if(this.patternEdited.bass){
     // Phase 2 TAKEOVER: user-edited pattern overrides the section bass style.
     // Entries {n: semitone offset from bassRoot, s?: sustain in steps}.
