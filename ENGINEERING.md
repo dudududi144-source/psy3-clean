@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 41 - all-section pattern transforms
+## Status: Session 42 - section-aware scoring + CandidateGenerator wired
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -898,6 +898,22 @@ Cache: scripts v26, token s41-v26, SW v24.
 - editor and ui parse; all-section helpers defined once; ALL option added to the part selector.
 - Backward compatible: existing per-section tools unchanged.
 - Static verification only. Smoke: pick ARP, hit REV∀ -> every section's ARP reverses.
+
+
+## Session 42 changes (this commit) - section-aware scoring + CandidateGenerator wired
+
+The generative brain's comparisons are now more automatic and more similar to what a premium device does automatically:
+
+- **Section-aware rhythm scoring**: `scoreCandidate` now targets a section-aware rhythm density. High-energy sections (DROP/BUILD) favour denser rhythms; low-energy sections (BREAK/OUTRO) favour sparser ones, using `energyAt(sectionName, barInSection, sectionBars)`. Falls back to 0.5 when no section context is available (backward compatible).
+- **CandidateGenerator wired into ADAPTIVE mode**: it was dead code before (`generateNextBar` had no callers). Now, in ADAPTIVE mode, it auto-selects the best rhythm candidate and applies it to the kick pattern.
+
+Cache: scripts v27, token s42-v27, SW v25.
+
+### Verification / honesty
+
+- brain-runtime parses; section-aware scoring falls back to 0.5 without section context.
+- The CandidateGenerator wiring is probabilistic (18% per bar) so it does not override the user's patterns aggressively.
+- Static verification only. Smoke: set BRAIN to ADAPTIVE, play, and the kick pattern evolves.
 
 
 ## Phase plan
