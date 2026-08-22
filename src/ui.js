@@ -148,6 +148,19 @@ function buildSeq(){
           var b=document.createElement("button");
           b.className="step"+(ss%4===0?" q":"");
           b.addEventListener("click",function(e){ toggleStep(part,ss,e); });
+          if(part==="ARP"){ // Session 40: wheel edits per-step velocity
+            b.addEventListener("wheel",function(e){
+              e.preventDefault();
+              var p=(typeof device.activePatterns==="function")?device.activePatterns():device.patterns;
+              var cell=p.arp?p.arp[ss]:null;
+              if(!cell) return;
+              var cur=(typeof cell.vel==="number")?cell.vel:1;
+              var nv=Math.max(0.1,Math.min(1,cur+(e.deltaY<0?0.1:-0.1)));
+              cell.vel=Math.round(nv*10)/10;
+              b.style.opacity=String(0.35+0.65*cell.vel);
+              if(typeof setStatus==="function") setStatus("ARP step "+(ss+1)+" vel: "+Math.round(cell.vel*100)+"%","ok");
+            });
+          }
           steps.appendChild(b);
           stepElsMap[part][ss]=b;
           if(!stepColEls[ss]) stepColEls[ss]=[];
@@ -190,7 +203,7 @@ function toggleStep(part,s,e){
     p.perc[s]=cur===null?"clap":cur==="clap"?"shaker":cur==="shaker"?"oh":null;
   }
   else if(part==="LEAD"){ p.lead[s]=p.lead[s]?null:{deg:4,acc:0,slide:0}; }
-  else if(part==="ARP"){ p.arp[s]=p.arp[s]?null:{deg:4}; }
+  else if(part==="ARP"){ p.arp[s]=p.arp[s]?null:{deg:4,vel:1}; } // Session 40: new ARP steps start at full velocity
   else if(part==="PAD"){ p.pad[s]=p.pad[s]?null:{chord:[0,7,12]}; }
   refreshStepUi(part,s);
   trackEvent("step_edited",{part:part,step:s});
