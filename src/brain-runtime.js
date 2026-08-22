@@ -260,6 +260,11 @@ var CandidateGenerator = {
       // contour smoothness bonus: reward small steps (<=2 semitones)
       if (Math.abs(candidate.melodyNotes[m]) <= 2) score += 0.5;
     }
+    // Session 44: repetition/motif bonus - reward melodies that repeat an
+    // interval (memorable motifs), like a premium device favouring hooks.
+    for (var rp = 1; rp < candidate.melodyNotes.length; rp++) {
+      if (candidate.melodyNotes[rp] === candidate.melodyNotes[rp - 1]) score += 0.7;
+    }
     // (3) Rhythm: section-aware target density (Session 42). High-energy sections
     // (DROP/BUILD) favour denser rhythms; low-energy sections (BREAK/OUTRO) favour
     // sparser ones - like a premium device adapting density to the section's role.
