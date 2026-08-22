@@ -324,6 +324,27 @@ function _patCommit(msg){
 }
 /* Session 36: section-aware pattern tools - operate on the pattern set of the
    section at the playhead (BarPlan), consistent with grid editing. */
+
+/* Session 41: all-section pattern transforms.
+   _forEachPat(part,fn) runs fn(arr) on the given part's pattern array for EVERY
+   section (its own override if it has one, else the global baseline cloned lazily).
+   part==="ALL" applies fn to every part of every section. */
+function _sectionPat(name){
+  if(!device||!device.song) return null;
+  if(!device.sectionPatterns) device.sectionPatterns={};
+  if(!device.sectionPatterns[name]) device.sectionPatterns[name]=JSON.parse(JSON.stringify(device.patterns));
+  return device.sectionPatterns[name];
+}
+function _forEachPat(part,fn){
+  if(!device||!device.song||!device.song.sections) return;
+  var names=[]; for(var i=0;i<device.song.sections.length;i++) names.push(device.song.sections[i].name);
+  var uniq=[]; for(var j=0;j<names.length;j++){ if(uniq.indexOf(names[j])===-1) uniq.push(names[j]); }
+  for(var u=0;u<uniq.length;u++){
+    var pat=_sectionPat(uniq[u]); if(!pat) continue;
+    if(part&&part!=="ALL"){ if(pat[part]) fn(pat[part]); }
+    else{ for(var pi=0;pi<PART_ORDER.length;pi++){ var pp=PART_ORDER[pi]; if(pat[pp]) fn(pat[pp]); } }
+  }
+}
 function _activePat(){
   if(!device) return null;
   return (typeof device.activePatterns==="function")?device.activePatterns():device.patterns;
@@ -1223,3 +1244,9 @@ function cycleSectionMode(){
   if(typeof refreshSeqUi==="function") refreshSeqUi();
   if(typeof commitUndo==="function") commitUndo();
 }
+
+/* Session 41: all-section transforms (part or ALL) */
+function patternClearAll(part){ _forEachPat(part,function(arr){ for(var i=0;i<16;i++){ arr[i]=(part&&part!=="ALL")?_patEmpty(part):arr[i]; } }); _patCommit("Cleared all sections"+(part&&part!=="ALL"?" ("+part+")":"")); }
+function patternReverseAll(part){ _forEachPat(part,function(arr){ arr.reverse(); }); _patCommit("Reversed all sections"+(part&&part!=="ALL"?" ("+part+")":"")); }
+function patternShiftAll(part,direction){ var dir=direction||1; _forEachPat(part,function(arr){ if(dir>0){ arr.unshift(arr.pop()); } else { arr.push(arr.shift()); } }); _patCommit("Shifted all sections "+(dir>0?">>":"<<")+(part&&part!=="ALL"?" ("+part+")":"")); }
+function patternInvertAll(part){ _forEachPat(part,function(arr){ for(var i=0;i<16;i++){ arr[i]=_patInvert((part&&part!=="ALL")?part:"ARP",arr[i]); } }); _patCommit("Inverted all sections"+(part&&part!=="ALL"?" ("+part+")":"")); }
