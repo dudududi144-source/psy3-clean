@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 40 - per-step ARP velocity
+## Status: Session 41 - all-section pattern transforms
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -879,6 +879,25 @@ Cache: scripts v25, token s40-v25, SW v23.
 - theory/brain-runtime/ui parse; velocity default 1 proves backward compatibility (existing ARP entries without a vel field play at full velocity).
 - Velocity editing is ARP-only this session; extending to other rows is a follow-up.
 - Static verification only. Smoke: scroll on an ARP step -> it dims/brightens and the note gets quieter/louder + darker/brighter.
+
+
+## Session 41 changes (this commit) - all-section pattern transforms
+
+Pattern transforms can now apply across ALL sections, not just the playhead section:
+
+- **`_sectionPat(name)`** returns a section's pattern set (its own override if it has one, else the global baseline cloned lazily - existing BarPlan lazy-ownership).
+- **`_forEachPat(part,fn)`** runs an op on the given part's pattern array for every section; `part==='ALL'` applies to every part of every section.
+- **New ops**: `patternClearAll`, `patternReverseAll`, `patternShiftAll`, `patternInvertAll`. Bound to REV∀ / INV∀ buttons; the part selector's ALL option targets every part.
+
+Scope note: random/shift/double/half all-section variants were not added this session to keep the change focused; reverse/invert/clear cover the most useful all-section ops. Random across all sections can be a follow-up if wanted.
+
+Cache: scripts v26, token s41-v26, SW v24.
+
+### Verification / honesty
+
+- editor and ui parse; all-section helpers defined once; ALL option added to the part selector.
+- Backward compatible: existing per-section tools unchanged.
+- Static verification only. Smoke: pick ARP, hit REV∀ -> every section's ARP reverses.
 
 
 ## Phase plan
