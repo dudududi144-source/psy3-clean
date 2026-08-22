@@ -755,7 +755,7 @@ Groovebox.prototype.scheduleStep=function(absStep,t){
   if(sectionHasPart(section,"arp")&&!m.ARP){
     var an=pat.arp[absStep%(pl.ARP||16)]; // BarPlan + Session 28 loop length
     var aprob=(this.chance&&this.chance.ARP&&typeof this.chance.ARP[step]==="number")?this.chance.ARP[step]:1; // Session 34: chance
-    if(an&&(Math.random()<=aprob)) v.arpNote(t,ROOT+24+SCALE_EXT[an.deg],step%4===0);
+    if(an&&(Math.random()<=aprob)) v.arpNote(t,ROOT+24+SCALE_EXT[an.deg],step%4===0,(typeof an.vel==="number")?an.vel:1); // Session 40: per-step velocity
   }
   if(sectionHasPart(section,"pad")&&!m.PAD&&barInSection%2===0){
     // Phase 2: pad chords are read from the pattern grid. Seeded default is
