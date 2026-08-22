@@ -173,17 +173,18 @@ function makeVoices(ctx,outMap,sends,noiseBuf,getCfg){ // Phase 2: getCfg() thun
     if(sends.reverb){ var sr2=ctx.createGain(); sr2.gain.value=0.25; g.connect(sr2); sr2.connect(sends.reverb); }
     o1.start(t); o2.start(t); o1.stop(t+(gate>0?gate+0.03:0.26)); o2.stop(t+(gate>0?gate+0.03:0.26));
   }
-  function arpNote(t,midi,acc){
+  function arpNote(t,midi,acc,vel){
+    if(typeof vel!=="number") vel=1; // Session 40: per-step velocity (default full)
     var cfg=getCfg(); // Phase 2: live genre config
     var f=mtof(midi);
     var o=ctx.createOscillator(); o.type="sawtooth"; o.frequency.value=f;
     var flt=ctx.createBiquadFilter(); flt.type="lowpass"; flt.Q.value=cfg.arpRes;
-    var cut=acc?cfg.arpCut*1.4:cfg.arpCut;
+    var cut=(acc?cfg.arpCut*1.4:cfg.arpCut)*(0.5+0.5*vel); // Session 40: velocity opens the filter
     flt.frequency.setValueAtTime(Math.max(200,cut*0.5),t);
     flt.frequency.exponentialRampToValueAtTime(Math.min(cut,ctx.sampleRate*0.4),t+0.012);
     flt.frequency.exponentialRampToValueAtTime(300,t+0.11);
     var g=ctx.createGain();
-    var lvl=cfg.arpLvl*(acc?1:0.7);
+    var lvl=cfg.arpLvl*(acc?1:0.7)*vel; // Session 40: velocity scales level
     g.gain.setValueAtTime(0.0001,t);
     g.gain.exponentialRampToValueAtTime(lvl,t+0.006);
     g.gain.exponentialRampToValueAtTime(0.001,t+0.13);
