@@ -244,12 +244,21 @@ var CandidateGenerator = {
       score += (row[to] / rowSum) * 6;
       iv = candidate.bassNotes[b];
     }
-    // (2) Melody: likelihood of each candidate interval under the learned grammar.
+    // (2) Melody: likelihood of each candidate interval under the learned grammar,
+    // plus Session 43 musicality: a range penalty (melodies that wander too far
+    // from the root are penalized) and a contour smoothness bonus (small steps
+    // are rewarded) - like a premium device favouring singable, cohesive lines.
     total = 0;
     for (q = 0; q < 25; q++) total += Grammars.melodic.intervals[q];
+    var cumPitch = 0;
     for (var m = 0; m < candidate.melodyNotes.length; m++) {
       var idx = Math.max(0, Math.min(24, candidate.melodyNotes[m] + 12));
       score += (Grammars.melodic.intervals[idx] / total) * 4;
+      cumPitch += candidate.melodyNotes[m];
+      // range penalty: penalize wandering more than 12 semitones from the root
+      if (Math.abs(cumPitch) > 12) score -= (Math.abs(cumPitch) - 12) * 0.5;
+      // contour smoothness bonus: reward small steps (<=2 semitones)
+      if (Math.abs(candidate.melodyNotes[m]) <= 2) score += 0.5;
     }
     // (3) Rhythm: section-aware target density (Session 42). High-energy sections
     // (DROP/BUILD) favour denser rhythms; low-energy sections (BREAK/OUTRO) favour
