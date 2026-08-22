@@ -265,6 +265,12 @@ var CandidateGenerator = {
     for (var rp = 1; rp < candidate.melodyNotes.length; rp++) {
       if (candidate.melodyNotes[rp] === candidate.melodyNotes[rp - 1]) score += 0.7;
     }
+    // Session 45: phrase-structure bonus - reward melodies that resolve back
+    // toward the root at the end of the phrase (satisfying resolution), like
+    // a premium device favouring phrases that feel complete.
+    var finalPitch = 0;
+    for (var fp = 0; fp < candidate.melodyNotes.length; fp++) finalPitch += candidate.melodyNotes[fp];
+    if (Math.abs(finalPitch) <= 2) score += 1.5;
     // (3) Rhythm: section-aware target density (Session 42). High-energy sections
     // (DROP/BUILD) favour denser rhythms; low-energy sections (BREAK/OUTRO) favour
     // sparser ones - like a premium device adapting density to the section's role.
