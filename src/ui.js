@@ -125,6 +125,10 @@ function initPatternTools(){
   bind("ptDouble",function(){ patternDouble(pt()); });
   bind("ptHalf",function(){ patternHalf(pt()); });
   bind("ptInvert",function(){ patternInvert(pt()); });
+  // Session 41: all-section transforms
+  bind("ptClearAll",function(){ patternClearAll(pt()); });
+  bind("ptReverseAll",function(){ patternReverseAll(pt()); });
+  bind("ptInvertAll",function(){ patternInvertAll(pt()); });
 }
 function buildSeq(){
   var root=$("seq"); if(!root) return;
