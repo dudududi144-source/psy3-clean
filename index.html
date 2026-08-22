@@ -896,6 +896,7 @@ body {
     <span class="pt-label">TOOLS</span>
     <select id="toolPart" class="pt-select" title="Apply tools to this part (or ALL)">
       <option value="">ALL</option>
+      <option value="ALL">ALL (all sections)</option>
       <option value="KICK">KICK</option>
       <option value="BASS">BASS</option>
       <option value="PERC">PERC</option>
@@ -911,6 +912,8 @@ body {
     <button id="ptDouble" class="mini-btn" title="Double-time (2x speed)">&times;2</button>
     <button id="ptHalf" class="mini-btn" title="Half-time">&divide;2</button>
     <button id="ptInvert" class="mini-btn" title="Invert on/off steps">INV</button>
+    <button id="ptReverseAll" class="mini-btn" title="Reverse the selected part across ALL sections">REV∀</button>
+    <button id="ptInvertAll" class="mini-btn" title="Invert the selected part across ALL sections">INV∀</button>
   </div>
   <div id="pads" class="pads"></div>
   <div class="timeline-wrap">
@@ -940,7 +943,7 @@ body {
 // Session 25 build guard: when the build token changes, purge stale caches and
 // service workers once, so returning users never stay stuck on an old version.
 (function(){
-  var BUILD = "s40-v25"; // session 40: per-step ARP velocity // session 39: per-section scale // session 38: ADAPTIVE brain functional // session 37: GENERATIVE brain functional // session 36: section-aware pattern tools // session 35: LEAD chance // session 34: ARP chance + arrangement-persist fix // session 33: percussion chance // session 32: tap tempo // session 31: pattern tools // session 30: retheme // session 29: arrangement templates // session 28: polyrhythm loop lengths // session 27: force one-time purge so returning users see updates
+  var BUILD = "s41-v26"; // session 41: all-section pattern transforms // session 40: per-step ARP velocity // session 39: per-section scale // session 38: ADAPTIVE brain functional // session 37: GENERATIVE brain functional // session 36: section-aware pattern tools // session 35: LEAD chance // session 34: ARP chance + arrangement-persist fix // session 33: percussion chance // session 32: tap tempo // session 31: pattern tools // session 30: retheme // session 29: arrangement templates // session 28: polyrhythm loop lengths // session 27: force one-time purge so returning users see updates
   try {
     var seen = localStorage.getItem("psy3_build");
     if (seen !== BUILD) {
@@ -956,17 +959,17 @@ body {
   } catch (e) {}
 })();
 </script>
-<script src="src/core.js?v=25"></script>
-<script src="src/pools.js?v=25"></script>
-<script src="src/midi.js?v=25"></script>
-<script src="src/theory.js?v=25"></script>
-<script src="src/song.js?v=25"></script>
-<script src="src/groovebox.js?v=25"></script>
-<script src="src/dsp.js?v=25"></script>
-<script src="src/brain-runtime.js?v=25"></script>
-<script src="src/ui.js?v=25"></script>
-<script src="src/editor.js?v=25"></script>
-<script src="src/main.js?v=25"></script>
+<script src="src/core.js?v=26"></script>
+<script src="src/pools.js?v=26"></script>
+<script src="src/midi.js?v=26"></script>
+<script src="src/theory.js?v=26"></script>
+<script src="src/song.js?v=26"></script>
+<script src="src/groovebox.js?v=26"></script>
+<script src="src/dsp.js?v=26"></script>
+<script src="src/brain-runtime.js?v=26"></script>
+<script src="src/ui.js?v=26"></script>
+<script src="src/editor.js?v=26"></script>
+<script src="src/main.js?v=26"></script>
 <script>
 // Register service worker
 if ('serviceWorker' in navigator) {
