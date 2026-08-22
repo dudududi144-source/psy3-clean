@@ -251,11 +251,19 @@ var CandidateGenerator = {
       var idx = Math.max(0, Math.min(24, candidate.melodyNotes[m] + 12));
       score += (Grammars.melodic.intervals[idx] / total) * 4;
     }
-    // (3) Rhythm: target ~50% density; penalize walls of sound and near-empty bars.
+    // (3) Rhythm: section-aware target density (Session 42). High-energy sections
+    // (DROP/BUILD) favour denser rhythms; low-energy sections (BREAK/OUTRO) favour
+    // sparser ones - like a premium device adapting density to the section's role.
     var on = 0;
     for (var r = 0; r < candidate.rhythmPattern.length; r++) if (candidate.rhythmPattern[r]) on++;
     var density = on / candidate.rhythmPattern.length;
-    score += 8 - Math.abs(density - 0.5) * 20;
+    var targetDensity = 0.5;
+    if (currentState && currentState.sectionName) {
+      if (typeof energyAt === 'function' && typeof currentState.barInSection === 'number' && typeof currentState.sectionBars === 'number') {
+        targetDensity = 0.3 + 0.4 * energyAt(currentState.sectionName, currentState.barInSection, currentState.sectionBars);
+      }
+    }
+    score += 8 - Math.abs(density - targetDensity) * 20;
     // (4) Reward four-on-the-floor anchors.
     for (var k = 0; k < candidate.rhythmPattern.length; k += 4) if (candidate.rhythmPattern[k]) score += 1.5;
     // (5) Small contour-alignment bonus (kept, de-weighted).
@@ -793,6 +801,17 @@ Groovebox.prototype.onBar=function(absBar,t){
     if(ap&&ap.arp&&ap.arp.length){
       ap.arp.unshift(ap.arp.pop()); // rotate by 1 step
       if(typeof refreshSeqUi==="function") refreshSeqUi();
+    }
+  }
+  // Session 42: ADAPTIVE brain - use CandidateGenerator to auto-select the best
+  // rhythm candidate (it was dead code before; generateNextBar had no callers).
+  if(this.brainMode==="ADAPTIVE"&&Math.random()<0.18){
+    if(typeof CandidateGenerator!=="undefined"&&this.patterns&&this.patterns.kick){
+      var cs={lastBassInterval:0,sectionName:section.name,barInSection:barInSection,sectionBars:section.bars};
+      var bestCand=CandidateGenerator.generateNextBar(cs,rngFor(this.seed,"cand:"+absBar));
+      if(bestCand&&bestCand.rhythmPattern){
+        for(var ci=0;ci<16&&ci<bestCand.rhythmPattern.length;ci++){ this.patterns.kick[ci]=bestCand.rhythmPattern[ci]?1:0; }
+      }
     }
   }
   // Session 38: ADAPTIVE brain - reshape ARP from the learned melodic contour
