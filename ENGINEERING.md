@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 43 - melodic musicality scoring
+## Status: Session 44 - melodic repetition/motif bonus
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -932,6 +932,21 @@ Cache: scripts v28, token s43-v28, SW v26.
 - brain-runtime parses; range penalty and smoothness bonus verified by inspection.
 - The scoring still falls back gracefully (no crash) for short or empty melody candidates.
 - Static verification only. Smoke: set BRAIN to GENERATIVE/ADAPTIVE and listen for more cohesive leads.
+
+
+## Session 44 changes (this commit) - melodic repetition/motif bonus
+
+The generative brain's melodic scoring now also rewards repetition:
+
+- **Repetition/motif bonus**: melodies that repeat an interval (memorable motifs) are rewarded, like a premium device favouring hooks. This complements the learned-grammar likelihood (session 42), range penalty and contour smoothness (session 43).
+
+Cache: scripts v29, token s44-v29, SW v27.
+
+### Verification / honesty
+
+- brain-runtime parses; repetition bonus verified by inspection.
+- The bonus is small (0.7 per repeated interval) so it nudges rather than dominates.
+- Static verification only. Smoke: set BRAIN to GENERATIVE/ADAPTIVE and listen for more memorable leads.
 
 
 ## Phase plan
