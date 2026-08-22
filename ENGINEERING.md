@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 44 - melodic repetition/motif bonus
+## Status: Session 45 - melodic phrase-structure bonus
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -947,6 +947,21 @@ Cache: scripts v29, token s44-v29, SW v27.
 - brain-runtime parses; repetition bonus verified by inspection.
 - The bonus is small (0.7 per repeated interval) so it nudges rather than dominates.
 - Static verification only. Smoke: set BRAIN to GENERATIVE/ADAPTIVE and listen for more memorable leads.
+
+
+## Session 45 changes (this commit) - melodic phrase-structure bonus
+
+The generative brain's melodic scoring now also rewards phrase structure:
+
+- **Phrase-structure bonus**: melodies that resolve back toward the root at the end of the phrase (satisfying resolution) are rewarded, like a premium device favouring phrases that feel complete. This complements the learned-grammar likelihood, range penalty, contour smoothness, and repetition bonuses from sessions 42-44.
+
+Cache: scripts v30, token s45-v30, SW v28.
+
+### Verification / honesty
+
+- brain-runtime parses; phrase-structure bonus verified by inspection.
+- The bonus is modest (1.5 for resolving within 2 semitones of the root) so it nudges rather than dominates.
+- Static verification only. Smoke: set BRAIN to GENERATIVE/ADAPTIVE and listen for phrases that resolve.
 
 
 ## Phase plan
