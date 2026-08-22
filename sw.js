@@ -5,7 +5,7 @@
 // could not see shipped changes. Assets stay stale-while-revalidate, and the
 // app still boots offline from the precached shell.
 
-var CACHE_NAME = 'psy3-pro-v25'; // session 42 // session 41 // session 40 // session 39 // session 38 // session 37 // session 36 // session 35 // session 34 // session 33 // session 32 // session 31 // session 30 // session 29 // session 28 // session 27 // session 26: arrangement editor
+var CACHE_NAME = 'psy3-pro-v26'; // session 43 // session 42 // session 41 // session 40 // session 39 // session 38 // session 37 // session 36 // session 35 // session 34 // session 33 // session 32 // session 31 // session 30 // session 29 // session 28 // session 27 // session 26: arrangement editor
 var APP_SHELL = [
   'index.html',
   'src/core.js', 'src/pools.js', 'src/midi.js', 'src/theory.js', 'src/song.js',
