@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 39 - per-section scale
+## Status: Session 40 - per-step ARP velocity
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -861,6 +861,24 @@ Cache: scripts v24, token s39-v24, SW v22.
 - brain-runtime and editor parse; bass-scale fallback verified by inspection; M shortcut added.
 - Default behavior unchanged: theme.scaleKey equals the section mode at build time, so the bass scale is the same until the user cycles it.
 - Static verification only. Smoke: park the playhead in DROP, press M repeatedly -> the lead and bass shift through scales together.
+
+
+## Session 40 changes (this commit) - per-step ARP velocity
+
+Per-step velocity editing for the ARP row (the primary editable row):
+
+- **`arpNote` accepts a `vel` parameter** (default 1) that scales both the note level and the filter cutoff, so velocity changes both loudness and brightness.
+- **ARP entries carry a `vel` field** (default 1). New ARP steps start at full velocity.
+- **Wheel on an ARP step edits its velocity** (10% increments, clamped 10-100%); the step's opacity reflects its velocity for visual feedback.
+- The ARP scheduler passes the step's velocity to `arpNote`.
+
+Cache: scripts v25, token s40-v25, SW v23.
+
+### Verification / honesty
+
+- theory/brain-runtime/ui parse; velocity default 1 proves backward compatibility (existing ARP entries without a vel field play at full velocity).
+- Velocity editing is ARP-only this session; extending to other rows is a follow-up.
+- Static verification only. Smoke: scroll on an ARP step -> it dims/brightens and the note gets quieter/louder + darker/brighter.
 
 
 ## Phase plan
