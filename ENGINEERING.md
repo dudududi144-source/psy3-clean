@@ -3,7 +3,7 @@
 Living engineering record for this repository. **Rule: every claim here is verified
 against the code (static analysis / AST / git history). No claim without evidence.**
 
-## Status: Session 42 - section-aware scoring + CandidateGenerator wired
+## Status: Session 43 - melodic musicality scoring
 
 ## Verified critical defects (audit; line refs at time of audit)
 
@@ -914,6 +914,24 @@ Cache: scripts v27, token s42-v27, SW v25.
 - brain-runtime parses; section-aware scoring falls back to 0.5 without section context.
 - The CandidateGenerator wiring is probabilistic (18% per bar) so it does not override the user's patterns aggressively.
 - Static verification only. Smoke: set BRAIN to ADAPTIVE, play, and the kick pattern evolves.
+
+
+## Session 43 changes (this commit) - melodic musicality scoring
+
+The generative brain's melodic scoring is now more musical and more similar to what a premium device does automatically:
+
+- **Range penalty**: melodies that wander more than 12 semitones from the root are penalized, so the generator favours cohesive, singable lines instead of drifting.
+- **Contour smoothness bonus**: small melodic steps (<=2 semitones) are rewarded, favouring smooth, connected lines.
+
+These complement the learned-grammar likelihood (session 42) so the generator balances learned style with musical cohesion.
+
+Cache: scripts v28, token s43-v28, SW v26.
+
+### Verification / honesty
+
+- brain-runtime parses; range penalty and smoothness bonus verified by inspection.
+- The scoring still falls back gracefully (no crash) for short or empty melody candidates.
+- Static verification only. Smoke: set BRAIN to GENERATIVE/ADAPTIVE and listen for more cohesive leads.
 
 
 ## Phase plan
